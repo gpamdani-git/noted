@@ -6,13 +6,13 @@ const USER_STORAGE_KEY = 'noted_current_user_v1';
 
 export const DEFAULT_USER = {
   id: 'user-dani',
-  name: 'Dani Gpam',
+  name: 'Dani Akbar',
   avatar: 'D',
   color: '#00897b' // Teal from Notion screenshot
 };
 
 export const AVAILABLE_USERS = [
-  { id: 'user-dani', name: 'Dani Gpam', avatar: 'D', color: '#00897b' },
+  { id: 'user-dani', name: 'Dani Akbar', avatar: 'D', color: '#00897b' },
   { id: 'user-sarah', name: 'Sarah Product', avatar: 'S', color: '#ec4899' },
   { id: 'user-alex', name: 'Alex Architect', avatar: 'A', color: '#10b981' },
   { id: 'user-hudbird', name: 'Hudbird AI Reviewer', avatar: '🤖', color: '#8b5cf6' }
@@ -45,7 +45,7 @@ const INITIAL_COMMENTS = [
     blockId: 'b-callout-1',
     author: {
       id: 'user-dani',
-      name: 'Dani Gpam',
+      name: 'Dani Akbar',
       avatar: 'D',
       color: '#00897b'
     },
@@ -57,7 +57,7 @@ const INITIAL_COMMENTS = [
         id: 'reply-seed-welcome-1',
         author: {
           id: 'user-dani',
-          name: 'Dani Gpam',
+          name: 'Dani Akbar',
           avatar: 'D',
           color: '#00897b'
         },
@@ -72,7 +72,7 @@ const INITIAL_COMMENTS = [
     blockId: 'proj-desc-1',
     author: {
       id: 'user-dani',
-      name: 'Dani Gpam',
+      name: 'Dani Akbar',
       avatar: 'D',
       color: '#00897b'
     },
@@ -93,19 +93,23 @@ export const getStoredComments = () => {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      let updated = false;
-      if (!parsed.some((c) => c.id === 'comm-seed-page-1')) {
-        parsed.unshift(INITIAL_COMMENTS[0]);
-        updated = true;
+      // Deduplicate any repeated IDs that accumulated from the previous unshift loop
+      const seen = new Set();
+      const deduped = [];
+      for (const c of parsed) {
+        if (c && c.id && !seen.has(c.id)) {
+          seen.add(c.id);
+          deduped.push(c);
+        }
       }
-      if (!parsed.some((c) => c.id === 'comm-seed-projects')) {
-        parsed.push(INITIAL_COMMENTS[1]);
-        updated = true;
+
+      // Self-heal corrupted localStorage if duplicates existed
+      if (deduped.length !== parsed.length) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(deduped));
+        } catch {}
       }
-      if (updated) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-      }
-      return parsed;
+      return deduped;
     }
     return INITIAL_COMMENTS;
   } catch (err) {

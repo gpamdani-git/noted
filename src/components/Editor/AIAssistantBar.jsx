@@ -105,9 +105,11 @@ export const AIAssistantBar = ({
   };
 
   return (
-    <div className="ai-assistant-wrapper animate-popover" onClick={(e) => e.stopPropagation()}>
-      <div className="ai-gradient-glow" />
-      <div className="ai-assistant-card">
+    <>
+      <div className="ai-assistant-mobile-backdrop" onClick={onClose} />
+      <div className="ai-assistant-wrapper animate-popover" onClick={(e) => e.stopPropagation()}>
+        <div className="ai-gradient-glow" />
+        <div className="ai-assistant-card">
         {/* Top Input Bar */}
         <div className="ai-input-row">
           <div className="ai-sparkle-icon">
@@ -234,7 +236,8 @@ export const AIAssistantBar = ({
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };

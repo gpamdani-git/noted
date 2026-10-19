@@ -28,16 +28,20 @@
 
 /* Header */
 .sidebar-header {
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 10px 6px 12px;
+  padding: 0 10px 0 12px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .workspace-profile-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   min-width: 0;
   padding: 3px 6px;
   border-radius: 4px;
@@ -60,6 +64,7 @@
   justify-content: center;
   font-size: 13px;
   flex-shrink: 0;
+  margin-right: 2px;
 }
 
 [data-theme='dark'] .workspace-avatar-notion {
@@ -747,4 +752,64 @@
   background: #333333;
   border-color: rgba(255, 255, 255, 0.25);
 }
+
+/* Mobile Sidebar Drawer (Notion Mobile REA Specification) */
+.sidebar-mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    z-index: 1200;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .noted-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 290px;
+    max-width: 85vw;
+    z-index: 1300;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
+    transform: translateX(0);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-left: 0 !important;
+    padding-top: max(env(safe-area-inset-top, 0px), 16px);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px);
+    box-sizing: border-box;
+  }
+
+  .noted-sidebar.collapsed {
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+
+  .sidebar-header {
+    height: 44px;
+    padding: 0 12px;
+  }
+
+  .sidebar-search-section {
+    padding: 6px 12px 10px;
+  }
+
+  .sidebar-search-bar-btn {
+    height: 36px;
+    font-size: 13.5px;
+    padding: 0 10px;
+    border-radius: 8px;
+  }
+
+  .sidebar-search-kbd {
+    display: none;
+  }
+}
+
 

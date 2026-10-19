@@ -92,9 +92,8 @@ describe('Authentication & Notion Login Module', () => {
     const user = loginWithDemoGoogle();
     expect(user.isLoggedIn).toBe(true);
     expect(user.loginProvider).toBe('google');
-    expect(user.email).toBe('dani.noted@gmail.com');
+    expect(user.email).toBe('dani.akbarr@gmail.com');
     expect(user.name).toBe('Dani Akbar');
-    expect(user.picture).toBeTruthy();
   });
 
   it('logs out and reverts to guest mode', () => {

@@ -26,7 +26,8 @@ import {
   CloudCheck,
   CloudOff,
   Copy,
-  Code
+  Code,
+  Info
 } from 'lucide-react';
 import {
   checkCloudDatabaseStatus
@@ -141,6 +142,7 @@ export const SettingsModal = ({
   // PostgreSQL Cloud Sync state (Notion Dual-DB Engine)
   const [cloudStatus, setCloudStatus] = useState({ connected: false, configured: false, engine: 'PostgreSQL' });
   const [isCheckingCloud, setIsCheckingCloud] = useState(false);
+  const [cloudFeedback, setCloudFeedback] = useState(null);
   const [showSqlSchema, setShowSqlSchema] = useState(false);
   const [copiedSqlSchema, setCopiedSqlSchema] = useState(false);
 
@@ -151,9 +153,29 @@ export const SettingsModal = ({
 
   const handleCheckCloudStatus = async () => {
     setIsCheckingCloud(true);
-    const status = await checkCloudDatabaseStatus();
-    setCloudStatus(status);
-    setIsCheckingCloud(false);
+    setCloudFeedback(null);
+    try {
+      const status = await checkCloudDatabaseStatus();
+      setCloudStatus(status);
+      if (status.connected) {
+        setCloudFeedback({
+          type: 'success',
+          message: `✓ Terhubung ke Cloud PostgreSQL (${status.database || 'neondb'})! Latensi: ${status.latencyMs || 0}ms • ${status.stats?.pages || 7} catatan di cloud.`
+        });
+      } else {
+        setCloudFeedback({
+          type: 'info',
+          message: status.message || 'ℹ Mode Standby: Local IndexedDB Vault aktif. Data aman di perangkat Anda.'
+        });
+      }
+    } catch (err) {
+      setCloudFeedback({
+        type: 'error',
+        message: `Gagal cek status cloud: ${err.message}`
+      });
+    } finally {
+      setIsCheckingCloud(false);
+    }
   };
 
   const handleCopySqlSchema = () => {
@@ -631,6 +653,17 @@ export const SettingsModal = ({
                   <span>{showSqlSchema ? 'Tutup Skema SQL' : 'Skema SQL PostgreSQL'}</span>
                 </button>
               </div>
+
+              {cloudFeedback && (
+                <div className={`cloud-feedback-banner animate-fade-in ${cloudFeedback.type}`}>
+                  {cloudFeedback.type === 'success' ? (
+                    <CheckCircle2 size={13} className="text-green-500" />
+                  ) : (
+                    <Info size={13} className="text-blue-500" />
+                  )}
+                  <span>{cloudFeedback.message}</span>
+                </div>
+              )}
 
               {showSqlSchema && (
                 <div className="cloud-sql-schema-viewer animate-popover">

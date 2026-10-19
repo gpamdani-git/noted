@@ -134,6 +134,7 @@ function localApiPlugin() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [react(), localMediaPlugin(), localApiPlugin()],
   server: {
     fs: {

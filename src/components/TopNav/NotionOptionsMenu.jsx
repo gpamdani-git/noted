@@ -14,7 +14,8 @@ import {
   Check,
   ChevronRight,
   Sun,
-  Moon
+  Moon,
+  LogIn
 } from 'lucide-react';
 import './NotionOptionsMenu.css';
 
@@ -32,15 +33,17 @@ export const NotionOptionsMenu = ({
   onPrintPDF,
   onClose,
   theme,
-  onToggleTheme
+  onToggleTheme,
+  currentUser,
+  onOpenLogin
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
   const inputRef = useRef(null);
 
-  // Focus search input on mount
+  // Focus search input on mount (desktop only to prevent keyboard popup on mobile)
   useEffect(() => {
-    if (inputRef.current) {
+    if (inputRef.current && window.innerWidth > 768) {
       inputRef.current.focus();
     }
   }, []);
@@ -183,7 +186,17 @@ export const NotionOptionsMenu = ({
         if (onToggleTheme) onToggleTheme();
         onClose();
       }
-    }
+    },
+    ...(!currentUser?.isLoggedIn && onOpenLogin ? [{
+      id: 'login',
+      label: 'Log in / Masuk Akun',
+      icon: LogIn,
+      section: 'account',
+      onClick: () => {
+        onClose();
+        onOpenLogin();
+      }
+    }] : [])
   ];
 
   const filteredActions = query
@@ -191,7 +204,9 @@ export const NotionOptionsMenu = ({
     : allActions;
 
   return (
-    <div className="notion-options-popover animate-popover" onClick={(e) => e.stopPropagation()}>
+    <>
+      <div className="notion-options-mobile-backdrop" onClick={onClose} />
+      <div className="notion-options-popover animate-popover" onClick={(e) => e.stopPropagation()}>
       {/* 1. Search Bar */}
       <div className="notion-menu-search-wrap">
         <Search size={14} className="notion-menu-search-icon" />
@@ -422,10 +437,29 @@ export const NotionOptionsMenu = ({
                   </span>
                 </div>
               </div>
+
+              {!currentUser?.isLoggedIn && onOpenLogin && (
+                <div
+                  className="notion-menu-row login-menu-row"
+                  onClick={() => {
+                    onClose();
+                    onOpenLogin();
+                  }}
+                  style={{ marginTop: 2, background: 'rgba(35, 131, 226, 0.08)', borderRadius: 6 }}
+                >
+                  <div className="notion-menu-row-left">
+                    <LogIn size={15} className="notion-menu-item-icon" style={{ color: '#2383e2' }} />
+                    <span className="notion-menu-item-label" style={{ fontWeight: 600, color: '#2383e2' }}>
+                      Log in to Noted
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };

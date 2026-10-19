@@ -29,6 +29,11 @@
   flex: 1;
   height: 100%;
   overflow: hidden;
+  transition: padding-left 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.is-mac-desktop:not(.is-fullscreen) .noted-tab-bar.sidebar-collapsed .tab-bar-left-zone {
+  padding-left: 86px;
 }
 
 .window-nav-icon-btn {
@@ -290,24 +295,6 @@
   position: relative;
 }
 
-/* Share Popover */
-.notion-share-popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  width: 240px;
-  background: var(--bg-popover, #ffffff);
-  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  padding: 6px;
-  z-index: 1000;
-}
-
-[data-theme='dark'] .notion-share-popover {
-  background: #252525;
-  border-color: rgba(255, 255, 255, 0.08);
-}
 
 /* Context Menu */
 .tab-context-menu {
@@ -362,3 +349,12 @@
   background: var(--border-color, rgba(55, 53, 47, 0.08));
   margin: 4px 0;
 }
+
+/* Mobile & Small Screen Optimizations ala Notion Mobile */
+@media (max-width: 768px) {
+  .noted-tab-bar {
+    display: none !important;
+  }
+}
+
+

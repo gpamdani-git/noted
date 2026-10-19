@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Lock,
+  Share2,
   ChevronDown,
   MessageSquare,
   Sparkles,
@@ -16,7 +17,8 @@ import {
   Cloud,
   CloudCheck,
   CloudOff,
-  RefreshCw
+  RefreshCw,
+  PanelLeft
 } from 'lucide-react';
 import { NotionOptionsMenu } from './NotionOptionsMenu';
 import { DiscussionsPopover } from '../Navigation/DiscussionsPopover';
@@ -26,6 +28,8 @@ import './TopNav.css';
 
 export const TopNav = ({
   page,
+  isSidebarCollapsed,
+  onToggleSidebar,
   onOpenAI,
   onOpenComments,
   onToggleFavorite,
@@ -39,7 +43,9 @@ export const TopNav = ({
   onToggleTheme,
   cloudSyncStatus = 'synced',
   lastSyncedAt = null,
-  onTriggerCloudSync
+  onTriggerCloudSync,
+  currentUser,
+  onOpenLogin
 }) => {
   const [showPrivacyMenu, setShowPrivacyMenu] = useState(false);
   const [privacySetting, setPrivacySetting] = useState('Private');
@@ -118,6 +124,15 @@ export const TopNav = ({
     <div className="noted-sub-breadcrumb-bar">
       {/* Left: Breadcrumbs & Privacy Badge ala Notion Desktop */}
       <div className="breadcrumb-bar-left">
+        {onToggleSidebar && (
+          <button
+            className="mobile-sidebar-toggle-btn"
+            onClick={onToggleSidebar}
+            title={isSidebarCollapsed ? "Open sidebar" : "Close sidebar"}
+          >
+            <PanelLeft size={16} />
+          </button>
+        )}
         <div className="breadcrumb-title-link">
           <span className="breadcrumb-page-icon">{page.icon || '📄'}</span>
           <span className="breadcrumb-page-title">{page.title || 'Untitled'}</span>
@@ -185,13 +200,15 @@ export const TopNav = ({
             onClick={() => setShowShareMenu(!showShareMenu)}
             title="Share & Export"
           >
-            <Lock size={12} className="share-lock-icon" />
+            <Share2 size={13} className="share-btn-icon" />
             <span>Share</span>
           </button>
 
           {showShareMenu && (
-            <div className="notion-share-popover animate-popover">
-              <div className="dropdown-title">Share & Export</div>
+            <>
+              <div className="notion-share-mobile-backdrop" onClick={() => setShowShareMenu(false)} />
+              <div className="notion-share-popover animate-popover">
+                <div className="dropdown-title">Share & Export</div>
               <button
                 className="dropdown-item"
                 onClick={() => {
@@ -251,8 +268,9 @@ export const TopNav = ({
                 )}
               </button>
             </div>
-          )}
-        </div>
+          </>
+        )}
+      </div>
 
         {/* Discussions / Add Comment Button */}
         <div className="tab-menu-wrapper" ref={discussionsMenuRef}>
@@ -290,7 +308,7 @@ export const TopNav = ({
 
         {/* Copy Page Link Button */}
         <button
-          className={`tab-toolbar-btn ${copiedPageLink ? 'copied' : ''}`}
+          className={`tab-toolbar-btn copy-link-btn ${copiedPageLink ? 'copied' : ''}`}
           onClick={handleCopyPageLink}
           title={copiedPageLink ? 'Tautan disalin ke clipboard!' : 'Salin tautan halaman'}
         >
@@ -324,7 +342,7 @@ export const TopNav = ({
 
         {/* Favorite Star Button */}
         <button
-          className={`tab-toolbar-btn ${page.isFavorite ? 'favorited' : ''}`}
+          className={`tab-toolbar-btn star-btn ${page.isFavorite ? 'favorited' : ''}`}
           onClick={() => onToggleFavorite && onToggleFavorite(page.id)}
           title={page.isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}
         >
@@ -358,6 +376,8 @@ export const TopNav = ({
               onClose={() => setShowOptionsMenu(false)}
               theme={theme}
               onToggleTheme={onToggleTheme}
+              currentUser={currentUser}
+              onOpenLogin={onOpenLogin}
             />
           )}
         </div>

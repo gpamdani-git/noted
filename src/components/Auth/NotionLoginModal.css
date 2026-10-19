@@ -310,3 +310,224 @@
   line-height: 1.4;
   margin-top: 4px;
 }
+
+/* Desktop Google Login & Switcher */
+.google-desktop-auth-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.notion-subtle-switch-link {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  text-align: center;
+  cursor: pointer;
+  padding: 2px;
+  transition: color 0.15s ease;
+}
+
+.notion-subtle-switch-link:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.notion-custom-google-form {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.notion-custom-google-form .mini-input {
+  flex: 1;
+  font-size: 12.5px;
+  padding: 6px 10px;
+}
+
+.notion-mini-confirm-btn {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.notion-mini-confirm-btn:hover {
+  opacity: 0.9;
+}
+
+/* Google Account Chooser & Loading State */
+.google-accounts-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-hover, rgba(55, 53, 47, 0.04));
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.1));
+  border-radius: 8px;
+  padding: 8px;
+}
+
+[data-theme='dark'] .google-accounts-picker {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.google-account-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  width: 100%;
+}
+
+.google-account-item:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.08));
+}
+
+[data-theme='dark'] .google-account-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.google-account-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  color: #ffffff;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.google-account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.google-account-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.google-account-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.google-account-email {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.google-auth-loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.google-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(66, 133, 244, 0.2);
+  border-top-color: #4285F4;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mobile Responsiveness - Notion Bottom Sheet Login */
+@media (max-width: 768px) {
+  .notion-login-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .notion-login-modal {
+    max-width: 100%;
+    width: 100vw;
+    border-radius: 20px 20px 0 0;
+    max-height: 88vh;
+    max-height: 88dvh;
+    padding: 22px 20px max(calc(env(safe-area-inset-bottom, 0px) + 16px), 24px);
+    gap: 14px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.45);
+  }
+
+  .notion-login-header {
+    gap: 4px;
+    margin-bottom: 2px;
+  }
+
+  .notion-login-logo {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 2px;
+  }
+
+  .notion-login-title {
+    font-size: 19px;
+  }
+
+  .notion-login-subtitle {
+    font-size: 12.5px;
+  }
+
+  .notion-auth-btn {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .notion-login-input {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .notion-login-submit-btn {
+    height: 44px;
+    font-size: 14px;
+    font-weight: 600;
+    touch-action: manipulation;
+    margin-top: 6px;
+  }
+
+  .notion-guest-link {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+}

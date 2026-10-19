@@ -113,4 +113,14 @@ describe('QA Suite 4: Comments & Discussions (Kategori F: Notion Discussions)', 
     activeList = getBlockComments(pageId, blockId).filter((c) => !c.resolved);
     expect(activeList.length).toBe(0);
   });
+
+  it('does not auto-accumulate duplicate comments on repeated reads (414 auto comment bug prevention)', () => {
+    // Calling getPageComments or getStoredComments 10 times in a row
+    const countInitial = getPageComments('page-welcome').length;
+    for (let i = 0; i < 10; i++) {
+      getPageComments('page-welcome');
+    }
+    const countAfter = getPageComments('page-welcome').length;
+    expect(countAfter).toBe(countInitial);
+  });
 });

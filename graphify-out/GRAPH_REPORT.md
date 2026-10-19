@@ -1,23 +1,23 @@
-# Graph Report - noted  (2026-10-19)
+# Graph Report - noted  (2026-10-20)
 
 ## Corpus Check
-- 160 files · ~2,530,976 words
+- 174 files · ~2,549,756 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 37 file(s) not represented in the graph (top: .css 33, .csv 2, .example 1)
+- Unclassified: 55 file(s) not represented in the graph (top: .css 34, .xml 10, (none) 3)
 
 ## Summary
-- 1457 nodes · 2655 edges · 96 communities (79 shown, 17 thin omitted)
+- 1515 nodes · 2760 edges · 104 communities (77 shown, 27 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 43 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fcf75c9c`
+- Built from commit: `21c2fa60`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- csv
-- read_rows
+- core.py
+- test_core_data_quality.py
 - validate_data.py
 - BM25
 - BlockItem.jsx
@@ -26,31 +26,30 @@
 - design_system.py
 - search_stack
 - search
-- test_core_data_quality.py
+- ExampleInstrumentedTest.java
 - CatalogRefreshTest
 - Neon
 - Appendix B - Canonical Sources (read these before reinventing)
-- DesignSystemGenerator
+- format_ascii_box
 - UI/UX Pro Max - Design Intelligence
-- detect_domain
+- _palette_is_dark
 - DatabaseBlock.jsx
-- _style_is_dark_primary
+- test_design_system_mode.py
 - test_design_system_mode.py
 - Pre-Delivery Checklist (canonical — the only one)
 - Quick Reference
+- test_data_contracts.py
+- read_rows
 - _normalize
-- _contrast_ratio
-- core.py
 - 4. DESIGN ENGINEERING DIRECTIVES (Bias Correction)
-- TestThresholdGate
-- test_skill_script_paths.py
-- _check_font_catalog
-- _filter_anti_patterns_for_mode
+- main.cjs
+- test_catalog_summary_line_endings.py
+- read_rows
+- schema.sqlite.js
 - .oxlintrc.json
-- TestStackFlagWithDesignSystem
-- TestMetricMath
-- TestFixtureValidation
-- _row_identities
+- vite.config.js
+- Defining live queries
+- MainActivity.java
 - 0. BRIEF INFERENCE (Read the Room Before Anything Else)
 - electron-builder.json
 - 10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know)
@@ -59,23 +58,30 @@
 - 11. REDESIGN PROTOCOL
 - 3. DEFAULT ARCHITECTURE & CONVENTIONS
 - 6. PERFORMANCE & ACCESSIBILITY GUARDRAILS
-- main.cjs
-- versionHistory.js
+- db.js
+- _search_csv_detailed
 - Client-side reactivity
 - 12. THE BLOCK LIBRARY (Contract - Implementations Land Here Iteratively)
 - 5. CONTEXT-AWARE PROACTIVITY
 - 8. DARK MODE PROTOCOL
 - 7. DIAL DEFINITIONS (Technical Reference)
+- AI SDK agents on Neon Functions
 - Noted 📝
+- drizzle-kit
+- TestThresholdGate
+- generate_design_system
 - Managed Better Auth: implement login
 - Lakebase Postgres Branching
 - Neon Functions
-- format_ascii_box
-- db.js
+- CatalogSummaryLineEndingsTest
+- test_core.py
+- TestStackFlagWithDesignSystem
+- TestFixtureValidation
+- test_core.py
 - Neon AI Gateway
+- _domain_keywords
 - Postgres Egress Optimizer
 - Neon Object Storage
-- React
 - Server-side rendering
 - neon-functions/SKILL.md
 - Function Triggers
@@ -87,9 +93,7 @@
 - scripts
 - Semantic Vector Search
 - Neon Realtime
-- schema.sqlite.js
 - Production hardening for Neon Functions
-- vite.config.js
 - Sentry (errors, logs, and traces)
 - Mastra agents with Mastra Studio observability
 - Shipping native binaries with a Function
@@ -97,14 +101,11 @@
 - Server-sent events (SSE) on Neon Functions
 - hybrid-search.md
 - Managing Lakebase Search with Drizzle
-- AI SDK agents on Neon Functions
 - Claimable Neon
 - Full-Text Search with BM25 Ranking
 - Setup Flow
 - vercel.json
 - Troubleshooting and Neon-Specific Performance
-- CatalogSummaryLineEndingsTest
-- split_values
 - @playwright/test
 - Logs: CLI, Loki, and SDK pagination
 - neon/references/function-triggers.md
@@ -112,16 +113,16 @@
 - sdk.md
 
 ## God Nodes (most connected - your core abstractions)
-1. `react` - 47 edges
+1. `react` - 50 edges
 2. `search()` - 44 edges
 3. `DesignSystemGenerator` - 38 edges
-4. `search_stack()` - 35 edges
-5. `lucide-react` - 35 edges
-6. `App()` - 31 edges
-7. `BlockItem()` - 28 edges
-8. `getCurrentUser()` - 21 edges
-9. `Neon Functions` - 20 edges
-10. `scripts` - 19 edges
+4. `lucide-react` - 36 edges
+5. `search_stack()` - 35 edges
+6. `App()` - 33 edges
+7. `BlockItem()` - 29 edges
+8. `scripts` - 26 edges
+9. `vitest` - 21 edges
+10. `getCurrentUser()` - 21 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Public consumers through a Worker` --references--> `search()`  [INFERRED]
@@ -130,59 +131,55 @@
   .agents/skills/neon-functions/references/sentry.md → .agents/skills/ui-ux-pro-max/scripts/validate_data.py
 - `Environment Variables` --references--> `main()`  [INFERRED]
   .agents/skills/neon-functions/SKILL.md → .agents/skills/ui-ux-pro-max/scripts/validate_data.py
-- `TestReasoningContract` --uses--> `DesignSystemGenerator`  [INFERRED]
-  .agents/skills/ui-ux-pro-max/scripts/tests/test_data_contracts.py → .agents/skills/ui-ux-pro-max/scripts/design_system.py
+- `TestBm25CoreBehavior` --uses--> `BM25`  [INFERRED]
+  .agents/skills/ui-ux-pro-max/scripts/tests/test_core.py → .agents/skills/ui-ux-pro-max/scripts/core.py
 - `TestEndToEndCoherence` --uses--> `DesignSystemGenerator`  [INFERRED]
   .agents/skills/ui-ux-pro-max/scripts/tests/test_design_system_mode.py → .agents/skills/ui-ux-pro-max/scripts/design_system.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (96 total, 17 thin omitted)
+## Communities (104 total, 27 thin omitted)
 
-### Community 0 - "csv"
-Cohesion: 0.11
-Nodes (3): read_rows(), read_rows(), TestTextLayoutDataContracts
+### Community 0 - "core.py"
+Cohesion: 0.09
+Nodes (8): _passes_threshold(), _query_coverage(), resolve(), shipped_invocations(), SkillScriptPathsTest, read_rows(), read_rows(), TestTextLayoutDataContracts
 
-### Community 1 - "read_rows"
-Cohesion: 0.10
-Nodes (4): _resolve_dial(), read_rows(), TestLandingAndStackContract, TestReasoningContract
+### Community 1 - "test_core_data_quality.py"
+Cohesion: 0.16
+Nodes (10): read_rows(), TestAccessibilityGuidance, TestChartsTypographyAndIcons, TestCurrentReactGuidance, TestSemanticColors, _check_chart_contract(), _check_typography_contract(), _configured_font_names() (+2 more)
 
 ### Community 2 - "validate_data.py"
 Cohesion: 0.11
-Nodes (29): _catalog_date(), _check_app_interface_contract(), _check_catalog_contract(), _check_catalog_summary(), _check_color_contract(), _check_core_data_contract(), _check_file(), _check_icon_contract() (+21 more)
+Nodes (33): _catalog_date(), _check_app_interface_contract(), _check_catalog_contract(), _check_catalog_summary(), _check_color_contract(), _check_core_data_contract(), _check_file(), _check_font_catalog() (+25 more)
 
 ### Community 3 - "BM25"
-Cohesion: 0.14
-Nodes (5): BM25, _get_bm25(), _suggest_identities(), TestBm25CoreBehavior, TestTokenizer
+Cohesion: 0.16
+Nodes (4): BM25, _get_bm25(), _suggest_identities(), TestTokenizer
 
 ### Community 4 - "BlockItem.jsx"
 Cohesion: 0.05
-Nodes (85): lucide-react, react, @testing-library/react, vitest, BlockCommentPopover(), CommentsDrawer(), NotionInlineCommentPill(), NotionMarginCommentCard() (+77 more)
+Nodes (89): lucide-react, react, @testing-library/react, vitest, BlockCommentPopover(), CommentsDrawer(), NotionInlineCommentPill(), NotionMarginCommentCard() (+81 more)
 
 ### Community 5 - "package.json"
 Cohesion: 0.07
-Nodes (22): author, description, main, name, private, type, version, concurrently (+14 more)
+Nodes (24): author, description, main, name, private, type, version, @capacitor/android (+16 more)
 
 ### Community 6 - "App.jsx"
-Cohesion: 0.09
-Nodes (58): App(), NotionLoginModal(), CommandPaletteModal(), NOTION_AVATAR_COLORS, SettingsModal(), TrashModal(), TabBar(), Sidebar() (+50 more)
+Cohesion: 0.06
+Nodes (80): App(), NotionLoginModal(), CommandPaletteModal(), PageAnalyticsModal(), NOTION_AVATAR_COLORS, SettingsModal(), TrashModal(), VersionHistoryDrawer() (+72 more)
 
 ### Community 7 - "design_system.py"
-Cohesion: 0.07
-Nodes (14): _detect_page_type(), format_page_override_md(), generate_design_system(), _generate_intelligent_overrides(), persist_design_system(), safe_slug(), _write_persisted_file(), apply_decision_rules() (+6 more)
+Cohesion: 0.12
+Nodes (7): _detect_page_type(), format_page_override_md(), _generate_intelligent_overrides(), persist_design_system(), safe_slug(), _write_persisted_file(), format_output()
 
 ### Community 8 - "search_stack"
-Cohesion: 0.12
-Nodes (5): search_stack(), _rows(), TestNativeDesktopStackFreshness, _rows(), TestWebStackFreshness
+Cohesion: 0.08
+Nodes (10): _exact_stack_identifier(), _project_row(), search_stack(), _suggest_terms(), _valid_max_results(), _rows(), TestNativeDesktopStackFreshness, TestTextLayoutRetrieval (+2 more)
 
 ### Community 9 - "search"
-Cohesion: 0.10
-Nodes (5): search(), TestDiagnosticsContracts, TestSearchDomains, TestStyleTaxonomy, TestTextLayoutRetrieval
-
-### Community 10 - "test_core_data_quality.py"
-Cohesion: 0.16
-Nodes (10): read_rows(), TestAccessibilityGuidance, TestChartsTypographyAndIcons, TestCurrentReactGuidance, TestSemanticColors, _check_chart_contract(), _check_typography_contract(), _configured_font_names() (+2 more)
+Cohesion: 0.12
+Nodes (4): search(), _style_search_destination(), TestSearchDomains, TestStyleTaxonomy
 
 ### Community 12 - "Neon"
 Cohesion: 0.05
@@ -192,21 +189,29 @@ Nodes (36): Auth, 1. Install the Neon CLI, 2. Install the Neon MCP Server, 3. In
 Cohesion: 0.09
 Nodes (21): APPENDICES - Real Source-Backed Reference Material, Appendix A - Install Commands per Design System, Appendix B - Canonical Sources (read these before reinventing), Appendix C - Apple Liquid Glass: Honest Web Approximation, Apple Liquid Glass (Apple platforms only), Atlassian, Bootstrap, Carbon (+13 more)
 
+### Community 14 - "format_ascii_box"
+Cohesion: 0.13
+Nodes (9): ansi_ljust(), format_ascii_box(), add_wrapped(), wrap_text(), format_markdown(), hex_to_ansi(), _mode_support_labels(), section_header() (+1 more)
+
 ### Community 15 - "UI/UX Pro Max - Design Intelligence"
 Cohesion: 0.11
 Nodes (17): Before Delivering App UI, Example Workflow, If a search returns 0 results, Output Formats, Query Contract, Rule Categories by Priority, Running the search tool, Step 1: Analyze User Requirements (+9 more)
+
+### Community 16 - "_palette_is_dark"
+Cohesion: 0.18
+Nodes (4): _palette_is_dark(), _relative_luminance(), TestEndToEndCoherence, TestLuminance
 
 ### Community 17 - "DatabaseBlock.jsx"
 Cohesion: 0.35
 Nodes (9): CARD_GRADIENTS, DatabaseBlock(), DateCell(), formatDateDisplay(), getStatusColor(), getTagColor(), PROPERTY_TYPES, STATUS_OPTIONS (+1 more)
 
-### Community 18 - "_style_is_dark_primary"
-Cohesion: 0.24
-Nodes (4): _query_wants_dark(), _resolve_color_mode(), _style_is_dark_primary(), TestModeResolution
+### Community 18 - "test_design_system_mode.py"
+Cohesion: 0.15
+Nodes (6): _filter_anti_patterns_for_mode(), _query_wants_dark(), _resolve_color_mode(), _style_is_dark_primary(), TestAntiPatternGating, TestModeResolution
 
 ### Community 19 - "test_design_system_mode.py"
-Cohesion: 0.13
-Nodes (6): _palette_is_dark(), _relative_luminance(), _select_palette_for_mode(), TestEndToEndCoherence, TestLuminance, TestPaletteSelection
+Cohesion: 0.15
+Nodes (6): _button_outline_text_color(), _contrast_ratio(), _derive_dark_palette(), format_master_md(), _select_palette_for_mode(), TestPaletteSelection
 
 ### Community 20 - "Pre-Delivery Checklist (canonical — the only one)"
 Cohesion: 0.15
@@ -216,37 +221,41 @@ Nodes (12): Accessibility, Common Rules for Professional UI + Pre-Delivery Check
 Cohesion: 0.15
 Nodes (12): 10. Charts & Data (LOW), 1. Accessibility (CRITICAL), 2. Touch & Interaction (CRITICAL), 3. Performance (HIGH), 4. Style Selection (HIGH), 5. Layout & Responsive (HIGH), 6. Typography & Color (MEDIUM), 7. Animation (MEDIUM) (+4 more)
 
-### Community 22 - "_normalize"
-Cohesion: 0.22
-Nodes (5): _exact_match_diagnostic(), _legacy_successor_guidance(), _normalize(), _stack_query_requests_legacy(), _stack_row_filter()
+### Community 22 - "test_data_contracts.py"
+Cohesion: 0.15
+Nodes (7): apply_decision_rules(), _object_without_duplicates(), parse_decision_rules(), _validate_action(), split_values(), style_identities(), TestStyleIdentityContract
 
-### Community 23 - "_contrast_ratio"
-Cohesion: 0.22
-Nodes (4): _button_outline_text_color(), _contrast_ratio(), _derive_dark_palette(), format_master_md()
+### Community 23 - "read_rows"
+Cohesion: 0.23
+Nodes (3): read_rows(), TestGeneratedCatalogContract, TestLandingAndStackContract
 
-### Community 24 - "core.py"
-Cohesion: 0.09
-Nodes (17): _contains_phrase(), _domain_keywords(), _exact_stack_identifier(), _file_signature(), _load_csv(), _load_csv_snapshot(), _load_product_keywords(), _load_rows_or_empty() (+9 more)
+### Community 24 - "_normalize"
+Cohesion: 0.13
+Nodes (8): _exact_match_diagnostic(), _exact_row_identity(), _legacy_successor_guidance(), _normalize(), _row_identities(), _stack_query_requests_legacy(), _stack_row_filter(), _style_identity()
 
 ### Community 25 - "4. DESIGN ENGINEERING DIRECTIVES (Bias Correction)"
 Cohesion: 0.17
 Nodes (12): 4.10 Quotes & Testimonials, 4.11 Page Theme Lock (Light / Dark Mode Consistency), 4.1 Typography, 4.2 Color Calibration, 4.3 Layout Diversification, 4.4 Materiality, Shadows, Cards, 4.5 Interactive UI States, 4.6 Data & Form Patterns (+4 more)
 
-### Community 28 - "test_skill_script_paths.py"
-Cohesion: 0.38
-Nodes (3): resolve(), shipped_invocations(), SkillScriptPathsTest
+### Community 27 - "main.cjs"
+Cohesion: 0.11
+Nodes (15): { app, BrowserWindow, ipcMain, shell, dialog, Menu, session }, createMainWindow(), fs, getWindowStateFilePath(), gotTheLock, loadDatabaseUrl(), loadWindowState(), path (+7 more)
 
-### Community 29 - "_check_font_catalog"
-Cohesion: 0.39
-Nodes (4): TestGeneratedCatalogContract, _check_font_catalog(), _imported_weights(), _valid_google_fonts_exclusion_source()
+### Community 29 - "read_rows"
+Cohesion: 0.10
+Nodes (4): DesignSystemGenerator, _resolve_dial(), TestReasoningMatch, TestReasoningContract
+
+### Community 30 - "schema.sqlite.js"
+Cohesion: 0.18
+Nodes (9): drizzle-orm, pages, pages, trash, users, workspaceSettings, trash, users (+1 more)
 
 ### Community 31 - ".oxlintrc.json"
 Cohesion: 0.33
 Nodes (5): plugins, rules, react/only-export-components, react/rules-of-hooks, $schema
 
-### Community 35 - "_row_identities"
+### Community 34 - "Defining live queries"
 Cohesion: 0.33
-Nodes (3): _exact_row_identity(), _row_identities(), _style_identity()
+Nodes (6): Defining live queries, Parameter types, Query parameters, Table requirements, Using a query builder or ORM, Using raw SQL
 
 ### Community 36 - "0. BRIEF INFERENCE (Read the Room Before Anything Else)"
 Cohesion: 0.40
@@ -280,17 +289,17 @@ Nodes (7): 3.A Stack, 3.B State, 3.C Icons, 3.D Emoji Policy, 3. DEFAULT ARCHITE
 Cohesion: 0.29
 Nodes (7): 6.A Hardware Acceleration, 6.B Reduced Motion (mandatory), 6.C Dark Mode (mandatory for any consumer-facing page), 6.D Core Web Vitals Targets, 6.E DOM Cost, 6.F Z-Index Restraint, 6. PERFORMANCE & ACCESSIBILITY GUARDRAILS
 
-### Community 44 - "main.cjs"
-Cohesion: 0.12
-Nodes (13): { app, BrowserWindow, ipcMain, shell, dialog, Menu }, createMainWindow(), fs, getWindowStateFilePath(), gotTheLock, loadWindowState(), path, saveWindowState() (+5 more)
+### Community 44 - "db.js"
+Cohesion: 0.26
+Nodes (9): ensureSchema(), getConnectionString(), getDrizzlePg(), getPool(), getSqliteDb(), handler(), handler(), better-sqlite3 (+1 more)
 
-### Community 45 - "versionHistory.js"
-Cohesion: 0.39
-Nodes (11): PageAnalyticsModal(), VersionHistoryDrawer(), computeBlockBreakdown(), computeCharacterCount(), computeReadingTime(), computeWordCount(), createSnapshotObject(), deletePageSnapshot() (+3 more)
+### Community 45 - "_search_csv_detailed"
+Cohesion: 0.20
+Nodes (5): _contains_phrase(), _rewrite_query_for_domain(), _search_csv(), _search_csv_detailed(), TestBm25CoreBehavior
 
 ### Community 46 - "Client-side reactivity"
-Cohesion: 0.25
-Nodes (8): Client-side reactivity, Contents, Create the collection, Manage optimistic state, Other frameworks, Query the collection, Seal a broader query, TanStack DB
+Cohesion: 0.12
+Nodes (16): Changing query parameters, Client-side reactivity, Contents, Create the collection, Handling errors, initialData, Manage optimistic state, Other frameworks (+8 more)
 
 ### Community 48 - "12. THE BLOCK LIBRARY (Contract - Implementations Land Here Iteratively)"
 Cohesion: 0.40
@@ -308,6 +317,10 @@ Nodes (5): 8.A Token Strategy (pick one, stick to it), 8.B Do Not Prescribe Spec
 Cohesion: 0.50
 Nodes (4): 7. DIAL DEFINITIONS (Technical Reference), DESIGN_VARIANCE (Level 1-10), MOTION_INTENSITY (Level 1-10), VISUAL_DENSITY (Level 1-10)
 
+### Community 52 - "AI SDK agents on Neon Functions"
+Cohesion: 0.29
+Nodes (7): 1. Declare the gateway and the function, 2. The handler: stream a tool-calling agent, 3. Generate images and persist them, 4. Call it directly from the client (don't proxy the stream), 5. Run and deploy, AI SDK agents on Neon Functions, Further reading
+
 ### Community 53 - "Noted 📝"
 Cohesion: 0.22
 Nodes (8): 📦 Database & Drizzle CLI, ✨ Features, 🚀 Getting Started, Installation, 📄 License, Noted 📝, Prerequisites, 🛠️ Tech Stack
@@ -324,17 +337,13 @@ Nodes (25): Beta Support Guidance (Mandatory), Branch Type Decision, Branching i
 Cohesion: 0.08
 Nodes (26): Application instrumentation, Architecture: Where Functions Fit, Availability, Built-in branch logs, Client must reconnect, Connecting to Postgres, Develop Locally and Deploy, Environment Variables (+18 more)
 
-### Community 63 - "format_ascii_box"
-Cohesion: 0.13
-Nodes (9): ansi_ljust(), format_ascii_box(), add_wrapped(), wrap_text(), format_markdown(), hex_to_ansi(), _mode_support_labels(), section_header() (+1 more)
-
-### Community 67 - "db.js"
-Cohesion: 0.26
-Nodes (9): ensureSchema(), getConnectionString(), getDrizzlePg(), getPool(), getSqliteDb(), handler(), handler(), better-sqlite3 (+1 more)
-
 ### Community 75 - "Neon AI Gateway"
 Cohesion: 0.12
 Nodes (16): Availability, Build Agents with Mastra (Recommended), Build Agents with the Vercel AI SDK (Recommended), Enabling the gateway: plan and model-catalog gating, Environment Variables, Further Reading, Generate Embeddings with the AI SDK, List Available Models at Runtime (`/v1/models`) (+8 more)
+
+### Community 76 - "_domain_keywords"
+Cohesion: 0.22
+Nodes (6): _domain_keywords(), _file_signature(), _load_csv(), _load_csv_snapshot(), _load_product_keywords(), _load_rows_or_empty()
 
 ### Community 77 - "Postgres Egress Optimizer"
 Cohesion: 0.12
@@ -343,10 +352,6 @@ Nodes (16): Application-side aggregation, Check if pg_stat_statements is availab
 ### Community 78 - "Neon Object Storage"
 Cohesion: 0.12
 Nodes (15): Architecture: Where Object Storage Fits, Availability, Built-in Branch Logs, CLI Bucket and Object Commands, Environment Variables, Further Reading, Neon Documentation, Neon Infrastructure as Code (`neon.ts`) (+7 more)
-
-### Community 84 - "React"
-Cohesion: 0.25
-Nodes (8): Changing query parameters, Handling errors, initialData, React, RealtimeProvider, refreshQuery, useLiveQuery, utils
 
 ### Community 85 - "Server-side rendering"
 Cohesion: 0.13
@@ -365,8 +370,8 @@ Cohesion: 0.15
 Nodes (13): Autoscaling, Branching, Connection Pooling, Gotchas, Instant Restore, IP Allow Lists, Lakebase Postgres, Lakebase Search (+5 more)
 
 ### Community 96 - "devDependencies"
-Cohesion: 0.12
-Nodes (17): devDependencies, concurrently, cross-env, drizzle-kit, electron, electron-builder, jsdom, @playwright/test (+9 more)
+Cohesion: 0.11
+Nodes (19): devDependencies, better-sqlite3, concurrently, cross-env, drizzle-kit, electron, electron-builder, jsdom (+11 more)
 
 ### Community 103 - "Optimistic mutations"
 Cohesion: 0.15
@@ -377,12 +382,12 @@ Cohesion: 0.15
 Nodes (13): Contents, Debug subscriptions, Fetch from a server function, Fetch from an API endpoint, Getting the query to subscribe to, Handle errors, Listen for changes, Log client diagnostics (+5 more)
 
 ### Community 106 - "Defining queries"
-Cohesion: 0.11
-Nodes (18): Authorization, Contents, Defining live queries, Defining queries, Exposing an endpoint, Exposing queries, Live authorization, Parameter types (+10 more)
+Cohesion: 0.17
+Nodes (12): Authorization, Contents, Defining queries, Exposing an endpoint, Exposing queries, Live authorization, Renewing sealed queries, Sealing authorized queries (+4 more)
 
 ### Community 109 - "scripts"
-Cohesion: 0.11
-Nodes (19): scripts, build, db:generate, db:push, db:sqlite:push, db:sqlite:studio, db:studio, dev (+11 more)
+Cohesion: 0.08
+Nodes (26): scripts, android:build, android:open, android:sync, build, db:generate, db:push, db:sqlite:push (+18 more)
 
 ### Community 118 - "Semantic Vector Search"
 Cohesion: 0.18
@@ -391,10 +396,6 @@ Nodes (11): AI SDK (Recommended), Build the Index, Contents, Create the Extensio
 ### Community 121 - "Neon Realtime"
 Cohesion: 0.20
 Nodes (10): Choose the Stack, Core Pattern, Define and Seal Queries, How It Works, More Docs, Neon Realtime, Optimistic Writes, Server-Side Rendering (+2 more)
-
-### Community 123 - "schema.sqlite.js"
-Cohesion: 0.18
-Nodes (9): drizzle-orm, pages, pages, trash, users, workspaceSettings, trash, users (+1 more)
 
 ### Community 129 - "Production hardening for Neon Functions"
 Cohesion: 0.22
@@ -413,8 +414,8 @@ Cohesion: 0.29
 Nodes (7): `bundler: "none"`: ship a prebuilt directory, Custom `bundler`: return the file map, `externalPackages`: npm packages with a Node addon, Shipping native binaries with a Function, Size limits, Standalone executables, The runtime a binary lands on
 
 ### Community 142 - "dependencies"
-Cohesion: 0.18
-Nodes (11): dependencies, better-sqlite3, drizzle-orm, katex, lucide-react, nanoid, @neon/config, @neon/env (+3 more)
+Cohesion: 0.17
+Nodes (12): dependencies, @capacitor/android, @capacitor/cli, @capacitor/core, drizzle-orm, katex, lucide-react, nanoid (+4 more)
 
 ### Community 144 - "Server-sent events (SSE) on Neon Functions"
 Cohesion: 0.29
@@ -427,10 +428,6 @@ Nodes (3): Adapt the Hybrid Search, Hybrid Search, RRF Example
 ### Community 149 - "Managing Lakebase Search with Drizzle"
 Cohesion: 0.25
 Nodes (8): BM25 Index, Config, Extensions, Generate and Store Embeddings, Managing Lakebase Search with Drizzle, Query, Schema, Tune Per Query
-
-### Community 160 - "AI SDK agents on Neon Functions"
-Cohesion: 0.29
-Nodes (7): 1. Declare the gateway and the function, 2. The handler: stream a tool-calling agent, 3. Generate images and persist them, 4. Call it directly from the client (don't proxy the stream), 5. Run and deploy, AI SDK agents on Neon Functions, Further reading
 
 ### Community 161 - "Claimable Neon"
 Cohesion: 0.29
@@ -452,29 +449,25 @@ Nodes (3): buildCommand, framework, outputDirectory
 Cohesion: 0.33
 Nodes (6): Choose CLI or MCP, Inspect Neon Cache Behavior Per Query, Interpret Results Safely, Performance Workflow, Pick the Diagnostic, Troubleshooting and Neon-Specific Performance
 
-### Community 195 - "split_values"
-Cohesion: 0.47
-Nodes (3): split_values(), style_identities(), TestStyleIdentityContract
-
 ## Knowledge Gaps
-- **10 isolated node(s):** `@neon/env`, `nanoid`, `@testing-library/dom`, `@types/react`, `@types/react-dom` (+5 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 709 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **13 isolated node(s):** `@capacitor/android`, `@capacitor/cli`, `@capacitor/core`, `@neon/env`, `nanoid` (+8 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 733 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **27 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `search()` connect `search` to `csv`, `Production hardening for Neon Functions`, `read_rows`, `_row_identities`, `BM25`, `design_system.py`, `test_core_data_quality.py`, `detect_domain`, `_normalize`, `core.py`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `search()` connect `search` to `core.py`, `Production hardening for Neon Functions`, `test_core.py`, `BM25`, `test_core_data_quality.py`, `design_system.py`, `search_stack`, `test_core.py`, `_domain_keywords`, `_search_csv_detailed`, `_normalize`, `read_rows`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `DesignSystemGenerator` (e.g. with `TestReasoningMatch` and `TestReasoningContract`) actually correct?**
   _`DesignSystemGenerator` has 4 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `@neon/env`, `nanoid`, `@testing-library/dom` to the rest of the system?**
-  _10 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `csv` be split into smaller, more focused modules?**
-  _Cohesion score 0.1053763440860215 - nodes in this community are weakly interconnected._
-- **Why does `main()` connect `validate_data.py` to `Sentry (errors, logs, and traces)`, `Neon Functions`, `design_system.py`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
-- **Should `read_rows` be split into smaller, more focused modules?**
-  _Cohesion score 0.10333333333333333 - nodes in this community are weakly interconnected._
-- **Why does `Neon Functions` connect `Neon Functions` to `neon-functions/SKILL.md`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **What connects `@capacitor/android`, `@capacitor/cli`, `@capacitor/core` to the rest of the system?**
+  _13 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `core.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.08858858858858859 - nodes in this community are weakly interconnected._
+- **Why does `react` connect `BlockItem.jsx` to `DatabaseBlock.jsx`, `package.json`, `App.jsx`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Should `validate_data.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.10685249709639953 - nodes in this community are weakly interconnected._
+- **Why does `search_stack()` connect `search_stack` to `core.py`, `test_core.py`, `design_system.py`, `search`, `_domain_keywords`, `_search_csv_detailed`, `_normalize`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._

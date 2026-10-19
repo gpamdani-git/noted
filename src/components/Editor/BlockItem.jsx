@@ -71,7 +71,7 @@ const CODE_LANGUAGES = [
  * Notion-style WYSIWYG ContentEditable block component.
  * Allows live rich-text typing and editing without exposing raw HTML tags or markdown coding.
  */
-const BlockRichText = React.forwardRef(({
+export const BlockRichText = React.forwardRef(({
   blockId,
   type,
   text,
@@ -152,17 +152,64 @@ const BlockRichText = React.forwardRef(({
     }
   }, [text, blockId, allPages]);
 
+  const updateEmptyState = () => {
+    const el = elRef.current;
+    if (!el) return;
+    const hasContent = Boolean(el.textContent && el.textContent.trim().length > 0);
+    if (hasContent) {
+      el.classList.remove('is-empty');
+      el.setAttribute('data-empty', 'false');
+    } else {
+      el.classList.add('is-empty');
+      el.setAttribute('data-empty', 'true');
+    }
+  };
+
   const handleInput = () => {
+    updateEmptyState();
     if (isComposingRef.current) return;
     const el = elRef.current;
     if (!el) return;
     const currentHtml = el.innerHTML;
     lastHtmlRef.current = currentHtml;
-    const plainText = el.innerText || '';
+    const plainText = el.innerText || el.textContent || '';
     const newMarkdown = richHtmlToMarkdown(currentHtml);
     lastMarkdownFromInputRef.current = newMarkdown;
     if (onUpdateText) {
       onUpdateText(newMarkdown, plainText);
+    }
+  };
+
+  const handleBeforeInput = (e) => {
+    // Ensure placeholder is cleared synchronously before DOM paint on mobile keystrokes
+    if (e.data && e.data.trim().length > 0) {
+      const el = elRef.current;
+      if (el) {
+        el.classList.remove('is-empty');
+        el.setAttribute('data-empty', 'false');
+      }
+    }
+
+    // Intercept Enter / newline on mobile soft keyboards (e.g. Gboard) before browser inserts <br>
+    if (e.inputType === 'insertParagraph' || (e.inputType === 'insertLineBreak' && !e.shiftKey)) {
+      e.preventDefault();
+      isComposingRef.current = false;
+      handleInput();
+      if (onKeyDown) {
+        const syntheticEvent = {
+          key: 'Enter',
+          code: 'Enter',
+          keyCode: 13,
+          which: 13,
+          shiftKey: false,
+          metaKey: false,
+          ctrlKey: false,
+          altKey: false,
+          preventDefault: () => {},
+          stopPropagation: () => {}
+        };
+        onKeyDown(syntheticEvent);
+      }
     }
   };
 
@@ -260,6 +307,7 @@ const BlockRichText = React.forwardRef(({
       data-block-id={blockId}
       data-empty={isEmpty ? 'true' : 'false'}
       onInput={handleInput}
+      onBeforeInput={handleBeforeInput}
       onKeyDown={handleKeyDownInternal}
       onPaste={onPaste}
       onFocus={onFocus}
@@ -267,6 +315,10 @@ const BlockRichText = React.forwardRef(({
       onClick={handleLinkOrMentionClick}
       onCompositionStart={() => {
         isComposingRef.current = true;
+        updateEmptyState();
+      }}
+      onCompositionUpdate={() => {
+        updateEmptyState();
       }}
       onCompositionEnd={() => {
         isComposingRef.current = false;
@@ -927,7 +979,9 @@ export const BlockItem = ({
   const handleKeyDown = (e) => {
     // Notion Space markdown trigger shortcuts on paragraph blocks
     if (e.key === ' ' && block.type === 'paragraph' && !e.shiftKey) {
-      const val = (block.text || '').replace(/[\u200B\u00A0]/g, ' ').trim();
+      const domLive = inputRef.current ? (inputRef.current.innerText || inputRef.current.textContent || '') : '';
+      const rawText = domLive.trim() ? domLive : (block.text || '');
+      const val = rawText.replace(/[\u200B\u00A0]/g, ' ').trim();
 
       // Divider Line: ---, ***, ___, —
       if (/^(?:-{3,}|\*{3,}|_{3,}|—)$/.test(val)) {
@@ -1123,7 +1177,9 @@ export const BlockItem = ({
         return;
       }
       e.preventDefault();
-      const val = (block.text || '').replace(/[\u200B\u00A0]/g, ' ').trim();
+      const domText = inputRef.current ? (inputRef.current.innerText || inputRef.current.textContent || '') : '';
+      const rawText = domText.trim() ? domText : (block.text || '');
+      const val = rawText.replace(/[\u200B\u00A0]/g, ' ').trim();
 
       // Divider Line on Enter: ---, ***, ___, —
       if (block.type === 'paragraph' && /^(?:-{3,}|\*{3,}|_{3,}|—)$/.test(val)) {
@@ -1152,6 +1208,11 @@ export const BlockItem = ({
         block.type === 'to_do'
       ) {
         nextType = block.type;
+      }
+
+      // Sync current block text if changed before creating the next block
+      if (domText && domText !== block.text) {
+        onUpdateBlock(block.id, { text: domText.replace(/\n$/, '') });
       }
 
       onAddBlockBelow(index, nextType);
@@ -1432,7 +1493,11 @@ export const BlockItem = ({
       onDrop={(e) => !isLocked && onDrop && onDrop(e, index)}
       onContextMenu={(e) => {
         if (isLocked) return;
-        // Prevent default browser context menu and open Notion block context menu
+        // On mobile touch viewports, long-press/text selection natively fires contextmenu.
+        // Suppress opening the desktop floating context menu to avoid double-menu clutter.
+        if (typeof window !== 'undefined' && (window.innerWidth <= 768 || window.matchMedia('(hover: none)').matches)) {
+          return;
+        }
         e.preventDefault();
         setShowMenu(true);
       }}

@@ -30,6 +30,7 @@ import {
   subscribeToMultiTabSync,
   startLiveSyncPulse
 } from './utils/cloudSync';
+import { pageToMarkdown, downloadMarkdownFile } from './utils/markdown';
 import './App.css';
 
 export function App() {
@@ -153,6 +154,12 @@ export function App() {
 
   // Desktop Platform & Deep-link detection (Notion REA Desktop Integration)
   useEffect(() => {
+    // DOM fullscreen change listener for web & browser
+    const handleDomFullscreen = () => {
+      document.documentElement.classList.toggle('is-fullscreen', Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleDomFullscreen);
+
     if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
       document.documentElement.classList.add('is-electron');
       if (window.electronAPI.platform === 'darwin') {
@@ -161,8 +168,18 @@ export function App() {
         document.documentElement.classList.add('is-windows-desktop');
       }
 
+      // Check initial macOS/Windows window fullscreen status
+      window.electronAPI.isFullScreen?.().then((isFs) => {
+        document.documentElement.classList.toggle('is-fullscreen', Boolean(isFs));
+      });
+
+      // Synchronize native window fullscreen events from Electron main process
+      const cleanupFullscreen = window.electronAPI.onFullScreenChange?.((isFs) => {
+        document.documentElement.classList.toggle('is-fullscreen', Boolean(isFs));
+      });
+
       // Listen for deep link events (noted://)
-      const cleanup = window.electronAPI.onDeepLink?.((url) => {
+      const cleanupDeepLink = window.electronAPI.onDeepLink?.((url) => {
         try {
           const parsed = new URL(url);
           const pageId = parsed.searchParams.get('pageId');
@@ -173,8 +190,17 @@ export function App() {
           console.warn('[Noted Desktop] Deep link notice:', e);
         }
       });
-      return cleanup;
+
+      return () => {
+        document.removeEventListener('fullscreenchange', handleDomFullscreen);
+        if (cleanupFullscreen) cleanupFullscreen();
+        if (cleanupDeepLink) cleanupDeepLink();
+      };
     }
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleDomFullscreen);
+    };
   }, []);
 
   // Flag to avoid re-triggering broadcast when applying incoming sync
@@ -768,8 +794,85 @@ export function App() {
     }
   };
 
+  const handleExportPage = async () => {
+    if (!activePage) return;
+    const md = pageToMarkdown(activePage);
+    const safeTitle = (activePage.title || 'untitled').toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const defaultFilename = `${safeTitle}.md`;
+
+    if (typeof window !== 'undefined' && window.electronAPI?.showSaveDialog && window.electronAPI?.writeFile) {
+      try {
+        const result = await window.electronAPI.showSaveDialog({
+          title: 'Export Page as Markdown',
+          defaultPath: defaultFilename,
+          filters: [
+            { name: 'Markdown Files', extensions: ['md'] },
+            { name: 'All Files', extensions: ['*'] }
+          ]
+        });
+
+        if (!result.canceled && result.filePath) {
+          await window.electronAPI.writeFile(result.filePath, md, 'utf-8');
+          return;
+        }
+        if (result.canceled) return;
+      } catch (err) {
+        console.warn('[Export] Native save dialog fallback:', err);
+      }
+    }
+
+    downloadMarkdownFile(activePage);
+  };
+
+  // Native Application Menu Listener (macOS & Windows Notion REA Menus)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electronAPI?.onMenuAction) {
+      const cleanupMenu = window.electronAPI.onMenuAction((action) => {
+        switch (action) {
+          case 'open-settings':
+          case 'about':
+            setIsSettingsOpen(true);
+            break;
+          case 'check-updates':
+            alert('Noted Desktop v1.0.0\nAnda menggunakan versi terbaru Noted.');
+            break;
+          case 'new-page':
+            handleCreatePage(null);
+            break;
+          case 'new-subpage':
+            handleCreatePage(activePageId || null);
+            break;
+          case 'search':
+            setIsSearchOpen(true);
+            break;
+          case 'import':
+            setIsImportOpen(true);
+            break;
+          case 'export':
+            handleExportPage();
+            break;
+          case 'trash':
+            setIsTrashOpen(true);
+            break;
+          case 'toggle-sidebar':
+            setIsSidebarCollapsed((prev) => !prev);
+            break;
+          case 'toggle-theme':
+            handleToggleTheme();
+            break;
+          case 'shortcuts':
+            setIsSettingsOpen(true);
+            break;
+          default:
+            break;
+        }
+      });
+      return cleanupMenu;
+    }
+  }, [activePage, activePageId]);
+
   return (
-    <div className="noted-app-layout">
+    <div className={`noted-app-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}>
       {/* Sidebar Navigation */}
       <Sidebar
         pages={pages}
@@ -828,6 +931,8 @@ export function App() {
             {/* Notion Desktop Sub-Breadcrumb Bar */}
             <TopNav
               page={activePage}
+              isSidebarCollapsed={isSidebarCollapsed}
+              onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
               onOpenAI={() => setIsAIOpen((prev) => !prev)}
               onOpenComments={() => setIsCommentsOpen((prev) => !prev)}
               onToggleFavorite={handleToggleFavorite}
@@ -842,6 +947,8 @@ export function App() {
               cloudSyncStatus={cloudSyncStatus}
               lastSyncedAt={lastSyncedAt}
               onTriggerCloudSync={handleTriggerCloudSync}
+              currentUser={currentUser}
+              onOpenLogin={() => setIsLoginModalOpen(true)}
             />
             <Editor
               key={activePage.id}

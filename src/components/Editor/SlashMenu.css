@@ -354,3 +354,56 @@
   font-size: 12px;
   color: var(--text-tertiary);
 }
+
+/* Mobile Slash Menu Bottom Sheet */
+.slash-menu-mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .slash-menu-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 1240;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .slash-menu-container {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: 100vw;
+    z-index: 1250;
+    justify-content: center;
+  }
+
+  .slash-menu-popover {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 60vh;
+    border-radius: 16px 16px 0 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+    animation: slideUpMobile 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .slash-menu-popover::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--text-tertiary, #ccc);
+    margin: 4px auto 8px;
+    flex-shrink: 0;
+  }
+
+  .slash-preview-card {
+    display: none !important;
+  }
+}
+

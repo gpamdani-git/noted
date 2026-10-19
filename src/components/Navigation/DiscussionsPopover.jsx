@@ -32,7 +32,9 @@ export const DiscussionsPopover = ({
   }, [onClose]);
 
   return (
-    <div className="notion-discussions-popover animate-popover" ref={popoverRef}>
+    <>
+      <div className="notion-discussions-mobile-backdrop" onClick={onClose} />
+      <div className="notion-discussions-popover animate-popover" ref={popoverRef}>
       {/* Header matching Notion Desktop Screenshot 5 */}
       <div className="notion-discussions-header">
         <div className="notion-discussions-title-row">
@@ -105,6 +107,7 @@ export const DiscussionsPopover = ({
           <ExternalLink size={11} />
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

@@ -218,3 +218,50 @@
 [data-theme='dark'] .notion-discussions-see-all-btn:hover {
   background: rgba(255, 255, 255, 0.12);
 }
+
+/* Mobile Discussions Bottom Sheet */
+.notion-discussions-mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .notion-discussions-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 1199;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .notion-discussions-popover {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 75vh;
+    border-radius: 16px 16px 0 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1200;
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+    animation: slideUpMobile 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .notion-discussions-popover::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--text-tertiary, #ccc);
+    margin: 4px auto 8px;
+    flex-shrink: 0;
+  }
+}
+

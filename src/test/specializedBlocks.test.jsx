@@ -145,7 +145,7 @@ describe('Specialized Blocks Test Suite', () => {
 
       const iframe = container.querySelector('iframe');
       expect(iframe).not.toBeNull();
-      expect(iframe.src).toContain('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+      expect(iframe.src).toContain('https://www.youtube.com/embed/dQw4w9WgXcQ');
     });
 
     it('converts Vimeo video URLs into player.vimeo.com embed', () => {

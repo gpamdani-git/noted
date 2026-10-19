@@ -369,9 +369,11 @@ export const SlashMenu = ({ filterText, onSelect, onClose }) => {
   };
 
   return (
-    <div className="slash-menu-container" onClick={(e) => e.stopPropagation()}>
-      {/* Main Slash Menu Popover */}
-      <div className="slash-menu-popover animate-popover" ref={menuRef}>
+    <>
+      <div className="slash-menu-mobile-backdrop" onClick={onClose} />
+      <div className="slash-menu-container" onClick={(e) => e.stopPropagation()}>
+        {/* Main Slash Menu Popover */}
+        <div className="slash-menu-popover animate-popover" ref={menuRef}>
         <div className="slash-menu-list">
           {!cleanFilter ? (
             <>
@@ -473,6 +475,7 @@ export const SlashMenu = ({ filterText, onSelect, onClose }) => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };

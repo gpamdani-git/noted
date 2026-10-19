@@ -4,6 +4,7 @@ import { BlockItem } from './BlockItem';
 import { BubbleMenu } from './BubbleMenu';
 import { AIAssistantBar } from './AIAssistantBar';
 import { InlineAIToolbar } from './InlineAIToolbar';
+import { MobileEditorToolbar } from './MobileEditorToolbar';
 import { Plus, Trash2, Copy, X, Lock, Unlock, Sparkles } from 'lucide-react';
 import { STARTER_TEMPLATES } from '../../constants/starterTemplates';
 import { parseMarkdownToBlocks } from '../../utils/aiAssistant';
@@ -131,6 +132,14 @@ export const Editor = ({
         return;
       }
 
+      // On mobile screens, text formatting is handled cleanly by the docked MobileEditorToolbar
+      // Suppress floating BubbleMenu to prevent double menus and colliding with native selection handles
+      if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+        setBubblePos(null);
+        setSelectedRange(null);
+        return;
+      }
+
       // Preserve active inline AI toolbar while user interacts with it
       if (inlineAIState.active) {
         return;
@@ -213,6 +222,77 @@ export const Editor = ({
     document.addEventListener('selectionchange', handleSelectionChange);
     return () => document.removeEventListener('selectionchange', handleSelectionChange);
   }, [page.isLocked, inlineAIState.active]);
+
+  // Mobile REA Keyboard Coordination: Keep focused or selected element above keyboard and toolbar
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const scrollActiveIntoView = () => {
+      if (window.innerWidth > 768) return;
+
+      const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+      // 1. Check if there is an active text selection
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+        try {
+          const range = sel.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          if (rect && rect.top > 0) {
+            const maxVisibleBottom = viewportHeight - 75;
+            if (rect.bottom > maxVisibleBottom || rect.top < 60) {
+              const targetNode = sel.anchorNode?.nodeType === 1 ? sel.anchorNode : sel.anchorNode?.parentElement;
+              const blockEl = targetNode?.closest('.block-item-container, .block-rich-text, input, textarea');
+              if (blockEl) {
+                blockEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
+            return;
+          }
+        } catch {}
+      }
+
+      // 2. Otherwise check document.activeElement
+      const active = document.activeElement;
+      if (
+        active &&
+        (active.classList?.contains('block-rich-text') ||
+          active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          active.closest?.('.block-item-container'))
+      ) {
+        const rect = active.getBoundingClientRect();
+        const maxVisibleBottom = viewportHeight - 75;
+        if (rect.bottom > maxVisibleBottom || rect.top < 60) {
+          active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    };
+
+    const handleViewportResize = () => {
+      setTimeout(scrollActiveIntoView, 120);
+    };
+
+    const handleFocusIn = () => {
+      setTimeout(scrollActiveIntoView, 220);
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      window.visualViewport.addEventListener('scroll', handleViewportResize);
+    }
+    window.addEventListener('resize', handleViewportResize);
+    document.addEventListener('focusin', handleFocusIn);
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportResize);
+        window.visualViewport.removeEventListener('scroll', handleViewportResize);
+      }
+      window.removeEventListener('resize', handleViewportResize);
+      document.removeEventListener('focusin', handleFocusIn);
+    };
+  }, []);
 
   const handleFormatText = (formatType, colorVal) => {
     if (page.isLocked) return;
@@ -316,18 +396,134 @@ export const Editor = ({
 
   const handleAddBlockBelow = (afterIndex, preferredType = 'paragraph') => {
     if (page.isLocked) return;
+    
+    // Normalize aliases
+    let normType = preferredType;
+    if (normType === 'todo') normType = 'to_do';
+    else if (normType === 'h1') normType = 'heading_1';
+    else if (normType === 'h2') normType = 'heading_2';
+    else if (normType === 'h3') normType = 'heading_3';
+    else if (normType === 'bullet') normType = 'bulleted_list_item';
+    else if (normType === 'number') normType = 'numbered_list_item';
+
     const newBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-      type: preferredType,
+      type: normType,
       text: ''
     };
-    if (preferredType === 'to_do') {
+
+    if (normType === 'to_do') {
       newBlock.checked = false;
+    } else if (normType === 'toggle') {
+      newBlock.isOpen = false;
+      newBlock.subtext = '';
+    } else if (normType === 'code') {
+      newBlock.language = 'javascript';
+    } else if (normType === 'callout') {
+      newBlock.icon = '💡';
+      newBlock.color = 'blue';
+    } else if (normType === 'table') {
+      newBlock.viewType = 'table';
+      newBlock.tableData = [
+        ['Item', 'Status', 'Notes'],
+        ['', '', ''],
+        ['', '', '']
+      ];
+    } else if (normType === 'math') {
+      newBlock.content = 'E = mc^2';
+    } else if (normType === 'bookmark') {
+      newBlock.url = '';
+      newBlock.title = '';
+      newBlock.description = '';
+    } else if (normType === 'image') {
+      newBlock.url = '';
+      newBlock.caption = '';
+    } else if (normType === 'video') {
+      newBlock.url = '';
+      newBlock.caption = '';
     }
+
     const newBlocks = [...page.blocks];
-    newBlocks.splice(afterIndex + 1, 0, newBlock);
+    const targetIdx = (typeof afterIndex === 'number' && afterIndex >= 0 && afterIndex < newBlocks.length)
+      ? afterIndex
+      : newBlocks.length - 1;
+    newBlocks.splice(targetIdx + 1, 0, newBlock);
     onUpdatePage({ blocks: newBlocks });
-    setFocusIndex(afterIndex + 1);
+    setFocusIndex(targetIdx + 1);
+  };
+
+  // Smart Insert / Morph block helper for Mobile toolbar and Slash Menu
+  const handleInsertOrMorphBlock = (preferredType, { forceInsert = false } = {}) => {
+    if (page.isLocked) return;
+    const idx = focusIndex !== null ? focusIndex : (page.blocks?.length || 1) - 1;
+    const currentBlock = page.blocks?.[idx];
+
+    let normType = preferredType;
+    if (normType === 'todo') normType = 'to_do';
+    else if (normType === 'h1') normType = 'heading_1';
+    else if (normType === 'h2') normType = 'heading_2';
+    else if (normType === 'h3') normType = 'heading_3';
+    else if (normType === 'bullet') normType = 'bulleted_list_item';
+    else if (normType === 'number') normType = 'numbered_list_item';
+
+    const textCompatibleTypes = [
+      'paragraph',
+      'heading_1',
+      'heading_2',
+      'heading_3',
+      'to_do',
+      'bulleted_list_item',
+      'numbered_list_item',
+      'toggle',
+      'quote',
+      'callout',
+      'code'
+    ];
+
+    const isCurrentEmpty = !currentBlock || !currentBlock.text || !currentBlock.text.trim();
+
+    // 1. If current block is an empty paragraph, always morph directly in-place (Notion standard)
+    if (currentBlock && isCurrentEmpty && currentBlock.type === 'paragraph') {
+      const updates = { type: normType };
+      if (normType === 'to_do') updates.checked = false;
+      else if (normType === 'toggle') { updates.isOpen = false; updates.subtext = ''; }
+      else if (normType === 'code') updates.language = 'javascript';
+      else if (normType === 'callout') { updates.icon = '💡'; updates.color = 'blue'; }
+      else if (normType === 'table') {
+        updates.viewType = 'table';
+        updates.tableData = [['Item', 'Status', 'Notes'], ['', '', ''], ['', '', '']];
+      }
+      else if (normType === 'math') updates.content = 'E = mc^2';
+      else if (normType === 'bookmark') { updates.url = ''; updates.title = ''; updates.description = ''; }
+      else if (normType === 'image') { updates.url = ''; updates.caption = ''; }
+      else if (normType === 'video') { updates.url = ''; updates.caption = ''; }
+      handleUpdateBlock(currentBlock.id, updates);
+      setFocusIndex(idx);
+      return;
+    }
+
+    // 2. If tapping toolbar block button (not forceInsert) on an existing text block, toggle/morph type keeping text
+    if (!forceInsert && currentBlock && textCompatibleTypes.includes(normType) && textCompatibleTypes.includes(currentBlock.type)) {
+      const targetType = currentBlock.type === normType ? 'paragraph' : normType;
+      const updates = { type: targetType };
+      if (targetType === 'to_do' && typeof currentBlock.checked !== 'boolean') {
+        updates.checked = false;
+      } else if (targetType === 'toggle' && typeof currentBlock.isOpen !== 'boolean') {
+        updates.isOpen = false;
+        updates.subtext = currentBlock.subtext || '';
+      } else if (targetType === 'code' && !currentBlock.language) {
+        updates.language = 'javascript';
+      } else if (targetType === 'callout') {
+        if (!currentBlock.icon) updates.icon = '💡';
+        if (!currentBlock.color) updates.color = 'blue';
+      }
+      handleUpdateBlock(currentBlock.id, updates);
+      setFocusIndex(idx);
+      return;
+    }
+
+    // 3. Otherwise add new block below
+    handleAddBlockBelow(idx, normType);
   };
 
   // Atomic block morphing to divider (prevents race condition / stale closure between update & insert)
@@ -1016,6 +1212,45 @@ export const Editor = ({
           isLocked={page.isLocked}
         />
       )}
+
+      {/* Notion Mobile Accessory Bar (Bottom Editing Toolbar) */}
+      <MobileEditorToolbar
+        onInsertBlock={(type, options) => {
+          handleInsertOrMorphBlock(type, options);
+        }}
+        onFormatText={(formatType, colorVal) => handleFormatText(formatType, colorVal)}
+        onUndo={onUndo}
+        onRedo={onRedo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onOpenAI={() => setAiContext({ active: true, targetBlockId: null, targetText: '' })}
+        onOpenComments={onOpenComments}
+        isLocked={page.isLocked}
+        onDuplicateBlock={() => {
+          if (page.blocks && page.blocks.length > 0) {
+            const idx = focusIndex !== null ? Math.min(focusIndex, page.blocks.length - 1) : page.blocks.length - 1;
+            const target = page.blocks[idx];
+            if (target) handleDuplicateBlock(target.id);
+          }
+        }}
+        onDeleteBlock={() => {
+          if (page.blocks && page.blocks.length > 0) {
+            const idx = focusIndex !== null ? Math.min(focusIndex, page.blocks.length - 1) : page.blocks.length - 1;
+            const target = page.blocks[idx];
+            if (target) handleDeleteBlock(target.id);
+          }
+        }}
+        onMoveBlock={(direction) => {
+          if (page.blocks && page.blocks.length > 0) {
+            const idx = focusIndex !== null ? Math.min(focusIndex, page.blocks.length - 1) : 0;
+            const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+            if (newIdx >= 0 && newIdx < page.blocks.length) {
+              handleMoveBlock(idx, newIdx);
+              setFocusIndex(newIdx);
+            }
+          }
+        }}
+      />
     </div>
   );
 };

@@ -119,7 +119,7 @@ export const TabBar = ({
   };
 
   return (
-    <div className="noted-tab-bar" onWheel={handleWheel}>
+    <div className={`noted-tab-bar ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`} onWheel={handleWheel}>
       {/* Left Strip: Window Nav Buttons + Tabs Strip */}
       <div className="tab-bar-left-zone">
         {/* Sidebar Toggle Button */}

@@ -122,3 +122,10 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
+
+/* Suppress floating BubbleMenu on mobile screens in favor of docked accessory toolbar */
+@media (max-width: 768px) {
+  .bubble-menu-toolbar {
+    display: none !important;
+  }
+}

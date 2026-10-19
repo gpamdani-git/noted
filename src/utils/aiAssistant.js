@@ -51,58 +51,93 @@ export const testLlmConnection = async (config) => {
     };
   }
 
-  let testUrl = '';
-  if (cfg.provider === 'ollama') {
-    testUrl = '/api/ollama/api/tags';
-  } else if (cfg.provider === 'lmstudio') {
-    testUrl = '/api/lmstudio/v1/models';
-  } else {
-    const base = (cfg.endpoint || 'http://localhost:11434').replace(/\/+$/, '');
-    testUrl = `${base}/v1/models`;
+  const base = (cfg.endpoint || (cfg.provider === 'lmstudio' ? 'http://localhost:1234' : 'http://localhost:11434')).replace(/\/+$/, '');
+  const headers = {};
+  if (cfg.apiKey) {
+    headers['Authorization'] = `Bearer ${cfg.apiKey}`;
   }
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-    const headers = {};
-    if (cfg.apiKey) {
-      headers['Authorization'] = `Bearer ${cfg.apiKey}`;
-    }
-
-    const res = await fetch(testUrl, {
-      signal: controller.signal,
-      headers
-    });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
+  // 1. In Electron desktop app: use native IPC fetch (bypasses browser CORS & file:// sandbox)
+  if (window.electronAPI?.aiFetch) {
+    try {
+      const targetUrl = cfg.provider === 'ollama' ? `${base}/api/tags` : `${base}/v1/models`;
+      const res = await window.electronAPI.aiFetch(targetUrl, { headers });
+      if (res && res.ok && res.data) {
+        let models = [];
+        if (cfg.provider === 'ollama' && res.data.models) {
+          models = res.data.models.map((m) => m.name);
+        } else if (res.data.data && Array.isArray(res.data.data)) {
+          models = res.data.data.map((m) => m.id);
+        }
+        return {
+          success: true,
+          models: models.length > 0 ? models : [cfg.model || 'llama3.2:1b'],
+          message: `Terhubung ke ${cfg.provider.toUpperCase()}! (${models.length} model terdeteksi)`
+        };
+      } else {
+        const errMsg = res?.error || (res?.status ? `HTTP ${res.status}` : 'Server tidak merespon');
+        return {
+          success: false,
+          message: `Tidak dapat terhubung ke ${cfg.provider}: ${errMsg}. Pastikan aplikasi ${cfg.provider} aktif di Mac Anda ('ollama serve').`
+        };
+      }
+    } catch (err) {
       return {
         success: false,
-        message: `HTTP ${res.status}: Server tidak merespon di ${testUrl}`
+        message: `Tidak dapat terhubung ke ${cfg.provider}: ${err.message}`
       };
     }
-
-    const data = await res.json();
-    let models = [];
-    if (cfg.provider === 'ollama' && data.models) {
-      models = data.models.map((m) => m.name);
-    } else if (data.data && Array.isArray(data.data)) {
-      models = data.data.map((m) => m.id);
-    }
-
-    return {
-      success: true,
-      models: models.length > 0 ? models : [cfg.model || 'llama3.2'],
-      message: `Terhubung ke ${cfg.provider.toUpperCase()}! (${models.length} model terdeteksi)`
-    };
-  } catch (err) {
-    return {
-      success: false,
-      message: err.name === 'AbortError'
-        ? `Timeout. Pastikan ${cfg.provider} sudah dinyalakan.`
-        : `Tidak dapat terhubung ke ${cfg.provider}: ${err.message}`
-    };
   }
+
+  // 2. Web browser: Try direct URL first, then Vite proxy if running over HTTP
+  const urlsToTry = [];
+  if (cfg.provider === 'ollama') {
+    urlsToTry.push(`${base}/api/tags`);
+    if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
+      urlsToTry.push('/api/ollama/api/tags');
+    }
+  } else if (cfg.provider === 'lmstudio') {
+    urlsToTry.push(`${base}/v1/models`);
+    if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
+      urlsToTry.push('/api/lmstudio/v1/models');
+    }
+  } else {
+    urlsToTry.push(`${base}/v1/models`);
+  }
+
+  for (const testUrl of urlsToTry) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch(testUrl, {
+        signal: controller.signal,
+        headers
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        let models = [];
+        if (cfg.provider === 'ollama' && data.models) {
+          models = data.models.map((m) => m.name);
+        } else if (data.data && Array.isArray(data.data)) {
+          models = data.data.map((m) => m.id);
+        }
+        return {
+          success: true,
+          models: models.length > 0 ? models : [cfg.model || 'llama3.2:1b'],
+          message: `Terhubung ke ${cfg.provider.toUpperCase()}! (${models.length} model terdeteksi)`
+        };
+      }
+    } catch {
+      // Continue to next URL attempt
+    }
+  }
+
+  return {
+    success: false,
+    message: `Tidak dapat terhubung ke ${cfg.provider} di ${base}. Pastikan aplikasi ${cfg.provider} aktif di Mac Anda ('ollama serve').`
+  };
 };
 
 const parseTableRow = (line) => {
@@ -446,13 +481,18 @@ export const runExternalLlmGeneration = async ({
   pageContent = '',
   onProgress = null
 }) => {
+  const base = (config.endpoint || (config.provider === 'lmstudio' ? 'http://localhost:1234' : 'http://localhost:11434')).replace(/\/+$/, '');
+  const isDesktop = typeof window !== 'undefined' && Boolean(
+    window.electronAPI?.isElectron ||
+    window.location.protocol === 'file:'
+  );
+
   let endpoint = '';
   if (config.provider === 'ollama') {
-    endpoint = '/api/ollama/v1/chat/completions';
+    endpoint = isDesktop ? `${base}/v1/chat/completions` : '/api/ollama/v1/chat/completions';
   } else if (config.provider === 'lmstudio') {
-    endpoint = '/api/lmstudio/v1/chat/completions';
+    endpoint = isDesktop ? `${base}/v1/chat/completions` : '/api/lmstudio/v1/chat/completions';
   } else {
-    const base = (config.endpoint || 'http://localhost:11434').replace(/\/+$/, '');
     endpoint = `${base}/v1/chat/completions`;
   }
 

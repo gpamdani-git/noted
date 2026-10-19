@@ -305,3 +305,11 @@
 [data-theme='dark'] .has-active-comment .block-rendered-display {
   background-color: rgba(235, 144, 45, 0.22) !important;
 }
+
+/* Mobile REA: Margin comment cards are desktop-only; mobile interacts via inline badges & bottom sheet */
+@media (max-width: 768px) {
+  .notion-margin-comment-card {
+    display: none !important;
+  }
+}
+

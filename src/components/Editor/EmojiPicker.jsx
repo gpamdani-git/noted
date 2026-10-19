@@ -12,7 +12,9 @@ export const EmojiPicker = ({ onSelect, onClose, onRemove }) => {
   })).filter(cat => cat.emojis.length > 0);
 
   return (
-    <div className="emoji-picker-popover animate-popover" onClick={(e) => e.stopPropagation()}>
+    <>
+      <div className="emoji-picker-backdrop" onClick={onClose} />
+      <div className="emoji-picker-popover animate-popover" onClick={(e) => e.stopPropagation()}>
       <div className="emoji-picker-header">
         <div className="emoji-search-wrapper">
           <Search size={14} className="emoji-search-icon" />
@@ -60,5 +62,6 @@ export const EmojiPicker = ({ onSelect, onClose, onRemove }) => {
         )}
       </div>
     </div>
+    </>
   );
 };
