@@ -1,0 +1,55 @@
+name: Build Noted Desktop (.dmg & .exe)
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Desktop App (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Desktop App Icons
+        run: npm run icons:generate
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Build macOS Artifacts (.dmg, .zip)
+        if: matrix.os == 'macos-latest'
+        run: npx electron-builder --mac dmg zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Windows Artifacts (.exe NSIS, Portable)
+        if: matrix.os == 'windows-latest'
+        run: npx electron-builder --win nsis portable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Desktop Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Noted-${{ matrix.os }}
+          path: release/*
+          if-no-files-found: error

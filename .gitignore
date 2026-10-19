@@ -44,3 +44,8 @@ data/
 index.js
 qa-report.html
 graphify-out/cache/
+
+# Desktop release builds
+release/
+dist-electron/
+

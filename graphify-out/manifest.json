@@ -192,9 +192,9 @@
     "semantic_hash": "4ddca0e039c5ed623aec2700f4b00ebb"
   },
   "package.json": {
-    "mtime": 1792385984.9583123,
-    "seen": 1792386141.215005,
-    "ast_hash": "6aa7ac0284848c1e4f139dd9b9f65619",
+    "mtime": 1792391011.43917,
+    "seen": 1792391321.25481,
+    "ast_hash": "c148a561c5b1faca04a46e1b25cce6d2",
     "semantic_hash": ""
   },
   "playwright.config.js": {
@@ -204,9 +204,9 @@
     "semantic_hash": "923a7286537e1962728b1fa49b67fab6"
   },
   "src/App.jsx": {
-    "mtime": 1792389448.521047,
-    "seen": 1792389500.252031,
-    "ast_hash": "8c90efb2f34db050f45c0c921b7f2c8b",
+    "mtime": 1792391122.8143365,
+    "seen": 1792391321.2548192,
+    "ast_hash": "f463f4aef09c64de0a966f12445a4ece",
     "semantic_hash": ""
   },
   "src/components/Comments/BlockCommentPopover.jsx": {
@@ -1365,6 +1365,42 @@
     "mtime": 1792386428.7442536,
     "seen": 1792386471.6061409,
     "ast_hash": "4cdaa2dda60755b1ef3f73df832f9014",
+    "semantic_hash": ""
+  },
+  "electron-builder.json": {
+    "mtime": 1792390975.0850308,
+    "seen": 1792391321.2547991,
+    "ast_hash": "631b808e176cafa974007dd6a8dd5fa6",
+    "semantic_hash": ""
+  },
+  "electron/main.cjs": {
+    "mtime": 1792390753.948553,
+    "seen": 1792391321.2548008,
+    "ast_hash": "6b91c7ae5bd25a5bdd1629f875cfbd60",
+    "semantic_hash": ""
+  },
+  "electron/menu.cjs": {
+    "mtime": 1792390827.9399848,
+    "seen": 1792391321.254803,
+    "ast_hash": "cfce8c779080a4699ae74a1755fd4755",
+    "semantic_hash": ""
+  },
+  "electron/preload.cjs": {
+    "mtime": 1792390793.7818124,
+    "seen": 1792391321.254804,
+    "ast_hash": "cdd69e1b3bec8becc37f5196fb2dfd9d",
+    "semantic_hash": ""
+  },
+  "scripts/generate-icons.js": {
+    "mtime": 1792390924.1769397,
+    "seen": 1792391321.254814,
+    "ast_hash": "c9b37f045f2c1dc573543c3396d6ad22",
+    "semantic_hash": ""
+  },
+  ".github/workflows/desktop-build.yml": {
+    "mtime": 1792391233.2303674,
+    "seen": 1792391321.255072,
+    "ast_hash": "49e511ddd4a02a6fd372d45b6af87167",
     "semantic_hash": ""
   }
 }

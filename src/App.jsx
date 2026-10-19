@@ -151,6 +151,32 @@ export function App() {
     saveTheme(theme);
   }, [theme]);
 
+  // Desktop Platform & Deep-link detection (Notion REA Desktop Integration)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+      document.documentElement.classList.add('is-electron');
+      if (window.electronAPI.platform === 'darwin') {
+        document.documentElement.classList.add('is-mac-desktop');
+      } else if (window.electronAPI.platform === 'win32') {
+        document.documentElement.classList.add('is-windows-desktop');
+      }
+
+      // Listen for deep link events (noted://)
+      const cleanup = window.electronAPI.onDeepLink?.((url) => {
+        try {
+          const parsed = new URL(url);
+          const pageId = parsed.searchParams.get('pageId');
+          if (pageId) {
+            handleSelectPage(pageId);
+          }
+        } catch (e) {
+          console.warn('[Noted Desktop] Deep link notice:', e);
+        }
+      });
+      return cleanup;
+    }
+  }, []);
+
   // Flag to avoid re-triggering broadcast when applying incoming sync
   const isIncomingSyncRef = useRef(false);
 

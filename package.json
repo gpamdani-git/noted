@@ -1,7 +1,10 @@
 {
   "name": "noted",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Noted - Modern Notion-grade Workspace with Dual Local & Cloud Sync",
+  "author": "Dani Akbar",
+  "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +13,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "electron:preview": "vite build && cross-env TEST_DIST=1 electron .",
+    "electron:build": "vite build && electron-builder",
+    "electron:build:mac": "vite build && electron-builder --mac dmg zip",
+    "electron:build:win": "vite build && electron-builder --win nsis portable",
+    "electron:build:all": "vite build && electron-builder -mw",
+    "icons:generate": "node scripts/generate-icons.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
@@ -36,9 +46,14 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.11",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
     "jsdom": "^29.1.1",
     "vite": "^8.3.4",
-    "vitest": "^4.1.12"
+    "vitest": "^4.1.12",
+    "wait-on": "^9.5.1"
   }
 }

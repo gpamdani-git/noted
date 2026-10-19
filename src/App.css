@@ -508,4 +508,40 @@
   display: block;
 }
 
+/* ==========================================================================
+   Notion Desktop (Electron) Window Dragging & TitleBar Rules
+   Matches Notion Desktop 7.39.0 REA Layout Specifications
+   ========================================================================== */
+.is-electron .noted-tab-bar,
+.is-electron .sidebar-header {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.is-electron button,
+.is-electron input,
+.is-electron a,
+.is-electron .tab-item,
+.is-electron .workspace-profile-btn,
+.is-electron .window-nav-icon-btn,
+.is-electron [role="button"],
+.is-electron .no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* macOS Desktop: Offset top-left controls to accommodate native traffic lights */
+.is-mac-desktop .sidebar-header {
+  padding-left: 78px;
+}
+
+.is-mac-desktop .noted-app.sidebar-collapsed .tab-bar-left-zone {
+  padding-left: 78px;
+}
+
+/* Windows Desktop: Offset right edge for native caption controls (minimize/maximize/close) */
+.is-windows-desktop .noted-tab-bar {
+  padding-right: 140px;
+}
+
+
 

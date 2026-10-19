@@ -1,17 +1,17 @@
 # Graph Report - noted  (2026-10-19)
 
 ## Corpus Check
-- 155 files · ~2,528,865 words
+- 160 files · ~2,530,976 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 37 file(s) not represented in the graph (top: .css 33, .csv 2, .example 1)
 
 ## Summary
-- 1377 nodes · 2567 edges · 93 communities (76 shown, 17 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 41 edges (avg confidence: 0.87)
+- 1457 nodes · 2655 edges · 96 communities (79 shown, 17 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 43 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4de26d62`
+- Built from commit: `fcf75c9c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -52,12 +52,16 @@
 - TestFixtureValidation
 - _row_identities
 - 0. BRIEF INFERENCE (Read the Room Before Anything Else)
+- electron-builder.json
 - 10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know)
 - tasteskill: Anti-Slop Frontend Skill
 - 9. AI TELLS (Forbidden Patterns)
 - 11. REDESIGN PROTOCOL
 - 3. DEFAULT ARCHITECTURE & CONVENTIONS
 - 6. PERFORMANCE & ACCESSIBILITY GUARDRAILS
+- main.cjs
+- versionHistory.js
+- Client-side reactivity
 - 12. THE BLOCK LIBRARY (Contract - Implementations Land Here Iteratively)
 - 5. CONTEXT-AWARE PROACTIVITY
 - 8. DARK MODE PROTOCOL
@@ -71,7 +75,7 @@
 - Neon AI Gateway
 - Postgres Egress Optimizer
 - Neon Object Storage
-- Client-side reactivity
+- React
 - Server-side rendering
 - neon-functions/SKILL.md
 - Function Triggers
@@ -99,7 +103,6 @@
 - Setup Flow
 - vercel.json
 - Troubleshooting and Neon-Specific Performance
-- Defining live queries
 - CatalogSummaryLineEndingsTest
 - split_values
 - @playwright/test
@@ -118,7 +121,7 @@
 7. `BlockItem()` - 28 edges
 8. `getCurrentUser()` - 21 edges
 9. `Neon Functions` - 20 edges
-10. `vitest` - 19 edges
+10. `scripts` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Public consumers through a Worker` --references--> `search()`  [INFERRED]
@@ -135,7 +138,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (93 total, 17 thin omitted)
+## Communities (96 total, 17 thin omitted)
 
 ### Community 0 - "csv"
 Cohesion: 0.11
@@ -154,16 +157,16 @@ Cohesion: 0.14
 Nodes (5): BM25, _get_bm25(), _suggest_identities(), TestBm25CoreBehavior, TestTokenizer
 
 ### Community 4 - "BlockItem.jsx"
-Cohesion: 0.06
-Nodes (84): lucide-react, react, @testing-library/react, vitest, BlockCommentPopover(), CommentsDrawer(), NotionInlineCommentPill(), NotionMarginCommentCard() (+76 more)
+Cohesion: 0.05
+Nodes (85): lucide-react, react, @testing-library/react, vitest, BlockCommentPopover(), CommentsDrawer(), NotionInlineCommentPill(), NotionMarginCommentCard() (+77 more)
 
 ### Community 5 - "package.json"
-Cohesion: 0.10
-Nodes (15): name, private, type, version, drizzle-kit, jsdom, katex, nanoid (+7 more)
+Cohesion: 0.07
+Nodes (22): author, description, main, name, private, type, version, concurrently (+14 more)
 
 ### Community 6 - "App.jsx"
-Cohesion: 0.07
-Nodes (70): App(), NotionLoginModal(), EXTENDED_COMMANDS, ICON_MAP, CommandPaletteModal(), PageAnalyticsModal(), NOTION_AVATAR_COLORS, SettingsModal() (+62 more)
+Cohesion: 0.09
+Nodes (58): App(), NotionLoginModal(), CommandPaletteModal(), NOTION_AVATAR_COLORS, SettingsModal(), TrashModal(), TabBar(), Sidebar() (+50 more)
 
 ### Community 7 - "design_system.py"
 Cohesion: 0.07
@@ -249,6 +252,10 @@ Nodes (3): _exact_row_identity(), _row_identities(), _style_identity()
 Cohesion: 0.40
 Nodes (5): 0.A Read these signals first, 0.B Output a one-line "Design Read" before generating, 0. BRIEF INFERENCE (Read the Room Before Anything Else), 0.C If the brief is ambiguous, ask one question, do not guess, 0.D Anti-Default Discipline
 
+### Community 37 - "electron-builder.json"
+Cohesion: 0.05
+Nodes (40): appId, asar, copyright, directories, buildResources, output, dmg, contents (+32 more)
+
 ### Community 38 - "10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know)"
 Cohesion: 0.20
 Nodes (10): 10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know), Animation Library Choice, Cards & Containers, Galleries & Media, Hero Paradigms, Layout & Grids, Micro-Interactions & Effects, Navigation & Menus (+2 more)
@@ -272,6 +279,18 @@ Nodes (7): 3.A Stack, 3.B State, 3.C Icons, 3.D Emoji Policy, 3. DEFAULT ARCHITE
 ### Community 43 - "6. PERFORMANCE & ACCESSIBILITY GUARDRAILS"
 Cohesion: 0.29
 Nodes (7): 6.A Hardware Acceleration, 6.B Reduced Motion (mandatory), 6.C Dark Mode (mandatory for any consumer-facing page), 6.D Core Web Vitals Targets, 6.E DOM Cost, 6.F Z-Index Restraint, 6. PERFORMANCE & ACCESSIBILITY GUARDRAILS
+
+### Community 44 - "main.cjs"
+Cohesion: 0.12
+Nodes (13): { app, BrowserWindow, ipcMain, shell, dialog, Menu }, createMainWindow(), fs, getWindowStateFilePath(), gotTheLock, loadWindowState(), path, saveWindowState() (+5 more)
+
+### Community 45 - "versionHistory.js"
+Cohesion: 0.39
+Nodes (11): PageAnalyticsModal(), VersionHistoryDrawer(), computeBlockBreakdown(), computeCharacterCount(), computeReadingTime(), computeWordCount(), createSnapshotObject(), deletePageSnapshot() (+3 more)
+
+### Community 46 - "Client-side reactivity"
+Cohesion: 0.25
+Nodes (8): Client-side reactivity, Contents, Create the collection, Manage optimistic state, Other frameworks, Query the collection, Seal a broader query, TanStack DB
 
 ### Community 48 - "12. THE BLOCK LIBRARY (Contract - Implementations Land Here Iteratively)"
 Cohesion: 0.40
@@ -310,7 +329,7 @@ Cohesion: 0.13
 Nodes (9): ansi_ljust(), format_ascii_box(), add_wrapped(), wrap_text(), format_markdown(), hex_to_ansi(), _mode_support_labels(), section_header() (+1 more)
 
 ### Community 67 - "db.js"
-Cohesion: 0.22
+Cohesion: 0.26
 Nodes (9): ensureSchema(), getConnectionString(), getDrizzlePg(), getPool(), getSqliteDb(), handler(), handler(), better-sqlite3 (+1 more)
 
 ### Community 75 - "Neon AI Gateway"
@@ -325,9 +344,9 @@ Nodes (16): Application-side aggregation, Check if pg_stat_statements is availab
 Cohesion: 0.12
 Nodes (15): Architecture: Where Object Storage Fits, Availability, Built-in Branch Logs, CLI Bucket and Object Commands, Environment Variables, Further Reading, Neon Documentation, Neon Infrastructure as Code (`neon.ts`) (+7 more)
 
-### Community 84 - "Client-side reactivity"
-Cohesion: 0.12
-Nodes (16): Changing query parameters, Client-side reactivity, Contents, Create the collection, Handling errors, initialData, Manage optimistic state, Other frameworks (+8 more)
+### Community 84 - "React"
+Cohesion: 0.25
+Nodes (8): Changing query parameters, Handling errors, initialData, React, RealtimeProvider, refreshQuery, useLiveQuery, utils
 
 ### Community 85 - "Server-side rendering"
 Cohesion: 0.13
@@ -346,8 +365,8 @@ Cohesion: 0.15
 Nodes (13): Autoscaling, Branching, Connection Pooling, Gotchas, Instant Restore, IP Allow Lists, Lakebase Postgres, Lakebase Search (+5 more)
 
 ### Community 96 - "devDependencies"
-Cohesion: 0.17
-Nodes (12): devDependencies, drizzle-kit, jsdom, @playwright/test, @testing-library/dom, @testing-library/jest-dom, @testing-library/react, @types/react (+4 more)
+Cohesion: 0.12
+Nodes (17): devDependencies, concurrently, cross-env, drizzle-kit, electron, electron-builder, jsdom, @playwright/test (+9 more)
 
 ### Community 103 - "Optimistic mutations"
 Cohesion: 0.15
@@ -358,12 +377,12 @@ Cohesion: 0.15
 Nodes (13): Contents, Debug subscriptions, Fetch from a server function, Fetch from an API endpoint, Getting the query to subscribe to, Handle errors, Listen for changes, Log client diagnostics (+5 more)
 
 ### Community 106 - "Defining queries"
-Cohesion: 0.17
-Nodes (12): Authorization, Contents, Defining queries, Exposing an endpoint, Exposing queries, Live authorization, Renewing sealed queries, Sealing authorized queries (+4 more)
+Cohesion: 0.11
+Nodes (18): Authorization, Contents, Defining live queries, Defining queries, Exposing an endpoint, Exposing queries, Live authorization, Parameter types (+10 more)
 
 ### Community 109 - "scripts"
-Cohesion: 0.17
-Nodes (12): scripts, build, db:generate, db:push, db:sqlite:push, db:sqlite:studio, db:studio, dev (+4 more)
+Cohesion: 0.11
+Nodes (19): scripts, build, db:generate, db:push, db:sqlite:push, db:sqlite:studio, db:studio, dev (+11 more)
 
 ### Community 118 - "Semantic Vector Search"
 Cohesion: 0.18
@@ -433,33 +452,29 @@ Nodes (3): buildCommand, framework, outputDirectory
 Cohesion: 0.33
 Nodes (6): Choose CLI or MCP, Inspect Neon Cache Behavior Per Query, Interpret Results Safely, Performance Workflow, Pick the Diagnostic, Troubleshooting and Neon-Specific Performance
 
-### Community 189 - "Defining live queries"
-Cohesion: 0.33
-Nodes (6): Defining live queries, Parameter types, Query parameters, Table requirements, Using a query builder or ORM, Using raw SQL
-
 ### Community 195 - "split_values"
 Cohesion: 0.47
 Nodes (3): split_values(), style_identities(), TestStyleIdentityContract
 
 ## Knowledge Gaps
-- **6 isolated node(s):** `@neon/env`, `nanoid`, `@testing-library/dom`, `@types/react`, `@types/react-dom` (+1 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 649 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **10 isolated node(s):** `@neon/env`, `nanoid`, `@testing-library/dom`, `@types/react`, `@types/react-dom` (+5 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 709 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `search()` connect `search` to `csv`, `Production hardening for Neon Functions`, `read_rows`, `_row_identities`, `BM25`, `design_system.py`, `test_core_data_quality.py`, `detect_domain`, `_normalize`, `core.py`?**
-  _High betweenness centrality (0.031) - this node is a cross-community bridge._
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `DesignSystemGenerator` (e.g. with `TestReasoningMatch` and `TestReasoningContract`) actually correct?**
   _`DesignSystemGenerator` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@neon/env`, `nanoid`, `@testing-library/dom` to the rest of the system?**
-  _6 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _10 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `csv` be split into smaller, more focused modules?**
   _Cohesion score 0.1053763440860215 - nodes in this community are weakly interconnected._
 - **Why does `main()` connect `validate_data.py` to `Sentry (errors, logs, and traces)`, `Neon Functions`, `design_system.py`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **Should `read_rows` be split into smaller, more focused modules?**
   _Cohesion score 0.10333333333333333 - nodes in this community are weakly interconnected._
 - **Why does `Neon Functions` connect `Neon Functions` to `neon-functions/SKILL.md`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
