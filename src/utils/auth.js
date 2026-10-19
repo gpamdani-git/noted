@@ -317,11 +317,12 @@ export const isElectronApp = () => {
 export const isMobileNativeApp = () => {
   if (typeof window === 'undefined') return false;
   return Boolean(
-    window.Capacitor?.isNativePlatform() ||
+    window.Capacitor?.isNativePlatform?.() ||
     window.location.protocol === 'capacitor:' ||
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
     window.location.origin === 'http://localhost' ||
+    window.location.origin === 'https://localhost' ||
     window.location.origin === 'capacitor://localhost'
   );
 };

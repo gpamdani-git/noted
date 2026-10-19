@@ -24,6 +24,18 @@ let currentSyncState = {
   mode: 'offline_vault'
 };
 
+export const isMobileNativePlatform = () => {
+  if (typeof window === 'undefined') return false;
+  return Boolean(
+    window.Capacitor?.isNativePlatform?.() ||
+    window.location.protocol === 'capacitor:' ||
+    (window.location.hostname === 'localhost' && (!window.location.port || window.location.port === '80' || window.location.port === '443')) ||
+    window.location.origin === 'http://localhost' ||
+    window.location.origin === 'https://localhost' ||
+    window.location.origin === 'capacitor://localhost'
+  );
+};
+
 const notifyStatus = (stateUpdates) => {
   currentSyncState = { ...currentSyncState, ...stateUpdates };
   if (typeof window !== 'undefined') {
@@ -116,6 +128,38 @@ export const startLiveSyncPulse = ({ getUser, onRemoteUpdate, intervalMs = 10000
   };
 };
 
+const NEON_DEFAULT_CONN = 'postgresql://neondb_owner:REDACTED@redacted.invalid/neondb?sslmode=require';
+const NEON_DEFAULT_HOST = 'ep-polished-forest-azx5265k-pooler.c-3.ap-southeast-1.aws.neon.tech';
+
+// Production Vercel URL for mobile native proxy (avoids CORS on Capacitor Android)
+// Set VITE_APP_URL=https://your-project.vercel.app in .env to enable
+const VERCEL_APP_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_URL)
+  ? import.meta.env.VITE_APP_URL.replace(/\/$/, '')
+  : null;
+
+/**
+ * Run a SQL query via the Vercel proxy (for Mobile Native to avoid CORS),
+ * or directly via Neon HTTP SQL (for Web/Electron).
+ */
+const runSql = async (query, params = []) => {
+  // Mobile Native: call Vercel proxy which runs server-side (no CORS issue)
+  if (isMobileNativePlatform() && VERCEL_APP_URL) {
+    const res = await fetch(`${VERCEL_APP_URL}/api/neon`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, params })
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Neon Proxy ${res.status}: ${errText}`);
+    }
+    return res.json();
+  }
+
+  // Web/Electron: direct Neon HTTP SQL
+  return runDirectNeonSql(query, params);
+};
+
 /**
  * Checks connection health with the PostgreSQL serverless backend
  */
@@ -132,30 +176,32 @@ export const checkCloudDatabaseStatus = async () => {
     }
   }
 
-  // 2. In Web (Vite dev or Vercel production), call /api/status if HTTP/HTTPS
-  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  // 2. In Web (Vite dev or Vercel production), call /api/status if HTTP/HTTPS (skip on Mobile Native APK)
+  if (!isMobileNativePlatform() && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
     try {
       const res = await fetch('/api/status', {
         headers: { 'Accept': 'application/json' },
         cache: 'no-store'
       });
-      if (res.ok) {
+      // Guard: mock fetch objects in tests may not have headers
+      const contentType = res.headers?.get?.('content-type') || '';
+      const isJson = contentType.includes('application/json') || !res.headers;
+      if (res.ok && isJson) {
         const data = await res.json();
-        return data;
+        if (data && data.connected !== undefined) return data;
       }
     } catch (err) {
       console.warn('[Web Fetch] /api/status warning:', err);
     }
   }
 
-  // 3. Direct Neon Lakebase HTTP SQL check
+  // 3. Direct Neon Lakebase HTTP SQL check (Mobile Native APK, Standalone, or Web fallback)
   try {
-    const connStr = 'postgresql://neondb_owner:REDACTED@redacted.invalid/neondb?sslmode=require';
     const startTime = Date.now();
-    const res = await fetch('https://ep-polished-forest-azx5265k-pooler.c-3.ap-southeast-1.aws.neon.tech/sql', {
+    const res = await fetch(`https://${NEON_DEFAULT_HOST}/sql`, {
       method: 'POST',
       headers: {
-        'Neon-Connection-String': connStr,
+        'Neon-Connection-String': NEON_DEFAULT_CONN,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -187,11 +233,10 @@ export const checkCloudDatabaseStatus = async () => {
   };
 };
 
-const NEON_DEFAULT_CONN = 'postgresql://neondb_owner:REDACTED@redacted.invalid/neondb?sslmode=require';
-const NEON_DEFAULT_HOST = 'ep-polished-forest-azx5265k-pooler.c-3.ap-southeast-1.aws.neon.tech';
-
 /**
  * Direct Neon Lakebase HTTP SQL runner (resilient fallback if /api/sync or IPC fails)
+ * On Mobile Native (Capacitor/Android): uses text/plain to avoid CORS preflight.
+ * Neon accepts both application/json and text/plain for its HTTP SQL endpoint.
  */
 const runDirectNeonSql = async (query, params = []) => {
   const sqlUrl = `https://${NEON_DEFAULT_HOST}/sql`;
@@ -214,78 +259,51 @@ const runDirectNeonSql = async (query, params = []) => {
  * Direct Neon Lakebase pull logic
  */
 const directNeonPull = async (user) => {
-  const pagesRes = await runDirectNeonSql(
+  const cleanEmail = user?.email ? decodeURIComponent(user.email).trim().toLowerCase() : '';
+
+  const pagesRes = await runSql(
     `SELECT id, user_id AS "userId", title, icon, cover, parent_id AS "parentId",
             is_favorite AS "isFavorite", is_locked AS "isLocked",
             full_width AS "fullWidth", font_family AS "fontFamily",
             blocks, version, created_at AS "createdAt", updated_at AS "updatedAt"
      FROM pages
-     WHERE user_id = $1 AND is_deleted = FALSE
+     WHERE (
+       user_id = $1
+       OR (NULLIF($2, '') IS NOT NULL AND user_id IN (SELECT id FROM users WHERE LOWER(email) = LOWER($2)))
+     )
+     AND is_deleted = FALSE
      ORDER BY updated_at DESC`,
-    [user.id]
+    [user.id, cleanEmail]
   );
 
-  const trashRes = await runDirectNeonSql(
+  const trashRes = await runSql(
     `SELECT id, user_id AS "userId", title, icon, blocks, deleted_at AS "deletedAt"
      FROM trash
-     WHERE user_id = $1
+     WHERE (
+       user_id = $1
+       OR (NULLIF($2, '') IS NOT NULL AND user_id IN (SELECT id FROM users WHERE LOWER(email) = LOWER($2)))
+     )
      ORDER BY deleted_at DESC`,
-    [user.id]
+    [user.id, cleanEmail]
   );
 
-  const settingsRes = await runDirectNeonSql(
+  const settingsRes = await runSql(
     `SELECT open_tabs AS "openTabs", active_page_id AS "activePageId", theme, updated_at AS "updatedAt"
      FROM workspace_settings
-     WHERE user_id = $1`,
-    [user.id]
+     WHERE (
+       user_id = $1
+       OR (NULLIF($2, '') IS NOT NULL AND user_id IN (SELECT id FROM users WHERE LOWER(email) = LOWER($2)))
+     )
+     ORDER BY updated_at DESC LIMIT 1`,
+    [user.id, cleanEmail]
   );
 
-  let effectiveUserId = user.id;
-  let finalPages = pagesRes.rows || [];
-  let finalTrash = trashRes.rows || [];
-  let finalSettings = settingsRes.rows && settingsRes.rows[0] ? settingsRes.rows[0] : null;
+  const finalPages = pagesRes.rows || [];
+  const finalTrash = trashRes.rows || [];
+  const finalSettings = settingsRes.rows && settingsRes.rows[0] ? settingsRes.rows[0] : null;
 
-  if (finalPages.length === 0 && user.email) {
-    try {
-      const decodedEmail = decodeURIComponent(user.email).trim().toLowerCase();
-      const altUserRes = await runDirectNeonSql(
-        'SELECT id FROM users WHERE LOWER(email) = $1 AND id != $2 LIMIT 1',
-        [decodedEmail, user.id]
-      );
-      if (altUserRes.rows && altUserRes.rows.length > 0) {
-        effectiveUserId = altUserRes.rows[0].id;
-        const altPagesRes = await runDirectNeonSql(
-          `SELECT id, user_id AS "userId", title, icon, cover, parent_id AS "parentId",
-                  is_favorite AS "isFavorite", is_locked AS "isLocked",
-                  full_width AS "fullWidth", font_family AS "fontFamily",
-                  blocks, version, created_at AS "createdAt", updated_at AS "updatedAt"
-           FROM pages
-           WHERE user_id = $1 AND is_deleted = FALSE
-           ORDER BY updated_at DESC`,
-          [effectiveUserId]
-        );
-        if (altPagesRes.rows && altPagesRes.rows.length > 0) {
-          finalPages = altPagesRes.rows;
-          const altTrashRes = await runDirectNeonSql(
-            `SELECT id, user_id AS "userId", title, icon, blocks, deleted_at AS "deletedAt"
-             FROM trash
-             WHERE user_id = $1
-             ORDER BY deleted_at DESC`,
-            [effectiveUserId]
-          );
-          finalTrash = altTrashRes.rows || [];
-
-          const altSettingsRes = await runDirectNeonSql(
-            `SELECT open_tabs AS "openTabs", active_page_id AS "activePageId", theme, updated_at AS "updatedAt"
-             FROM workspace_settings
-             WHERE user_id = $1`,
-            [effectiveUserId]
-          );
-          finalSettings = altSettingsRes.rows && altSettingsRes.rows[0] ? altSettingsRes.rows[0] : null;
-        }
-      }
-    } catch {}
-  }
+  // Resolve the canonical userId that owns the pages
+  const effectiveUserId = finalPages[0]?.userId || user.id;
 
   const parsedPages = finalPages.map((p) => ({
     ...p,
@@ -322,8 +340,9 @@ const directNeonPull = async (user) => {
 /**
  * Multi-Channel Remote Workspace Puller:
  * Channel 1: Electron Native IPC Bridge (electronAPI.syncPull)
- * Channel 2: Web Serverless API (/api/sync)
- * Channel 3: Direct Neon Lakebase HTTP SQL API
+ * Channel 2: Mobile Native Platform (Android Capacitor APK) -> Direct Neon Lakebase Channel
+ * Channel 3: Web Serverless API (/api/sync)
+ * Channel 4: Direct Neon Lakebase HTTP SQL API (Resilient Fallback)
  */
 export const fetchRemoteWorkspace = async (user) => {
   if (!user || !user.isLoggedIn || !user.id || user.id === 'guest') {
@@ -339,29 +358,33 @@ export const fetchRemoteWorkspace = async (user) => {
         throw new Error(data.error || 'Offline - Saved in Local Vault');
       }
     } catch (err) {
-      console.warn('[cloudSync] Electron IPC syncPull failed:', err.message);
-      throw err;
+      console.warn('[cloudSync] Electron IPC syncPull failed, falling back to Direct Neon:', err.message);
+      return await directNeonPull(user);
     }
   }
 
-  // 2. Web /api/sync on HTTP/HTTPS
+  // 2. Mobile Native Platform (Android Capacitor APK) -> Direct Neon Lakebase Channel
+  if (isMobileNativePlatform()) {
+    return await directNeonPull(user);
+  }
+
+  // 3. Web Serverless API (/api/sync) on HTTP/HTTPS
   if (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
     const emailParam = user.email ? `&email=${encodeURIComponent(user.email)}` : '';
     const res = await fetch(`/api/sync?userId=${encodeURIComponent(user.id)}${emailParam}`, {
       cache: 'no-store'
     });
-    if (res.ok) {
+    // Guard: mock fetch objects in tests may not have headers
+    const contentType = res.headers?.get?.('content-type') || '';
+    const isJson = contentType.includes('application/json') || !res.headers;
+    if (res.ok && isJson) {
       const data = await res.json();
       if (data && data.success) return data;
-    } else if (res.status === 404) {
-      return await directNeonPull(user);
-    } else {
-      throw new Error(`HTTP ${res.status}`);
     }
-    return null;
+    // Response was not successful JSON – fall through to Direct Neon
   }
 
-  // 3. Direct Neon Lakebase fallback for file:// standalone mode
+  // 4. Direct Neon Lakebase fallback for all other channels / standalone / web fallback
   return await directNeonPull(user);
 };
 
@@ -373,7 +396,7 @@ const directNeonPush = async (payload) => {
   try {
     const now = Date.now();
     if (user && user.id) {
-      await runDirectNeonSql(
+      await runSql(
         `INSERT INTO users (id, email, name, picture, avatar, color, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          ON CONFLICT (id) DO UPDATE SET
@@ -391,7 +414,7 @@ const directNeonPush = async (payload) => {
     for (const page of pages) {
       if (!page || !page.id) continue;
       activePageIds.push(page.id);
-      await runDirectNeonSql(
+      await runSql(
         `INSERT INTO pages (
            id, user_id, title, icon, cover, parent_id,
            is_favorite, is_locked, full_width, font_family,
@@ -431,17 +454,19 @@ const directNeonPush = async (payload) => {
     }
 
     if (activePageIds.length > 0) {
-      const placeholders = activePageIds.map((_, i) => `$${i + 3}`).join(',');
-      await runDirectNeonSql(
+      const cleanEmail = user?.email ? decodeURIComponent(user.email).trim().toLowerCase() : '';
+      const placeholders = activePageIds.map((_, i) => `$${i + 4}`).join(',');
+      await runSql(
         `UPDATE pages SET is_deleted = TRUE, updated_at = $1
-         WHERE user_id = $2 AND id NOT IN (${placeholders})`,
-        [now, userId, ...activePageIds]
+         WHERE (user_id = $2 OR (NULLIF($3, '') IS NOT NULL AND user_id IN (SELECT id FROM users WHERE LOWER(email) = LOWER($3))))
+           AND id NOT IN (${placeholders})`,
+        [now, userId, cleanEmail, ...activePageIds]
       );
     }
 
     for (const t of trash) {
       if (!t || !t.id) continue;
-      await runDirectNeonSql(
+      await runSql(
         `INSERT INTO trash (id, user_id, title, icon, blocks, deleted_at)
          VALUES ($1, $2, $3, $4, $5::jsonb, $6)
          ON CONFLICT (id) DO UPDATE SET
@@ -454,7 +479,7 @@ const directNeonPush = async (payload) => {
     }
 
     if (workspaceSettings) {
-      await runDirectNeonSql(
+      await runSql(
         `INSERT INTO workspace_settings (user_id, open_tabs, active_page_id, theme, updated_at)
          VALUES ($1, $2::jsonb, $3, $4, $5)
          ON CONFLICT (user_id) DO UPDATE SET
@@ -481,6 +506,10 @@ const directNeonPush = async (payload) => {
 
 /**
  * Multi-Channel Remote Workspace Pusher
+ * Channel 1: Electron Native IPC Bridge (electronAPI.syncPush)
+ * Channel 2: Mobile Native Platform (Android Capacitor APK) -> Direct Neon Lakebase Channel
+ * Channel 3: Web Serverless API (/api/sync)
+ * Channel 4: Direct Neon Lakebase HTTP SQL API (Resilient Fallback)
  */
 export const pushRemoteWorkspace = async (payload) => {
   const { userId } = payload;
@@ -495,30 +524,37 @@ export const pushRemoteWorkspace = async (payload) => {
         throw new Error(data.error || 'Offline - Saved in Local Vault');
       }
     } catch (err) {
-      console.warn('[cloudSync] Electron IPC syncPush failed:', err.message);
-      throw err;
-    }
-  }
-
-  // 2. Web /api/sync on HTTP/HTTPS
-  if (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-    const res = await fetch('/api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.success) return data;
-    } else if (res.status === 404) {
+      console.warn('[cloudSync] Electron IPC syncPush failed, falling back to Direct Neon:', err.message);
       return await directNeonPush(payload);
-    } else {
-      throw new Error(`HTTP ${res.status}`);
     }
-    return null;
   }
 
-  // 3. Direct Neon Lakebase fallback for file:// standalone mode
+  // 2. Mobile Native Platform (Android Capacitor APK) -> Direct Neon Lakebase Channel
+  if (isMobileNativePlatform()) {
+    return await directNeonPush(payload);
+  }
+
+  // 3. Web Serverless API (/api/sync) on HTTP/HTTPS
+  if (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+    try {
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      // Guard: mock fetch objects in tests may not have headers
+      const contentType = res.headers?.get?.('content-type') || '';
+      const isJson = contentType.includes('application/json') || !res.headers;
+      if (res.ok && isJson) {
+        const data = await res.json();
+        if (data && data.success) return data;
+      }
+    } catch (webErr) {
+      console.warn('[cloudSync] Web /api/sync POST failed, falling back to Direct Neon:', webErr.message);
+    }
+  }
+
+  // 4. Direct Neon Lakebase fallback
   return await directNeonPush(payload);
 };
 

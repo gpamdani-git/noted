@@ -575,66 +575,8 @@
 }
 
 /* ==========================================================================
-   Apple Liquid / macOS Vibrant Desktop Styling (Parity with Native macOS Apps)
+   Desktop Refined Spacing (Solid Notion Theme, No Glass Translucency)
    ========================================================================== */
-html.is-mac-desktop,
-html.is-mac-desktop body,
-html.is-mac-desktop #root,
-html.is-mac-desktop .noted-app-layout {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
-/* Translucent Glassmorphic Vibrant Sidebar */
-html.is-mac-desktop .noted-sidebar,
-.is-mac-desktop .noted-sidebar {
-  background: rgba(247, 246, 243, 0.58) !important;
-  backdrop-filter: blur(32px) saturate(210%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
-  border-right: 1px solid rgba(55, 53, 47, 0.08) !important;
-}
-
-html[data-theme='dark'].is-mac-desktop .noted-sidebar,
-[data-theme='dark'].is-mac-desktop .noted-sidebar {
-  background: rgba(26, 26, 28, 0.54) !important;
-  backdrop-filter: blur(36px) saturate(210%) !important;
-  -webkit-backdrop-filter: blur(36px) saturate(210%) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Elegant Apple Liquid Workspace Canvas */
-html.is-mac-desktop .noted-main-workspace,
-.is-mac-desktop .noted-main-workspace {
-  background: rgba(255, 255, 255, 0.88) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-}
-
-html[data-theme='dark'].is-mac-desktop .noted-main-workspace,
-[data-theme='dark'].is-mac-desktop .noted-main-workspace {
-  background: rgba(22, 22, 24, 0.88) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-}
-
-/* Glassmorphic Apple Liquid Tab Bar */
-html.is-mac-desktop .noted-tab-bar,
-.is-mac-desktop .noted-tab-bar {
-  background: rgba(247, 246, 243, 0.52) !important;
-  backdrop-filter: blur(28px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.07) !important;
-}
-
-html[data-theme='dark'].is-mac-desktop .noted-tab-bar,
-[data-theme='dark'].is-mac-desktop .noted-tab-bar {
-  background: rgba(26, 26, 28, 0.52) !important;
-  backdrop-filter: blur(28px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
-}
-
-/* Apple Liquid refined item spacing, fluid pill hover transitions */
 .is-mac-desktop .sidebar-page-item,
 .is-mac-desktop .utility-nav-link {
   border-radius: 7px;
@@ -645,50 +587,25 @@ html[data-theme='dark'].is-mac-desktop .noted-tab-bar,
 
 .is-mac-desktop .sidebar-page-item:hover,
 .is-mac-desktop .utility-nav-link:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-hover);
 }
 
 html[data-theme='dark'].is-mac-desktop .sidebar-page-item:hover,
 html[data-theme='dark'].is-mac-desktop .utility-nav-link:hover,
 [data-theme='dark'].is-mac-desktop .sidebar-page-item:hover,
 [data-theme='dark'].is-mac-desktop .utility-nav-link:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-hover);
 }
 
 .is-mac-desktop .sidebar-page-item.active {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--bg-hover);
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 html[data-theme='dark'].is-mac-desktop .sidebar-page-item.active,
 [data-theme='dark'].is-mac-desktop .sidebar-page-item.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--bg-hover);
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
-
-/* Apple Liquid Popovers & Menus (TopNav Options, Discussions, SlashMenu) */
-.is-mac-desktop .notion-options-popover,
-.is-mac-desktop .discussions-popover,
-.is-mac-desktop .slash-menu {
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(28px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
-}
-
-html[data-theme='dark'].is-mac-desktop .notion-options-popover,
-html[data-theme='dark'].is-mac-desktop .discussions-popover,
-html[data-theme='dark'].is-mac-desktop .slash-menu,
-[data-theme='dark'].is-mac-desktop .notion-options-popover,
-[data-theme='dark'].is-mac-desktop .discussions-popover,
-[data-theme='dark'].is-mac-desktop .slash-menu {
-  background: rgba(32, 32, 36, 0.85) !important;
-  backdrop-filter: blur(32px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
-}
-
-
-

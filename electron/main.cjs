@@ -72,10 +72,8 @@ function createMainWindow() {
     minWidth: 840,
     minHeight: 560,
     title: 'Noted',
-    backgroundColor: isMac ? '#00000000' : '#ffffff',
-    transparent: isMac ? true : false,
-    vibrancy: isMac ? 'under-window' : undefined,
-    visualEffectState: isMac ? 'active' : undefined,
+    backgroundColor: '#ffffff',
+    transparent: false,
     show: false, // Wait until ready-to-show for smooth appearance
 
     // Frame styling matching Apple Liquid / Notion Desktop
