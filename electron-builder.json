@@ -23,11 +23,11 @@
     "target": [
       {
         "target": "dmg",
-        "arch": ["arm64", "x64"]
+        "arch": ["arm64", "x64", "universal"]
       },
       {
         "target": "zip",
-        "arch": ["arm64", "x64"]
+        "arch": ["arm64", "x64", "universal"]
       }
     ],
     "category": "public.app-category.productivity",
