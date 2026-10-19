@@ -1,0 +1,511 @@
+.noted-app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+}
+
+.noted-main-workspace {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+  position: relative;
+}
+
+.empty-workspace-view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background-color: var(--bg-primary);
+}
+
+.empty-workspace-card {
+  max-width: 400px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-workspace-card h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-workspace-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.btn-create-first-page {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-create-first-page:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Category B: Export to PDF & Print-Friendly Stylesheet (@media print)
+   ========================================================================== */
+@media print {
+  /* 1. Page Geometry & Base Rules */
+  @page {
+    margin: 16mm 14mm 16mm 14mm;
+    size: auto;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+  }
+
+  html, body, #root {
+    background: #ffffff !important;
+    color: #111827 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 2. Hide Non-Content Elements, Chrome, Nav, and Buttons */
+  .noted-sidebar,
+  .sidebar-mobile-backdrop,
+  .noted-top-nav,
+  .noted-topnav,
+  header.noted-top-nav,
+  .nav-menu-wrapper,
+  .nav-dropdown-menu,
+  .page-locked-banner,
+  .starter-templates-container,
+  .bubble-menu,
+  .slash-menu-popover,
+  .mention-menu-popover,
+  .left-handles,
+  .block-handle-zone,
+  .block-drop-line,
+  .multi-select-floating-bar,
+  .editor-bottom-click-area,
+  .ai-assistant-bar,
+  .backlinks-container,
+  .bottom-connected-notes,
+  .page-backlinks-section,
+  .backlinks-toggle-btn,
+  .page-header-actions-bar,
+  .header-action-btn,
+  .cover-controls-overlay,
+  .column-list-toolbar,
+  .column-add-btn,
+  .db-top-bar,
+  .add-row-btn,
+  .kanban-add-card-btn,
+  .db-filter-search-box,
+  .code-copy-btn,
+  .header-actions,
+  .header-hover-actions,
+  .cover-controls,
+  .btn-create-first-page,
+  .modal-backdrop,
+  .icon-picker-popover {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 3. Fluid Page Container (Block Layout, No Flex Clipping) */
+  .noted-app-layout,
+  .noted-main-workspace,
+  .noted-editor-container {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: static !important;
+  }
+
+  /* 4. Page Header Section */
+  .page-header-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 10px 0 !important;
+    padding: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .page-header-content {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .page-cover-banner {
+    display: block !important;
+    width: 100% !important;
+    height: 140px !important;
+    border-radius: 6px !important;
+    margin-bottom: 14px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .page-icon-wrapper {
+    display: block !important;
+    margin: 0 0 8px 0 !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  .page-icon-btn {
+    font-size: 38px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-block !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    cursor: default !important;
+  }
+
+  .page-title-input {
+    display: block !important;
+    width: 100% !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* 5. Editor Content Area (Must be block layout to allow continuous page flow) */
+  .editor-content-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .blocks-list {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 0 !important;
+  }
+
+  /* 6. Block Items & Continuous Flow */
+  .block-item-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 5px 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .block-content-wrapper {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Keep Headings Attached to Their Following Content */
+  .block-type-heading_1,
+  .block-type-heading_2,
+  .block-type-heading_3,
+  .block-h1,
+  .block-h2,
+  .block-h3 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-top: 14px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .block-h1 {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+  }
+
+  .block-h2 {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+  }
+
+  .block-h3 {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+  }
+
+  /* Text & Markdown Display */
+  .block-rendered-display,
+  .block-rendered-text,
+  .block-paragraph {
+    color: #111827 !important;
+    line-height: 1.6 !important;
+    font-size: 13.5px !important;
+  }
+
+  textarea.block-input,
+  input.block-input {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    resize: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+  }
+
+  /* Callout Card */
+  .block-callout-container {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 10px 14px !important;
+    border-radius: 6px !important;
+    margin: 8px 0 !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .block-callout-container.color-blue {
+    background: #eff6ff !important;
+    border-left: 3px solid #3b82f6 !important;
+  }
+
+  .block-callout-container.color-purple {
+    background: #faf5ff !important;
+    border-left: 3px solid #a855f7 !important;
+  }
+
+  .block-callout-container.color-green {
+    background: #f0fdf4 !important;
+    border-left: 3px solid #22c55e !important;
+  }
+
+  .block-callout-container.color-orange {
+    background: #fff7ed !important;
+    border-left: 3px solid #f97316 !important;
+  }
+
+  .block-callout-container.color-red {
+    background: #fef2f2 !important;
+    border-left: 3px solid #ef4444 !important;
+  }
+
+  .callout-emoji-btn {
+    font-size: 18px !important;
+    width: auto !important;
+    height: auto !important;
+    line-height: 1 !important;
+  }
+
+  /* Code Block Card */
+  .block-code-card {
+    display: block !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 12px 14px !important;
+    margin: 8px 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .code-textarea {
+    color: #0f172a !important;
+    font-family: var(--font-mono) !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Quotes */
+  .block-quote-display,
+  .col-quote-wrap {
+    display: block !important;
+    border-left: 3px solid #334155 !important;
+    padding: 3px 0 3px 12px !important;
+    margin: 6px 0 !important;
+    font-style: italic !important;
+    color: #334155 !important;
+  }
+
+  /* To-do items */
+  .block-todo-item,
+  .col-todo-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin: 2px 0 !important;
+  }
+
+  input[type="checkbox"] {
+    width: 14px !important;
+    height: 14px !important;
+    accent-color: #2563eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Lists */
+  .block-bullet-item,
+  .block-number-item {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin: 2px 0 !important;
+  }
+
+  /* Databases & Tables */
+  .database-block-wrapper,
+  .database-table-container,
+  .database-table {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 8px 0 !important;
+  }
+
+  .db-table-cell,
+  .db-table-th {
+    border: 1px solid #cbd5e1 !important;
+    color: #111827 !important;
+    padding: 6px 10px !important;
+    background: #ffffff !important;
+    font-size: 12.5px !important;
+  }
+
+  .db-table-th {
+    background: #f1f5f9 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Multi-column layout */
+  .column-grid-layout {
+    display: grid !important;
+    gap: 16px !important;
+    width: 100% !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin: 8px 0 !important;
+  }
+
+  .column-card-track {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  /* Table of Contents Block */
+  .toc-block-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 10px 14px !important;
+    margin: 8px 0 !important;
+  }
+
+  /* Clean Link Styling */
+  a {
+    color: #2563eb !important;
+    text-decoration: underline !important;
+  }
+}
+
+/* Notion AI Floating Action Button (Screenshot bottom-right FAB) */
+.notion-floating-ai-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.12));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 95;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-theme='dark'] .notion-floating-ai-fab {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.notion-floating-ai-fab:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.notion-ai-mascot-svg {
+  color: var(--text-primary);
+  display: block;
+}
+
+

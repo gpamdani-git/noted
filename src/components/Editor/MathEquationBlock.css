@@ -1,0 +1,313 @@
+.notion-math-wrapper {
+  width: 100%;
+  margin: 6px 0;
+  box-sizing: border-box;
+}
+
+/* Display State */
+.notion-math-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  background: var(--bg-primary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 48px;
+  box-sizing: border-box;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  user-select: text;
+}
+
+.notion-math-display:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+}
+
+.notion-math-display.is-empty {
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-color);
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.notion-math-display.is-empty:hover {
+  border-color: var(--accent);
+  color: var(--text-secondary);
+}
+
+.math-empty-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+
+.math-placeholder-icon {
+  color: var(--accent);
+}
+
+.math-rendered-formula {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  text-align: center;
+}
+
+/* Floating Actions on Hover */
+.math-hover-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: none;
+  align-items: center;
+  gap: 3px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  z-index: 5;
+}
+
+.notion-math-display:hover .math-hover-actions {
+  display: flex;
+}
+
+.math-action-btn {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.math-action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.math-action-btn .text-green {
+  color: var(--color-green);
+}
+
+/* Math Editor Box */
+.notion-math-editor {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.notion-math-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.math-header-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.math-header-icon {
+  color: var(--accent);
+}
+
+.math-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.math-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Presets Bar */
+.math-presets-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.presets-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.presets-scroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.presets-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.preset-pill-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2px 9px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+}
+
+.preset-pill-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Textarea */
+.notion-math-textarea {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.notion-math-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+/* Live Preview */
+.math-live-preview {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+}
+
+.preview-content {
+  overflow-x: auto;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.preview-empty {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  text-align: center;
+  padding: 6px 0;
+}
+
+.katex-error {
+  color: var(--color-red);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+/* Editor Footer */
+.notion-math-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.shortcut-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.math-cancel-action {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  transition: all 0.12s ease;
+}
+
+.math-cancel-action:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.math-done-btn {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 5px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.math-done-btn:hover {
+  background: var(--accent-hover);
+}

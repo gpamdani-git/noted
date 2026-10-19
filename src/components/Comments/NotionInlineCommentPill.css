@@ -1,0 +1,115 @@
+/* Notion Inline Comment Pill matching Screenshot 3 */
+
+.notion-inline-comment-pill {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.12));
+  border-radius: 20px;
+  padding: 4px 6px 4px 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16), 0 0 0 1px var(--border-subtle, rgba(55, 53, 47, 0.06));
+  min-width: 280px;
+  max-width: 440px;
+  user-select: none;
+}
+
+[data-theme='dark'] .notion-inline-comment-pill {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.pill-avatar-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pill-text-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: inherit;
+  min-width: 120px;
+  padding: 2px 4px;
+}
+
+.pill-text-input::placeholder {
+  color: var(--text-tertiary, #9b9a97);
+}
+
+.pill-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pill-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.pill-icon-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.08));
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .pill-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pill-cancel-btn {
+  margin-left: 2px;
+}
+
+/* Blue circular submit button with white arrow up matching Screenshot 3 */
+.pill-submit-circle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(35, 131, 226, 0.2);
+  color: rgba(35, 131, 226, 0.5);
+  border: none;
+  cursor: not-allowed;
+  transition: all 0.15s ease;
+}
+
+.pill-submit-circle-btn.active {
+  background: var(--color-blue, #2383e2);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(35, 131, 226, 0.35);
+}
+
+.pill-submit-circle-btn.active:hover {
+  background: #1d72c6;
+  transform: translateY(-1px);
+}

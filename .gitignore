@@ -1,0 +1,46 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies and build
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Local SQLite & Drizzle Cache
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.drizzle/
+
+# Neon CLI local link
+.neon
+
+# Large dumps & test reports
+index.js
+qa-report.html
+graphify-out/cache/

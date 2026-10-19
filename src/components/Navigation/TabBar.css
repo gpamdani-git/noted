@@ -1,0 +1,364 @@
+/* TabBar.css - Unified Notion Desktop Top Window Bar */
+
+.noted-tab-bar {
+  height: 38px;
+  width: 100%;
+  background: var(--bg-sidebar, #f7f6f3);
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 6px;
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 105;
+}
+
+[data-theme='dark'] .noted-tab-bar {
+  background: #202020;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Left zone: Window Nav & Tabs */
+.tab-bar-left-zone {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.window-nav-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  flex-shrink: 0;
+}
+
+.window-nav-icon-btn:hover:not(:disabled) {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+.window-nav-icon-btn:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.window-nav-arrows {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  margin-right: 2px;
+}
+
+.arrow-btn {
+  width: 22px;
+  height: 24px;
+}
+
+/* Scrollable Tab Strip */
+.tab-bar-strip {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  scrollbar-width: none;
+  padding-top: 5px;
+}
+
+.tab-bar-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual Tab Item */
+.tab-item {
+  position: relative;
+  height: 33px;
+  min-width: 110px;
+  max-width: 190px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+}
+
+.tab-item:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+.tab-item.active {
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary);
+  font-weight: 500;
+  border-color: var(--border-color, rgba(55, 53, 47, 0.08));
+  border-bottom: 1px solid var(--bg-primary, #ffffff);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='dark'] .tab-item.active {
+  background: #191919;
+  border-color: rgba(255, 255, 255, 0.07);
+  border-bottom-color: #191919;
+}
+
+.tab-item.is-dragging {
+  opacity: 0.35;
+  transform: scale(0.96);
+}
+
+.tab-item.is-drag-over {
+  border-left: 2px solid var(--accent, #2383e2);
+  background: rgba(35, 131, 226, 0.08);
+}
+
+.tab-page-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tab-page-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.tab-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: all 0.12s ease;
+  margin-left: 2px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.tab-item:hover .tab-close-btn,
+.tab-item.active .tab-close-btn {
+  opacity: 0.7;
+}
+
+.tab-close-btn:hover {
+  opacity: 1 !important;
+  background: var(--bg-hover, rgba(55, 53, 47, 0.09));
+  color: var(--text-primary);
+}
+
+/* New Tab Button */
+.tab-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+  margin-left: 2px;
+  border-radius: 4px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+}
+
+.tab-add-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+/* Right zone: Window Toolbar Actions */
+.tab-bar-right-zone {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.tab-edited-time {
+  font-size: 12px;
+  color: var(--text-tertiary, #9b9a97);
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.tab-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tab-toolbar-btn:hover,
+.tab-toolbar-btn.active {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+.tab-toolbar-btn.is-locked {
+  color: var(--color-orange, #d9730d);
+}
+
+.tab-toolbar-btn.favorited {
+  color: var(--color-yellow, #cb912f);
+}
+
+.star-filled {
+  fill: var(--color-yellow, #cb912f);
+}
+
+.tab-toolbar-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-blue, #2383e2);
+  box-shadow: 0 0 0 1.5px var(--bg-primary, #ffffff);
+}
+
+.share-lock-icon {
+  margin-right: 4px;
+  opacity: 0.75;
+}
+
+.tab-share-text-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tab-share-text-btn:hover,
+.tab-share-text-btn.active {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+.tab-menu-wrapper {
+  position: relative;
+}
+
+/* Share Popover */
+.notion-share-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-popover, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  z-index: 1000;
+}
+
+[data-theme='dark'] .notion-share-popover {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Context Menu */
+.tab-context-menu {
+  position: fixed;
+  z-index: 1000;
+  width: 200px;
+  background: var(--bg-popover, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+}
+
+[data-theme='dark'] .tab-context-menu {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.tab-context-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.tab-context-item:hover:not(:disabled) {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+}
+
+.tab-context-item:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.context-kbd {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.tab-context-divider {
+  height: 1px;
+  background: var(--border-color, rgba(55, 53, 47, 0.08));
+  margin: 4px 0;
+}

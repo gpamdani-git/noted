@@ -1,0 +1,220 @@
+/* Discussions Popover matching Notion Desktop Screenshot 5 */
+
+.notion-discussions-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 320px;
+  max-height: 420px;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 0 0 1px var(--border-subtle, rgba(55, 53, 47, 0.05));
+  display: flex;
+  flex-direction: column;
+  z-index: 1050;
+  overflow: hidden;
+  user-select: none;
+}
+
+[data-theme='dark'] .notion-discussions-popover {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Header */
+.notion-discussions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.06));
+}
+
+[data-theme='dark'] .notion-discussions-header {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.notion-discussions-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.notion-discussions-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.notion-discussions-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.notion-discussions-icon-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+/* List */
+.notion-discussions-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 280px;
+  padding: 6px 0;
+  scrollbar-width: thin;
+}
+
+.notion-discussions-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.notion-discussions-item:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.04));
+}
+
+[data-theme='dark'] .notion-discussions-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.notion-discussions-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notion-discussions-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notion-discussions-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.notion-discussions-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notion-discussions-time {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.notion-discussions-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.notion-discussions-replies-count {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-blue, #2383e2);
+  font-weight: 500;
+}
+
+/* Empty state */
+.notion-discussions-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-tertiary);
+  gap: 6px;
+}
+
+.empty-icon {
+  opacity: 0.5;
+  margin-bottom: 2px;
+}
+
+.empty-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.empty-subtitle {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Footer with See All Pill */
+.notion-discussions-footer {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.06));
+  display: flex;
+  justify-content: center;
+}
+
+[data-theme='dark'] .notion-discussions-footer {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.notion-discussions-see-all-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  border: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.08));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+[data-theme='dark'] .notion-discussions-see-all-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.notion-discussions-see-all-btn:hover {
+  background: var(--bg-active, rgba(55, 53, 47, 0.12));
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .notion-discussions-see-all-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}

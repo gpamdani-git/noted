@@ -1,0 +1,193 @@
+.notion-video-wrapper {
+  width: 100%;
+  margin: 8px 0;
+  box-sizing: border-box;
+}
+
+/* Input Form */
+.notion-video-input-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.notion-video-input-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.video-input-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.video-url-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  font-family: inherit;
+  min-width: 0;
+}
+
+.video-url-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.video-submit-btn {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.video-submit-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.video-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.video-cancel-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.video-cancel-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Video Player Container */
+.notion-video-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.notion-video-frame-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0f0f11;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notion-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.notion-video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+}
+
+.video-placeholder-icon {
+  opacity: 0.5;
+}
+
+/* Floating Hover Actions */
+.video-hover-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background: rgba(20, 20, 22, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-sm);
+  padding: 3px 5px;
+  z-index: 10;
+}
+
+.notion-video-frame-container:hover .video-hover-actions {
+  display: flex;
+}
+
+.video-action-btn {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.video-action-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.video-action-btn .text-green {
+  color: #4ade80;
+}
+
+/* Video Caption */
+.video-caption-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  padding: 3px 6px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.video-caption-input:focus {
+  color: var(--text-secondary);
+}
+
+.video-caption-input::placeholder {
+  color: var(--text-placeholder);
+}

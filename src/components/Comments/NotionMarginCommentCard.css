@@ -1,0 +1,307 @@
+/* Notion Margin Comment Card (Image to UI matching Image 1 & 2) */
+
+.notion-margin-comment-card {
+  position: absolute;
+  top: 0;
+  right: -260px;
+  width: 240px;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--border-subtle, rgba(55, 53, 47, 0.04));
+  padding: 10px 12px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+[data-theme='dark'] .notion-margin-comment-card {
+  background: #202020;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.notion-margin-comment-card.is-resolved {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+}
+
+.notion-margin-comment-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1), 0 0 0 1px var(--border-color);
+}
+
+[data-theme='dark'] .notion-margin-comment-card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Thread Entry */
+.notion-thread-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.entry-avatar-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.entry-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Vertical Connecting Line between avatars in thread */
+.thread-connecting-line {
+  width: 1.5px;
+  flex: 1;
+  min-height: 14px;
+  margin-top: 4px;
+  background: rgba(55, 53, 47, 0.12);
+  border-radius: 1px;
+}
+
+[data-theme='dark'] .thread-connecting-line {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.entry-content-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.entry-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.entry-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entry-author-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-timestamp {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+}
+
+/* Action Buttons */
+.entry-actions-hover {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+}
+
+.notion-margin-comment-card:hover .entry-actions-hover {
+  opacity: 1;
+}
+
+.entry-act-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.1s ease;
+}
+
+.entry-act-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.08));
+  color: var(--text-primary);
+}
+
+.entry-act-btn.resolve:hover {
+  background: rgba(68, 131, 97, 0.15);
+  color: #448361;
+}
+
+[data-theme='dark'] .entry-act-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .entry-act-btn.resolve:hover {
+  background: rgba(82, 158, 114, 0.2);
+  color: #529e72;
+}
+
+.entry-options-anchor {
+  position: relative;
+}
+
+.entry-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  z-index: 100;
+  padding: 4px;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+[data-theme='dark'] .entry-dropdown-menu {
+  background: #2b2b2b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 11.5px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.dropdown-menu-item:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+}
+
+[data-theme='dark'] .dropdown-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dropdown-menu-item.delete {
+  color: var(--color-red, #e03e3e);
+}
+
+/* Comment text matching Screenshot ("comment on", "asd") */
+.entry-text-body {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Replies List */
+.notion-thread-replies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.reply-entry {
+  margin-top: 0;
+}
+
+/* Add Reply Trigger & Input */
+.thread-reply-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-secondary, rgba(55, 53, 47, 0.04));
+  border: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.08));
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-top: 6px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.thread-reply-input-wrapper:focus-within {
+  background: var(--bg-primary, #ffffff);
+  border-color: var(--border-focus, #2383e2);
+  box-shadow: 0 0 0 2px var(--accent-soft, rgba(35, 131, 226, 0.12));
+}
+
+[data-theme='dark'] .thread-reply-input-wrapper {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .thread-reply-input-wrapper:focus-within {
+  background: #252525;
+  border-color: var(--border-focus, #388bfd);
+  box-shadow: 0 0 0 2px rgba(56, 139, 253, 0.15);
+}
+
+.thread-reply-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 11.5px;
+  color: var(--text-primary);
+  font-family: inherit;
+  padding: 1px 0;
+}
+
+.thread-reply-send {
+  background: transparent;
+  border: none;
+  color: var(--color-blue, #2383e2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.thread-reply-send:disabled {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+/* Highlight for block with comment (matching Screenshot Image 1 & 2) */
+.has-active-comment .block-input,
+.has-active-comment .block-rendered-display {
+  background-color: rgba(235, 144, 45, 0.15) !important;
+  border-radius: 4px;
+  padding: 4px 8px !important;
+  display: inline-block;
+  width: auto !important;
+  max-width: 100%;
+}
+
+[data-theme='dark'] .has-active-comment .block-input,
+[data-theme='dark'] .has-active-comment .block-rendered-display {
+  background-color: rgba(235, 144, 45, 0.22) !important;
+}

@@ -1,0 +1,180 @@
+/* NotionOptionsMenu.css - Pixel-perfect match to Notion Desktop Options Dropdown */
+
+.notion-options-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 260px;
+  max-height: 85vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-popover, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 6px 0;
+  z-index: 1000;
+  font-family: var(--font-sans);
+  user-select: none;
+}
+
+[data-theme='dark'] .notion-options-popover {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* 1. Search Box */
+.notion-menu-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 10px 8px 10px;
+  padding: 4px 8px;
+  border: 1px solid #2383e2;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(35, 131, 226, 0.2);
+}
+
+.notion-menu-search-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.notion-menu-search-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  padding: 0;
+  font-family: inherit;
+}
+
+.notion-menu-search-input::placeholder {
+  color: var(--text-placeholder, #9b9a97);
+}
+
+/* 2. Menu Rows */
+.notion-menu-items-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notion-menu-group {
+  display: flex;
+  flex-direction: column;
+  padding: 1px 4px;
+}
+
+.notion-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  font-size: 13px;
+  color: var(--text-primary);
+  min-height: 28px;
+}
+
+.notion-menu-row:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+}
+
+.notion-menu-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.notion-menu-item-icon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.notion-menu-item-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+
+.notion-menu-row-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.notion-shortcut-kbd {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+.notion-chevron-icon {
+  color: var(--text-tertiary);
+}
+
+.notion-menu-subtext {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Switch Slider (iOS / Notion Style) */
+.notion-menu-switch {
+  width: 26px;
+  height: 14px;
+  border-radius: 10px;
+  background: rgba(55, 53, 47, 0.16);
+  position: relative;
+  display: inline-block;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+[data-theme='dark'] .notion-menu-switch {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.notion-menu-switch .switch-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notion-menu-switch.checked {
+  background: #2383e2;
+}
+
+.notion-menu-switch.checked .switch-knob {
+  transform: translateX(12px);
+}
+
+/* Dividers */
+.notion-menu-divider {
+  height: 1px;
+  background: var(--border-color, rgba(55, 53, 47, 0.08));
+  margin: 4px 0;
+}
+
+.notion-menu-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}

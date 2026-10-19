@@ -1,0 +1,74 @@
+.notion-breadcrumb-container {
+  width: 100%;
+  padding: 4px 6px;
+  margin: 4px 0;
+  box-sizing: border-box;
+}
+
+.breadcrumb-nav-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  line-height: 1;
+}
+
+.breadcrumb-item.is-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.breadcrumb-item.is-current {
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: default;
+}
+
+.breadcrumb-root {
+  color: var(--text-tertiary);
+  cursor: default;
+  font-weight: 500;
+}
+
+.breadcrumb-root-icon {
+  color: var(--accent);
+}
+
+.breadcrumb-separator {
+  color: var(--text-tertiary);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.breadcrumb-page-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.breadcrumb-page-emoji {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.breadcrumb-title {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

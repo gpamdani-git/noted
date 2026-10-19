@@ -1,0 +1,315 @@
+/* TopNav.css - Notion Sub-Breadcrumb Bar */
+
+.noted-sub-breadcrumb-bar {
+  height: 34px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 0 16px;
+  background: var(--bg-primary, #ffffff);
+  border-bottom: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.05));
+  user-select: none;
+  flex-shrink: 0;
+  z-index: 90;
+}
+
+[data-theme='dark'] .noted-sub-breadcrumb-bar {
+  background: #191919;
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
+.breadcrumb-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.breadcrumb-title-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumb-page-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.breadcrumb-page-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+/* Privacy Badge Selector ala Notion */
+.breadcrumb-privacy-wrap {
+  position: relative;
+}
+
+.breadcrumb-privacy-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.breadcrumb-privacy-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-secondary);
+}
+
+.privacy-lock-icon {
+  color: var(--text-tertiary);
+}
+
+.privacy-chevron-icon {
+  opacity: 0.7;
+}
+
+.privacy-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 220px;
+  background: var(--bg-popover, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  z-index: 1000;
+}
+
+[data-theme='dark'] .privacy-dropdown-menu {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  padding: 4px 8px 2px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-primary);
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+}
+
+.dropdown-item.active-privacy {
+  color: #2383e2;
+  font-weight: 500;
+}
+
+.check-icon {
+  margin-left: auto;
+  color: #2383e2;
+}
+
+/* Right Section */
+.breadcrumb-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.breadcrumb-comments-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.1s ease;
+}
+
+.breadcrumb-comments-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-secondary);
+}
+
+.breadcrumb-comment-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #eb5757;
+  margin-left: 2px;
+}
+
+.breadcrumb-ai-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.breadcrumb-ai-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: #7c3aed;
+}
+
+.ai-ghost-sparkle {
+  color: var(--text-tertiary);
+  transition: color 0.12s ease;
+}
+
+.breadcrumb-ai-btn:hover .ai-ghost-sparkle {
+  color: #7c3aed;
+}
+
+/* Page Toolbar Buttons (Moved down to TopNav) */
+.tab-menu-wrapper {
+  position: relative;
+}
+
+.tab-share-text-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tab-share-text-btn:hover,
+.tab-share-text-btn.active {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+.share-lock-icon {
+  margin-right: 4px;
+  opacity: 0.75;
+}
+
+.tab-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tab-toolbar-btn:hover,
+.tab-toolbar-btn.active {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+.tab-toolbar-btn.favorited {
+  color: var(--color-yellow, #cb912f);
+}
+
+.star-filled {
+  fill: var(--color-yellow, #cb912f);
+}
+
+/* Share & Export Popover */
+.notion-share-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-popover, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  z-index: 1000;
+}
+
+[data-theme='dark'] .notion-share-popover {
+  background: #252525;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border-color, rgba(55, 53, 47, 0.08));
+  margin: 4px 0;
+}
+
+.text-green {
+  color: #448361;
+}
+
+.text-ai-purple {
+  color: #7c3aed;
+}
+
+.cloud-sync-btn {
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.cloud-sync-btn:hover {
+  transform: translateY(-0.5px);
+}
+
+.spin-icon {
+  animation: spinSlow 1.2s linear infinite;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

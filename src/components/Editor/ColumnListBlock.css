@@ -1,0 +1,246 @@
+.column-list-wrapper {
+  width: 100%;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  container: column-list / inline-size;
+}
+
+.column-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm);
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.column-list-wrapper:hover .column-list-toolbar {
+  opacity: 1;
+}
+
+.column-layout-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.column-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+  cursor: pointer;
+}
+
+.column-tool-btn:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.column-tool-btn.active {
+  background: var(--bg-primary);
+  color: var(--accent);
+  border-color: var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.column-toolbar-hint {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+}
+
+/* Grid Layout */
+.column-grid-layout {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+.column-card-track {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease-out;
+}
+
+.column-card-track:hover,
+.column-card-track:focus-within {
+  border-color: var(--border-hover);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.column-track-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.column-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-tertiary);
+}
+
+.column-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: all 0.12s;
+  cursor: pointer;
+}
+
+.column-add-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
+.column-blocks-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.column-block-row {
+  display: flex;
+  align-items: flex-start;
+  min-height: 24px;
+}
+
+.col-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  color: var(--text-primary);
+  line-height: 1.5;
+  resize: none;
+  padding: 2px 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: block;
+  word-break: break-word;
+}
+
+.col-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.col-h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.col-h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.col-h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.col-paragraph-input {
+  font-size: 13.5px;
+}
+
+/* Col To-Do */
+.col-todo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.col-todo-wrap input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.col-todo-input.completed {
+  text-decoration: line-through;
+  color: var(--text-tertiary);
+}
+
+/* Col Bullet & Number */
+.col-bullet-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.col-bullet-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.col-num-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+/* Col Quote */
+.col-quote-wrap {
+  width: 100%;
+  border-left: 3px solid var(--text-primary);
+  padding-left: 8px;
+}
+
+.col-quote-input {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Responsive Container Query Collapse */
+@container column-list (max-width: 600px) {
+  .column-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .column-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+}
