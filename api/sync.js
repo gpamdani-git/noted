@@ -298,13 +298,64 @@ export default async function handler(req, res) {
         [userId]
       );
 
+      let effectiveUserId = userId;
+      let finalPages = pagesRes.rows || [];
+      let finalTrash = trashRes.rows || [];
+      let finalSettings = settingsRes.rows[0] || null;
+
+      // Notion REA Email Anchor: If no pages found for this specific userId, resolve by user email
+      const userEmail = req.query?.email || req.url?.split('email=')?.[1]?.split('&')?.[0];
+      if (finalPages.length === 0 && userEmail) {
+        try {
+          const decodedEmail = decodeURIComponent(userEmail).trim().toLowerCase();
+          const altUserRes = await client.query(
+            'SELECT id FROM users WHERE LOWER(email) = $1 AND id != $2 LIMIT 1',
+            [decodedEmail, userId]
+          );
+          if (altUserRes.rows.length > 0) {
+            effectiveUserId = altUserRes.rows[0].id;
+            const altPagesRes = await client.query(
+              `SELECT id, user_id AS "userId", title, icon, cover, parent_id AS "parentId",
+                      is_favorite AS "isFavorite", is_locked AS "isLocked",
+                      full_width AS "fullWidth", font_family AS "fontFamily",
+                      blocks, version, created_at AS "createdAt", updated_at AS "updatedAt"
+               FROM pages
+               WHERE user_id = $1 AND is_deleted = FALSE
+               ORDER BY updated_at DESC`,
+              [effectiveUserId]
+            );
+            if (altPagesRes.rows.length > 0) {
+              finalPages = altPagesRes.rows;
+              const altTrashRes = await client.query(
+                `SELECT id, user_id AS "userId", title, icon, blocks, deleted_at AS "deletedAt"
+                 FROM trash
+                 WHERE user_id = $1
+                 ORDER BY deleted_at DESC`,
+                [effectiveUserId]
+              );
+              finalTrash = altTrashRes.rows || [];
+              const altSettingsRes = await client.query(
+                `SELECT open_tabs AS "openTabs", active_page_id AS "activePageId", theme, updated_at AS "updatedAt"
+                 FROM workspace_settings
+                 WHERE user_id = $1`,
+                [effectiveUserId]
+              );
+              finalSettings = altSettingsRes.rows[0] || null;
+            }
+          }
+        } catch (e) {
+          console.warn('[sync] Email anchor resolution notice:', e.message);
+        }
+      }
+
       return res.status(200).json({
         success: true,
         mode: 'cloud_postgres',
         serverTimestamp: Date.now(),
-        pages: pagesRes.rows || [],
-        trash: trashRes.rows || [],
-        workspaceSettings: settingsRes.rows[0] || null
+        resolvedUserId: effectiveUserId,
+        pages: finalPages,
+        trash: finalTrash,
+        workspaceSettings: finalSettings
       });
     }
 
@@ -326,6 +377,22 @@ export default async function handler(req, res) {
 
       await client.query('BEGIN');
 
+      let targetUserId = userId;
+      if (user?.email) {
+        try {
+          const cleanEmail = user.email.trim().toLowerCase();
+          const matchRes = await client.query(
+            'SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1',
+            [cleanEmail]
+          );
+          if (matchRes.rows.length > 0) {
+            targetUserId = matchRes.rows[0].id;
+          }
+        } catch (e) {
+          console.warn('[sync] Email resolution in POST notice:', e.message);
+        }
+      }
+
       // 1. Upsert User
       if (user && user.id) {
         await client.query(
@@ -339,7 +406,7 @@ export default async function handler(req, res) {
              color = EXCLUDED.color,
              updated_at = EXCLUDED.updated_at`,
           [
-            user.id,
+            targetUserId,
             user.email || null,
             user.name || 'User',
             user.picture || null,
@@ -379,7 +446,7 @@ export default async function handler(req, res) {
              is_deleted = FALSE`,
           [
             page.id,
-            userId,
+            targetUserId,
             page.title || 'Untitled',
             page.icon || null,
             page.cover || null,
@@ -401,7 +468,7 @@ export default async function handler(req, res) {
         await client.query(
           `UPDATE pages SET is_deleted = TRUE, updated_at = $1
            WHERE user_id = $2 AND NOT (id = ANY($3::text[]))`,
-          [now, userId, activePageIds]
+          [now, targetUserId, activePageIds]
         );
       }
 
@@ -418,7 +485,7 @@ export default async function handler(req, res) {
              deleted_at = EXCLUDED.deleted_at`,
           [
             t.id,
-            userId,
+            targetUserId,
             t.title || 'Deleted Page',
             t.icon || null,
             JSON.stringify(t.blocks || []),
@@ -438,7 +505,7 @@ export default async function handler(req, res) {
              theme = EXCLUDED.theme,
              updated_at = EXCLUDED.updated_at`,
           [
-            userId,
+            targetUserId,
             JSON.stringify(workspaceSettings.openTabs || []),
             workspaceSettings.activePageId || null,
             workspaceSettings.theme || 'light',
@@ -453,6 +520,7 @@ export default async function handler(req, res) {
         success: true,
         mode: 'cloud_postgres',
         serverTimestamp: now,
+        resolvedUserId: targetUserId,
         syncedPagesCount: pages.length,
         syncedTrashCount: trash.length
       });

@@ -96,7 +96,7 @@ export const NotionLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
           // If popup was blocked or prompt not displayed, fallback to demo user
           try {
-            const user = loginWithDemoGoogle('dani.akbar@gmail.com', 'Dani Akbar');
+            const user = loginWithDemoGoogle('gpamdani@gmail.com', 'Dani Gpam');
             if (onLoginSuccess) onLoginSuccess(user);
             onClose();
           } catch (e) {
@@ -106,7 +106,7 @@ export const NotionLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       });
     } else {
       // Fallback to instant demo Google login
-      const user = loginWithDemoGoogle('dani.akbar@gmail.com', 'Dani Akbar');
+      const user = loginWithDemoGoogle('gpamdani@gmail.com', 'Dani Gpam');
       if (onLoginSuccess) onLoginSuccess(user);
       onClose();
     }

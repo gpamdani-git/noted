@@ -85,7 +85,8 @@ export const startLiveSyncPulse = ({ getUser, onRemoteUpdate, intervalMs = 10000
 
     isChecking = true;
     try {
-      const res = await fetch(`/api/sync?userId=${encodeURIComponent(user.id)}`, {
+      const emailParam = user.email ? `&email=${encodeURIComponent(user.email)}` : '';
+      const res = await fetch(`/api/sync?userId=${encodeURIComponent(user.id)}${emailParam}`, {
         cache: 'no-store'
       });
       if (!res.ok) return;
@@ -153,7 +154,8 @@ export const pullCloudWorkspace = async (user) => {
 
   try {
     notifyStatus({ status: 'syncing' });
-    const res = await fetch(`/api/sync?userId=${encodeURIComponent(user.id)}`, {
+    const emailParam = user.email ? `&email=${encodeURIComponent(user.email)}` : '';
+    const res = await fetch(`/api/sync?userId=${encodeURIComponent(user.id)}${emailParam}`, {
       cache: 'no-store'
     });
 
@@ -168,6 +170,7 @@ export const pullCloudWorkspace = async (user) => {
         error: null
       });
       return {
+        resolvedUserId: data.resolvedUserId || user.id,
         pages: data.pages || [],
         trash: data.trash || [],
         workspaceSettings: data.workspaceSettings || null

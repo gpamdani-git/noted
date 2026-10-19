@@ -204,9 +204,9 @@
     "semantic_hash": "923a7286537e1962728b1fa49b67fab6"
   },
   "src/App.jsx": {
-    "mtime": 1792383719.4470572,
-    "seen": 1792383826.398041,
-    "ast_hash": "3cf85f07f5c9d84fd749a2677c88f546",
+    "mtime": 1792389448.521047,
+    "seen": 1792389500.252031,
+    "ast_hash": "8c90efb2f34db050f45c0c921b7f2c8b",
     "semantic_hash": ""
   },
   "src/components/Comments/BlockCommentPopover.jsx": {
@@ -582,9 +582,9 @@
     "semantic_hash": "436f13eea5d5fb9482092467b9a8311b"
   },
   "vite.config.js": {
-    "mtime": 1792383765.7449412,
-    "seen": 1792383826.398108,
-    "ast_hash": "8d9e4ac0788dd1f0b9aa9ede9171d75b",
+    "mtime": 1792388958.4474263,
+    "seen": 1792389500.252223,
+    "ast_hash": "45b8fa23c54b9263578a5165a1d24c4a",
     "semantic_hash": ""
   },
   ".agents/skills/taste-skill-v2/SKILL.md": {
@@ -612,27 +612,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792254106.149033,
-    "seen": 1792375522.185257,
-    "ast_hash": "75eb386f17caf77fd6fe3ce1d90968ee",
+    "mtime": 1792386746.2956855,
+    "seen": 1792388180.339099,
+    "ast_hash": "6f9b23538801539d38db4897319d37b8",
     "semantic_hash": ""
   },
   "index.html": {
     "mtime": 1792376117.6336322,
     "seen": 1792376602.485098,
     "ast_hash": "4a15d0ad39bbd671b688ed4e9bffdd9b",
-    "semantic_hash": ""
-  },
-  "public/qa-report.html": {
-    "mtime": 1792370583.740642,
-    "seen": 1792375522.185261,
-    "ast_hash": "5906d924fc892319ba7799af7d6fe1c5",
-    "semantic_hash": ""
-  },
-  "qa-report.html": {
-    "mtime": 1792370590.7199094,
-    "seen": 1792375522.1852632,
-    "ast_hash": "5906d924fc892319ba7799af7d6fe1c5",
     "semantic_hash": ""
   },
   "public/favicon.svg": {
@@ -1067,16 +1055,10 @@
     "ast_hash": "9960a24288958394ac50e57ff638b036",
     "semantic_hash": ""
   },
-  "index.js": {
-    "mtime": 1792375972.2995417,
-    "seen": 1792376602.485022,
-    "ast_hash": "55258b59d10575db1a1523954b944429",
-    "semantic_hash": ""
-  },
   "src/components/Auth/NotionLoginModal.jsx": {
-    "mtime": 1792379119.9780831,
-    "seen": 1792379263.1804008,
-    "ast_hash": "33a7309dd8b950d5b5e5e1a81e412417",
+    "mtime": 1792389425.6701674,
+    "seen": 1792389500.252034,
+    "ast_hash": "615c6f146cd8bbe811446f06bb013c4e",
     "semantic_hash": ""
   },
   "src/test/auth.test.js": {
@@ -1122,21 +1104,21 @@
     "semantic_hash": ""
   },
   "api/sync.js": {
-    "mtime": 1792384552.6732016,
-    "seen": 1792384625.765468,
-    "ast_hash": "ce3e436fae679d43503f3414bdf321dc",
+    "mtime": 1792389315.5847685,
+    "seen": 1792389500.2520058,
+    "ast_hash": "c8812a73cceb58f898e9e716bb8f732d",
     "semantic_hash": ""
   },
   "src/test/cloudSync.test.js": {
-    "mtime": 1792383745.5900912,
-    "seen": 1792383826.398083,
-    "ast_hash": "f2244a78a7896963003383fb99e9c713",
+    "mtime": 1792388128.1074255,
+    "seen": 1792388180.339031,
+    "ast_hash": "516e961bbf6ebcfcf94be7a406053969",
     "semantic_hash": ""
   },
   "src/utils/cloudSync.js": {
-    "mtime": 1792383404.9911373,
-    "seen": 1792383826.398099,
-    "ast_hash": "8b204b27d89dabd6882797798f9d25a2",
+    "mtime": 1792389372.0913627,
+    "seen": 1792389500.252198,
+    "ast_hash": "5fd052a466627e616935fd0865a3335d",
     "semantic_hash": ""
   },
   "vercel.json": {
@@ -1155,12 +1137,6 @@
     "mtime": 1792384454.96511,
     "seen": 1792384625.76547,
     "ast_hash": "46c7b16e2c14804e66b22655492bc14b",
-    "semantic_hash": ""
-  },
-  "src/db/index.js": {
-    "mtime": 1792384441.723873,
-    "seen": 1792384625.765514,
-    "ast_hash": "78f09e274ca93213da2841799fbe141e",
     "semantic_hash": ""
   },
   "src/db/schema.js": {

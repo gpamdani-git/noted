@@ -82,6 +82,13 @@ function localApiPlugin() {
             res.end(text);
           };
 
+          try {
+            const urlObj = new URL(rawUrl, `http://${req.headers.host || 'localhost:5173'}`);
+            req.query = Object.fromEntries(urlObj.searchParams.entries());
+          } catch {
+            req.query = {};
+          }
+
           if (req.method === 'POST') {
             let body = '';
             req.on('data', (chunk) => { body += chunk; });

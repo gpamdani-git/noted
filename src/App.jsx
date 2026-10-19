@@ -11,7 +11,7 @@ import { VersionHistoryDrawer } from './components/Modals/VersionHistoryDrawer';
 import { PageAnalyticsModal } from './components/Modals/PageAnalyticsModal';
 import { CommentsDrawer } from './components/Comments/CommentsDrawer';
 import { NotionLoginModal } from './components/Auth/NotionLoginModal';
-import { getAuthState, logout as authLogout } from './utils/auth';
+import { getAuthState, logout as authLogout, updateUserProfile } from './utils/auth';
 import { savePageSnapshot } from './utils/versionHistory';
 import {
   loadStoredPages,
@@ -130,6 +130,9 @@ export function App() {
           if (remoteData && remoteData.pages && remoteData.pages.length > 0) {
             setPages(remoteData.pages);
             if (remoteData.trash) setTrashPages(remoteData.trash);
+            if (remoteData.resolvedUserId && remoteData.resolvedUserId !== currentUser.id) {
+              updateUserProfile({ id: remoteData.resolvedUserId });
+            }
           } else {
             // Seed cloud database with local pages if cloud is empty
             triggerCloudSync(currentUser, userPages, userTrash, { openTabs: userTabs, activePageId: initialTab, theme }, true);
