@@ -23,7 +23,13 @@ import {
   loadStoredOpenTabs,
   saveStoredOpenTabs
 } from './utils/storage';
-import { triggerCloudSync, pullCloudWorkspace } from './utils/cloudSync';
+import {
+  triggerCloudSync,
+  pullCloudWorkspace,
+  broadcastLocalChange,
+  subscribeToMultiTabSync,
+  startLiveSyncPulse
+} from './utils/cloudSync';
 import './App.css';
 
 export function App() {
@@ -142,19 +148,90 @@ export function App() {
     saveTheme(theme);
   }, [theme]);
 
+  // Flag to avoid re-triggering broadcast when applying incoming sync
+  const isIncomingSyncRef = useRef(false);
+
+  // 1. Multi-Tab Real-time Sync (Notion REA BroadcastChannel)
+  useEffect(() => {
+    const unsubscribe = subscribeToMultiTabSync((data) => {
+      if (data.pages && Array.isArray(data.pages)) {
+        isIncomingSyncRef.current = true;
+        setPages(data.pages);
+        if (data.trashPages && Array.isArray(data.trashPages)) {
+          setTrashPages(data.trashPages);
+        }
+        setTimeout(() => {
+          isIncomingSyncRef.current = false;
+        }, 150);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  // 2. Cross-device and Web <-> Local Live Sync Pulse (Notion REA Heartbeat & Focus triggers)
+  useEffect(() => {
+    if (!currentUser?.isLoggedIn) return;
+
+    const cleanup = startLiveSyncPulse({
+      getUser: () => currentUser,
+      onRemoteUpdate: (remoteData) => {
+        if (!remoteData || !remoteData.pages || remoteData.pages.length === 0) return;
+
+        setPages((currentPages) => {
+          const localMap = new Map(currentPages.map((p) => [p.id, p]));
+          let hasNewer = false;
+
+          for (const rPage of remoteData.pages) {
+            const lPage = localMap.get(rPage.id);
+            if (!lPage || (rPage.updatedAt || 0) > (lPage.updatedAt || 0)) {
+              hasNewer = true;
+              break;
+            }
+          }
+
+          if (!hasNewer && remoteData.pages.length !== currentPages.length) {
+            hasNewer = true;
+          }
+
+          if (hasNewer) {
+            isIncomingSyncRef.current = true;
+            setTimeout(() => {
+              isIncomingSyncRef.current = false;
+            }, 200);
+
+            if (remoteData.trash) setTrashPages(remoteData.trash);
+            broadcastLocalChange({ pages: remoteData.pages, trashPages: remoteData.trash });
+            return remoteData.pages;
+          }
+
+          return currentPages;
+        });
+      },
+      intervalMs: 10000
+    });
+
+    return cleanup;
+  }, [currentUser]);
+
   // Persist pages whenever they change for the current user
   useEffect(() => {
     saveStoredPages(pages, currentUser);
-    if (currentUser?.isLoggedIn) {
-      triggerCloudSync(currentUser, pages, trashPages, { openTabs, activePageId, theme });
+    if (!isIncomingSyncRef.current) {
+      broadcastLocalChange({ pages, trashPages, activePageId });
+      if (currentUser?.isLoggedIn) {
+        triggerCloudSync(currentUser, pages, trashPages, { openTabs, activePageId, theme });
+      }
     }
   }, [pages, currentUser]);
 
   // Persist trash whenever it changes for the current user
   useEffect(() => {
     saveStoredTrash(trashPages, currentUser);
-    if (currentUser?.isLoggedIn) {
-      triggerCloudSync(currentUser, pages, trashPages, { openTabs, activePageId, theme });
+    if (!isIncomingSyncRef.current) {
+      broadcastLocalChange({ pages, trashPages, activePageId });
+      if (currentUser?.isLoggedIn) {
+        triggerCloudSync(currentUser, pages, trashPages, { openTabs, activePageId, theme });
+      }
     }
   }, [trashPages, currentUser]);
 

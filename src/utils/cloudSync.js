@@ -1,5 +1,20 @@
 // Notion Cloud & PostgreSQL Synchronization Engine for Noted
 // Implements Notion Desktop 7.39.0 saveTransactions & offline-first dual sync protocol
+// Features:
+// - Multi-tab instant live sync (BroadcastChannel with 0ms local latency)
+// - Cross-device live background sync pulse (10s heartbeat + window focus / visibility triggers)
+// - Debounced transaction queue (1200ms) with optimistic offline-first fallback
+
+export const tabId = 'tab_' + Math.random().toString(36).substring(2, 9);
+
+let broadcastChannel = null;
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    broadcastChannel = new BroadcastChannel('noted_live_sync_v1');
+  } catch (err) {
+    console.warn('[cloudSync] BroadcastChannel not supported or blocked:', err);
+  }
+}
 
 let syncTimeout = null;
 let currentSyncState = {
@@ -19,6 +34,91 @@ const notifyStatus = (stateUpdates) => {
 };
 
 export const getCloudSyncState = () => currentSyncState;
+
+/**
+ * Broadcasts local page edits to other tabs in the same browser instantly (0ms)
+ */
+export const broadcastLocalChange = (payload) => {
+  if (!broadcastChannel) return;
+  try {
+    broadcastChannel.postMessage({
+      type: 'LOCAL_TAB_MUTATION',
+      tabId,
+      timestamp: Date.now(),
+      ...payload
+    });
+  } catch (err) {
+    console.warn('[cloudSync] Broadcast postMessage error:', err);
+  }
+};
+
+/**
+ * Subscribes to live multi-tab broadcasts
+ */
+export const subscribeToMultiTabSync = (callback) => {
+  if (!broadcastChannel) return () => {};
+  const handler = (event) => {
+    if (event.data && event.data.type === 'LOCAL_TAB_MUTATION' && event.data.tabId !== tabId) {
+      callback(event.data);
+    }
+  };
+  broadcastChannel.addEventListener('message', handler);
+  return () => broadcastChannel.removeEventListener('message', handler);
+};
+
+/**
+ * Starts live background synchronization pulse for cross-device / local <-> web sync
+ * Triggers periodically (10s), on window focus, tab visibility change, and network reconnect.
+ */
+export const startLiveSyncPulse = ({ getUser, onRemoteUpdate, intervalMs = 10000 }) => {
+  if (typeof window === 'undefined') return () => {};
+
+  let intervalId = null;
+  let isChecking = false;
+
+  const checkRemoteChanges = async () => {
+    const user = getUser();
+    if (!user || !user.isLoggedIn || !user.id || user.id === 'guest') return;
+    if (isChecking) return;
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+    isChecking = true;
+    try {
+      const res = await fetch(`/api/sync?userId=${encodeURIComponent(user.id)}`, {
+        cache: 'no-store'
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success && data.pages) {
+        onRemoteUpdate(data);
+      }
+    } catch {
+      // Silently ignore background pulse error
+    } finally {
+      isChecking = false;
+    }
+  };
+
+  intervalId = setInterval(checkRemoteChanges, intervalMs);
+
+  const handleFocus = () => checkRemoteChanges();
+  const handleVisibility = () => {
+    if (document.visibilityState === 'visible') checkRemoteChanges();
+  };
+  const handleOnline = () => checkRemoteChanges();
+
+  window.addEventListener('focus', handleFocus);
+  document.addEventListener('visibilitychange', handleVisibility);
+  window.addEventListener('online', handleOnline);
+
+  return () => {
+    if (intervalId) clearInterval(intervalId);
+    window.removeEventListener('focus', handleFocus);
+    document.removeEventListener('visibilitychange', handleVisibility);
+    window.removeEventListener('online', handleOnline);
+  };
+};
 
 /**
  * Checks connection health with the PostgreSQL serverless backend
@@ -60,11 +160,11 @@ export const pullCloudWorkspace = async (user) => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    if (data.success && data.mode === 'cloud_postgres') {
+    if (data.success && (data.mode === 'cloud_postgres' || data.mode === 'local_drizzle_sqlite')) {
       notifyStatus({
         status: 'synced',
         lastSyncedAt: data.serverTimestamp || Date.now(),
-        mode: 'cloud_postgres',
+        mode: data.mode,
         error: null
       });
       return {
@@ -138,7 +238,7 @@ export const triggerCloudSync = (user, pages, trash = [], workspaceSettings = nu
       const data = await res.json();
       if (data.success) {
         notifyStatus({
-          status: data.mode === 'cloud_postgres' ? 'synced' : 'local',
+          status: (data.mode === 'cloud_postgres' || data.mode === 'local_drizzle_sqlite') ? 'synced' : 'local',
           lastSyncedAt: data.serverTimestamp || Date.now(),
           mode: data.mode,
           error: null

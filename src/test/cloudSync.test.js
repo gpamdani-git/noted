@@ -3,7 +3,11 @@ import {
   getCloudSyncState,
   checkCloudDatabaseStatus,
   pullCloudWorkspace,
-  triggerCloudSync
+  triggerCloudSync,
+  broadcastLocalChange,
+  subscribeToMultiTabSync,
+  startLiveSyncPulse,
+  tabId
 } from '../utils/cloudSync';
 
 describe('Cloud & PostgreSQL Sync Engine (Notion REA)', () => {
@@ -76,5 +80,42 @@ describe('Cloud & PostgreSQL Sync Engine (Notion REA)', () => {
     expect(status.connected).toBe(true);
     expect(status.engine).toBe('PostgreSQL');
     expect(status.database).toBe('noted_prod');
+  });
+
+  it('provides a unique tabId for multi-tab synchronization', () => {
+    expect(tabId).toBeDefined();
+    expect(typeof tabId).toBe('string');
+    expect(tabId.startsWith('tab_')).toBe(true);
+  });
+
+  it('broadcastLocalChange and subscribeToMultiTabSync function safely', () => {
+    const callback = vi.fn();
+    const unsubscribe = subscribeToMultiTabSync(callback);
+    expect(typeof unsubscribe).toBe('function');
+
+    expect(() => {
+      broadcastLocalChange({ pages: [{ id: 'p1' }] });
+    }).not.toThrow();
+
+    unsubscribe();
+  });
+
+  it('startLiveSyncPulse initializes and cleans up event listeners', () => {
+    const addEventSpy = vi.spyOn(window, 'addEventListener');
+    const removeEventSpy = vi.spyOn(window, 'removeEventListener');
+
+    const cleanup = startLiveSyncPulse({
+      getUser: () => ({ id: 'u1', isLoggedIn: true }),
+      onRemoteUpdate: vi.fn(),
+      intervalMs: 50000
+    });
+
+    expect(typeof cleanup).toBe('function');
+    expect(addEventSpy).toHaveBeenCalledWith('focus', expect.any(Function));
+    expect(addEventSpy).toHaveBeenCalledWith('online', expect.any(Function));
+
+    cleanup();
+    expect(removeEventSpy).toHaveBeenCalledWith('focus', expect.any(Function));
+    expect(removeEventSpy).toHaveBeenCalledWith('online', expect.any(Function));
   });
 });
