@@ -3,6 +3,27 @@ import { defineConfig } from 'vite'
 import fs from 'fs'
 import path from 'path'
 
+// Roots that the dev server is allowed to read local media files from.
+// Extend with the NOTED_MEDIA_ROOTS env variable (comma separated absolute paths).
+const getMediaRoots = () => {
+  const roots = [
+    process.cwd(),
+    path.resolve(process.cwd(), 'public'),
+    path.resolve(process.cwd(), 'data')
+  ]
+  const extra = (process.env.NOTED_MEDIA_ROOTS || '')
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => path.resolve(p))
+  return [...new Set([...roots, ...extra])]
+}
+
+const isInsideAllowedRoot = (targetPath) => {
+  const resolved = path.resolve(targetPath)
+  return getMediaRoots().some((root) => resolved === root || resolved.startsWith(root + path.sep))
+}
+
 // Custom Vite plugin to safely serve local media and pasted image files from disk
 function localMediaPlugin() {
   return {
@@ -20,11 +41,6 @@ function localMediaPlugin() {
           } catch {
             targetFilePath = null
           }
-        } else if (rawUrl.startsWith('/Users/')) {
-          // Direct local file path request
-          const qIdx = rawUrl.indexOf('?')
-          const pathname = qIdx !== -1 ? rawUrl.substring(0, qIdx) : rawUrl
-          targetFilePath = decodeURIComponent(pathname)
         }
 
         if (targetFilePath) {
@@ -32,6 +48,13 @@ function localMediaPlugin() {
             // Strip file:// if present
             let cleanPath = targetFilePath.replace(/^file:\/\//, '')
             cleanPath = decodeURIComponent(cleanPath)
+
+            // Only files inside the allowed roots can be served
+            if (!isInsideAllowedRoot(cleanPath)) {
+              res.statusCode = 403
+              res.end('Local media path is outside the allowed roots')
+              return
+            }
 
             if (fs.existsSync(cleanPath) && fs.statSync(cleanPath).isFile()) {
               const ext = path.extname(cleanPath).toLowerCase()
@@ -47,7 +70,6 @@ function localMediaPlugin() {
               }
 
               res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream')
-              res.setHeader('Access-Control-Allow-Origin', '*')
               res.setHeader('Cache-Control', 'public, max-age=3600')
               fs.createReadStream(cleanPath).pipe(res)
               return
@@ -69,7 +91,7 @@ function localApiPlugin() {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const rawUrl = req.url || '';
-        if (rawUrl.startsWith('/api/sync') || rawUrl.startsWith('/api/status') || rawUrl.startsWith('/api/schema')) {
+        if (rawUrl.startsWith('/api/sync') || rawUrl.startsWith('/api/status') || rawUrl.startsWith('/api/schema') || rawUrl.startsWith('/api/auth')) {
           res.status = (code) => {
             res.statusCode = code;
             return res;
@@ -89,6 +111,14 @@ function localApiPlugin() {
             req.query = {};
           }
 
+          const route = rawUrl.startsWith('/api/sync')
+            ? './api/sync.js'
+            : rawUrl.startsWith('/api/status')
+              ? './api/status.js'
+              : rawUrl.startsWith('/api/auth')
+                ? './api/auth.js'
+                : './api/schema.js';
+
           if (req.method === 'POST') {
             let body = '';
             req.on('data', (chunk) => { body += chunk; });
@@ -99,10 +129,8 @@ function localApiPlugin() {
                 req.body = {};
               }
               try {
-                if (rawUrl.startsWith('/api/sync')) {
-                  const { default: handler } = await import('./api/sync.js');
-                  await handler(req, res);
-                }
+                const { default: handler } = await import(route);
+                await handler(req, res);
               } catch (err) {
                 res.status(500).json({ error: err.message });
               }
@@ -111,16 +139,8 @@ function localApiPlugin() {
           }
 
           try {
-            if (rawUrl.startsWith('/api/sync')) {
-              const { default: handler } = await import('./api/sync.js');
-              await handler(req, res);
-            } else if (rawUrl.startsWith('/api/status')) {
-              const { default: handler } = await import('./api/status.js');
-              await handler(req, res);
-            } else if (rawUrl.startsWith('/api/schema')) {
-              const { default: handler } = await import('./api/schema.js');
-              await handler(req, res);
-            }
+            const { default: handler } = await import(route);
+            await handler(req, res);
           } catch (err) {
             res.status(500).json({ error: err.message });
           }
@@ -138,7 +158,8 @@ export default defineConfig({
   plugins: [react(), localMediaPlugin(), localApiPlugin()],
   server: {
     fs: {
-      allow: ['..', '/Users/daniakbar']
+      // Only the project directory is served - never the whole home directory.
+      allow: ['.']
     },
     proxy: {
       '/api/ollama': {
@@ -160,4 +181,3 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,jsx}']
   }
 })
-

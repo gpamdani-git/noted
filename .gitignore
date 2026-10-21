@@ -37,6 +37,11 @@ data/
 *.db-shm
 .drizzle/
 
+# Local Python / Jupyter environment
+.conda/
+environment.yml
+.venv/
+
 # Neon CLI local link
 .neon
 
@@ -48,4 +53,10 @@ graphify-out/cache/
 # Desktop release builds
 release/
 dist-electron/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright/
 

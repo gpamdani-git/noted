@@ -11,7 +11,8 @@ import { VersionHistoryDrawer } from './components/Modals/VersionHistoryDrawer';
 import { PageAnalyticsModal } from './components/Modals/PageAnalyticsModal';
 import { CommentsDrawer } from './components/Comments/CommentsDrawer';
 import { NotionLoginModal } from './components/Auth/NotionLoginModal';
-import { getAuthState, logout as authLogout, updateUserProfile } from './utils/auth';
+import { getAuthState, logout as authLogout, updateUserProfile, applyDesktopSession, switchAccount } from './utils/auth';
+import { getSessionToken } from './utils/session';
 import { savePageSnapshot } from './utils/versionHistory';
 import {
   loadStoredPages,
@@ -93,8 +94,33 @@ export function App() {
         setCurrentUser(e.detail.user);
       }
     };
+    const handleSwitchAccount = (e) => {
+      const accountId = e.detail?.accountId;
+      if (!accountId) return;
+      const switched = switchAccount(accountId);
+      if (switched) setCurrentUser(switched);
+    };
     window.addEventListener('noted_auth_changed', handleAuthChange);
-    return () => window.removeEventListener('noted_auth_changed', handleAuthChange);
+    window.addEventListener('noted_switch_account', handleSwitchAccount);
+    return () => {
+      window.removeEventListener('noted_auth_changed', handleAuthChange);
+      window.removeEventListener('noted_switch_account', handleSwitchAccount);
+    };
+  }, []);
+
+  // Desktop hand-off: when the web app is opened with ?notedAuth=desktop it
+  // forwards the verified session back to the desktop app via noted://auth.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('notedAuth') !== 'desktop') return;
+      const token = getSessionToken();
+      if (!token) return;
+      window.location.replace(`noted://auth?session=${encodeURIComponent(token)}`);
+    } catch (err) {
+      console.warn('[Noted Desktop] Auth hand-off notice:', err);
+    }
   }, []);
 
   // Notion Desktop Workspace Switcher: Switch space and scope when account changes
@@ -182,9 +208,21 @@ export function App() {
       const cleanupDeepLink = window.electronAPI.onDeepLink?.((url) => {
         try {
           const parsed = new URL(url);
+
+          // noted://auth?session=... - desktop sign-in hand-off
+          const session = parsed.searchParams.get('session');
+          if (session) {
+            applyDesktopSession(session)
+              .then((user) => setCurrentUser(user))
+              .catch((err) => console.warn('[Noted Desktop] Session hand-off failed:', err.message));
+            return;
+          }
+
+          // noted://open?pageId=... - open a page
           const pageId = parsed.searchParams.get('pageId');
           if (pageId) {
-            handleSelectPage(pageId);
+            setOpenTabs((prev) => (prev.includes(pageId) ? prev : [...prev, pageId]));
+            setActivePageId(pageId);
           }
         } catch (e) {
           console.warn('[Noted Desktop] Deep link notice:', e);

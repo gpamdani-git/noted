@@ -1,14 +1,18 @@
 // Vercel Serverless Function: PostgreSQL & Local SQLite Health & Telemetry Check
 
 import { getPool, ensureSchema, getConnectionString, getSqliteDb } from './lib/db.js';
+import { applyCors } from './lib/security.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // CORS is restricted to the configured origin allowlist (never wildcard).
+  const corsAllowed = applyCors(req, res);
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
+  }
+
+  if (!corsAllowed) {
+    return res.status(403).json({ error: 'Origin not allowed' });
   }
 
   const rawConnString = getConnectionString();

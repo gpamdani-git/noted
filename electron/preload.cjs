@@ -37,9 +37,37 @@ const electronAPI = {
   checkCloudStatus: () => ipcRenderer.invoke('cloud:check-status'),
   syncPull: (payload) => ipcRenderer.invoke('cloud:sync-pull', payload),
   syncPush: (payload) => ipcRenderer.invoke('cloud:sync-push', payload),
+  getCloudConfig: () => ipcRenderer.invoke('cloud:get-config'),
+  setCloudConfig: (config) => ipcRenderer.invoke('cloud:set-config', config),
 
   // Native AI & LLM Bridge (bypasses browser CORS for Ollama & LM Studio)
   aiFetch: (url, options) => ipcRenderer.invoke('ai:fetch', { url, options }),
+
+  // Streaming variant used by model generation. The main process validates the
+  // host against the AI allowlist before the request is performed, so the
+  // privileged bridge cannot be used as an open proxy.
+  aiFetchStream: (id, url, options) => ipcRenderer.invoke('ai:fetch-stream', { id, url, options }),
+  onAiStreamChunk: (id, callback) => {
+    const handler = (_, payload) => {
+      if (payload?.id === id) callback(payload.chunk);
+    };
+    ipcRenderer.on('ai:stream-chunk', handler);
+    return () => ipcRenderer.removeListener('ai:stream-chunk', handler);
+  },
+  onAiStreamEnd: (id, callback) => {
+    const handler = (_, payload) => {
+      if (payload?.id === id) callback();
+    };
+    ipcRenderer.on('ai:stream-end', handler);
+    return () => ipcRenderer.removeListener('ai:stream-end', handler);
+  },
+  onAiStreamError: (id, callback) => {
+    const handler = (_, payload) => {
+      if (payload?.id === id) callback(payload.error || 'AI request failed');
+    };
+    ipcRenderer.on('ai:stream-error', handler);
+    return () => ipcRenderer.removeListener('ai:stream-error', handler);
+  },
 
   // Deep Link Listener (noted://auth?token=... or noted://open?pageId=...)
   onDeepLink: (callback) => {

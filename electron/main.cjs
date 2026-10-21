@@ -231,26 +231,109 @@ ipcMain.handle('fs:read-file', async (_, { filePath, encoding = 'utf-8' }) => {
   }
 });
 
-// Cloud PostgreSQL Connectivity Check (Direct Neon HTTP Lakebase Engine)
-const loadDatabaseUrl = () => {
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+// Cloud PostgreSQL Connectivity (Neon / any PostgreSQL provider)
+// Security: no credential is bundled with the app. The connection string and
+// the session secret are read from the environment, the repository .env file
+// (development) or the per-user configuration file in the app userData folder.
+const { verifySessionToken } = require('./session.cjs');
+
+const getUserConfigFilePath = () => path.join(app.getPath('userData'), 'noted-config.json');
+
+const readUserConfig = () => {
+  try {
+    const raw = fs.readFileSync(getUserConfigFilePath(), 'utf-8');
+    return JSON.parse(raw) || {};
+  } catch {
+    return {};
+  }
+};
+
+const writeUserConfig = (patch) => {
+  const current = readUserConfig();
+  const next = { ...current, ...patch };
+  fs.writeFileSync(getUserConfigFilePath(), JSON.stringify(next, null, 2), { encoding: 'utf-8', mode: 0o600 });
+  return next;
+};
+
+const readEnvFileValue = (key) => {
   try {
     const envPath = path.join(__dirname, '..', '.env');
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, 'utf-8');
-      const match = content.match(/DATABASE_URL=["']?([^"'\n\r]+)["']?/);
-      if (match) return match[1];
-    }
-  } catch {}
-  return 'postgresql://neondb_owner:REDACTED@redacted.invalid/neondb?channel_binding=require&sslmode=require';
+    if (!fs.existsSync(envPath)) return null;
+    const content = fs.readFileSync(envPath, 'utf-8');
+    const match = content.match(new RegExp(`^${key}=["']?([^"'\\n\\r]+)["']?`, 'm'));
+    return match ? match[1].trim() : null;
+  } catch {
+    return null;
+  }
 };
+
+const loadDatabaseUrl = () => {
+  const fromEnv = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (fromEnv) return fromEnv;
+  const fromFile = readEnvFileValue('DATABASE_URL') || readEnvFileValue('POSTGRES_URL');
+  if (fromFile) return fromFile;
+  const fromUserConfig = readUserConfig().databaseUrl;
+  return fromUserConfig || null;
+};
+
+const loadSessionSecret = () => {
+  const fromEnv = process.env.SESSION_SECRET;
+  if (fromEnv && fromEnv.length >= 16) return fromEnv;
+  const fromFile = readEnvFileValue('SESSION_SECRET');
+  if (fromFile && fromFile.length >= 16) return fromFile;
+  const fromUserConfig = readUserConfig().sessionSecret;
+  return fromUserConfig && fromUserConfig.length >= 16 ? fromUserConfig : null;
+};
+
+const getSessionIdentity = (token) => {
+  const secret = loadSessionSecret();
+  if (!secret) {
+    return { error: 'Cloud sync is not configured (SESSION_SECRET missing on this device).' };
+  }
+  const identity = verifySessionToken(token, secret);
+  if (!identity) {
+    return { error: 'Session expired or invalid. Sign in again to restore cloud sync.' };
+  }
+  return { identity };
+};
+
+ipcMain.handle('cloud:get-config', async () => {
+  const databaseUrl = loadDatabaseUrl();
+  return {
+    configured: Boolean(databaseUrl),
+    hasSessionSecret: Boolean(loadSessionSecret()),
+    databaseHost: databaseUrl ? (databaseUrl.match(/@([^:\/]+)/)?.[1] || 'configured') : null,
+    configPath: getUserConfigFilePath()
+  };
+});
+
+ipcMain.handle('cloud:set-config', async (_, { databaseUrl } = {}) => {
+  try {
+    if (typeof databaseUrl === 'string') {
+      writeUserConfig({ databaseUrl: databaseUrl.trim() || null });
+    }
+    return { success: true, configured: Boolean(loadDatabaseUrl()) };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
 
 ipcMain.handle('cloud:check-status', async () => {
   const connStr = loadDatabaseUrl();
+  if (!connStr) {
+    return {
+      connected: false,
+      configured: false,
+      engine: 'PostgreSQL',
+      message: 'Cloud database is not configured on this device. Data stays in the local vault.'
+    };
+  }
+
   const startTime = Date.now();
   try {
     const hostMatch = connStr.match(/@([^:\/]+)/);
-    const host = hostMatch ? hostMatch[1] : 'ep-polished-forest-azx5265k-pooler.c-3.ap-southeast-1.aws.neon.tech';
+    if (!hostMatch) throw new Error('Invalid database connection string');
+    const host = hostMatch[1];
     const sqlUrl = `https://${host}/sql`;
 
     const res = await fetch(sqlUrl, {
@@ -277,10 +360,10 @@ ipcMain.handle('cloud:check-status', async () => {
       configured: true,
       engine: 'PostgreSQL + Neon Lakebase',
       latencyMs: latency,
-      database: row?.current_database || 'neondb',
+      database: row?.current_database || 'postgres',
       stats: {
-        pages: parseInt(row?.pages_count || '7', 10),
-        users: parseInt(row?.users_count || '3', 10)
+        pages: parseInt(row?.pages_count || '0', 10),
+        users: parseInt(row?.users_count || '0', 10)
       },
       message: 'Connected to remote PostgreSQL database (Neon Lakebase)!'
     };
@@ -298,8 +381,12 @@ ipcMain.handle('cloud:check-status', async () => {
 // Helper to execute SQL queries on Neon Lakebase HTTP SQL API
 const runNeonSql = async (query, params = []) => {
   const connStr = loadDatabaseUrl();
+  if (!connStr) {
+    throw new Error('Cloud database is not configured on this device');
+  }
   const hostMatch = connStr.match(/@([^:\/]+)/);
-  const host = hostMatch ? hostMatch[1] : 'ep-polished-forest-azx5265k-pooler.c-3.ap-southeast-1.aws.neon.tech';
+  if (!hostMatch) throw new Error('Invalid database connection string');
+  const host = hostMatch[1];
   const sqlUrl = `https://${host}/sql`;
 
   const res = await fetch(sqlUrl, {
@@ -320,16 +407,20 @@ const runNeonSql = async (query, params = []) => {
 };
 
 // IPC Handler: Pull latest workspace pages, trash, and settings from Neon Lakebase
-ipcMain.handle('cloud:sync-pull', async (_, { userId, email } = {}) => {
-  if (!userId || userId === 'guest') {
+ipcMain.handle('cloud:sync-pull', async (_, { userId, email, session } = {}) => {
+  const { identity, error } = getSessionIdentity(session);
+  if (!identity) {
     return {
-      success: true,
-      mode: 'guest_standby',
+      success: false,
+      mode: 'offline_vault',
+      error,
       pages: [],
-      trash: [],
-      workspaceSettings: null
+      trash: []
     };
   }
+
+  const sessionUserId = identity.sub;
+  const sessionEmail = identity.email;
 
   try {
     const pagesRes = await runNeonSql(
@@ -340,7 +431,7 @@ ipcMain.handle('cloud:sync-pull', async (_, { userId, email } = {}) => {
        FROM pages
        WHERE user_id = $1 AND is_deleted = FALSE
        ORDER BY updated_at DESC`,
-      [userId]
+      [sessionUserId]
     );
 
     const trashRes = await runNeonSql(
@@ -348,28 +439,28 @@ ipcMain.handle('cloud:sync-pull', async (_, { userId, email } = {}) => {
        FROM trash
        WHERE user_id = $1
        ORDER BY deleted_at DESC`,
-      [userId]
+      [sessionUserId]
     );
 
     const settingsRes = await runNeonSql(
       `SELECT open_tabs AS "openTabs", active_page_id AS "activePageId", theme, updated_at AS "updatedAt"
        FROM workspace_settings
        WHERE user_id = $1`,
-      [userId]
+      [sessionUserId]
     );
 
-    let effectiveUserId = userId;
+    let effectiveUserId = sessionUserId;
     let finalPages = pagesRes.rows || [];
     let finalTrash = trashRes.rows || [];
     let finalSettings = settingsRes.rows && settingsRes.rows[0] ? settingsRes.rows[0] : null;
 
-    // Email Anchor Fallback: If 0 pages found for this specific userId, resolve by email
-    if (finalPages.length === 0 && email) {
+    // Email Anchor Fallback: If 0 pages found for this account id, resolve the
+    // canonical account id from the verified session email.
+    if (finalPages.length === 0 && sessionEmail) {
       try {
-        const decodedEmail = decodeURIComponent(email).trim().toLowerCase();
         const altUserRes = await runNeonSql(
           'SELECT id FROM users WHERE LOWER(email) = $1 AND id != $2 LIMIT 1',
-          [decodedEmail, userId]
+          [sessionEmail, sessionUserId]
         );
         if (altUserRes.rows && altUserRes.rows.length > 0) {
           effectiveUserId = altUserRes.rows[0].id;
@@ -452,20 +543,24 @@ ipcMain.handle('cloud:sync-pull', async (_, { userId, email } = {}) => {
 
 // IPC Handler: Push workspace mutations to Neon Lakebase
 ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
-  const { userId, user, pages = [], trash = [], workspaceSettings = null } = payload;
-  if (!userId || userId === 'guest') {
+  const { user, pages = [], trash = [], workspaceSettings = null, session } = payload;
+
+  const { identity, error } = getSessionIdentity(session);
+  if (!identity) {
     return {
-      success: true,
-      mode: 'guest_standby',
-      message: 'Guest workspace stored in local vault only.',
-      serverTimestamp: Date.now()
+      success: false,
+      mode: 'offline_vault',
+      error
     };
   }
 
+  const sessionUserId = identity.sub;
+  const sessionEmail = identity.email;
+
   const now = Date.now();
   try {
-    // 1. Upsert user
-    if (user && user.id) {
+    // 1. Upsert user (identity comes from the verified session)
+    if (user) {
       await runNeonSql(
         `INSERT INTO users (id, email, name, picture, avatar, color, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -477,8 +572,8 @@ ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
            color = EXCLUDED.color,
            updated_at = EXCLUDED.updated_at`,
         [
-          user.id,
-          user.email || null,
+          sessionUserId,
+          user.email || sessionEmail,
           user.name || 'User',
           user.picture || null,
           user.avatar || 'U',
@@ -516,7 +611,7 @@ ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
            is_deleted = FALSE`,
         [
           page.id,
-          userId,
+          sessionUserId,
           page.title || 'Untitled',
           page.icon || null,
           page.cover || null,
@@ -539,7 +634,7 @@ ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
       await runNeonSql(
         `UPDATE pages SET is_deleted = TRUE, updated_at = $1
          WHERE user_id = $2 AND id NOT IN (${placeholders})`,
-        [now, userId, ...activePageIds]
+        [now, sessionUserId, ...activePageIds]
       );
     }
 
@@ -556,7 +651,7 @@ ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
            deleted_at = EXCLUDED.deleted_at`,
         [
           t.id,
-          userId,
+          sessionUserId,
           t.title || 'Deleted Page',
           t.icon || null,
           JSON.stringify(t.blocks || []),
@@ -576,7 +671,7 @@ ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
            theme = EXCLUDED.theme,
            updated_at = EXCLUDED.updated_at`,
         [
-          userId,
+          sessionUserId,
           JSON.stringify(workspaceSettings.openTabs || []),
           workspaceSettings.activePageId || null,
           workspaceSettings.theme || 'light',
@@ -603,8 +698,19 @@ ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
 });
 
 // Native AI & Ollama Bridge (bypasses browser CORS restrictions in Desktop App)
+// Security: the renderer may only reach an explicit allowlist of hosts, so the
+// IPC channel cannot be abused as a general purpose proxy (SSRF).
+// The policy lives in electron/ai-hosts.cjs and is shared by every privileged
+// AI channel so a new channel cannot silently bypass the allowlist.
+const { isAllowedAiUrl } = require('./ai-hosts.cjs');
+
 ipcMain.handle('ai:fetch', async (_, { url, options = {} }) => {
   try {
+    const policy = isAllowedAiUrl(url);
+    if (!policy.ok) {
+      return { ok: false, error: policy.error };
+    }
+
     const fetchOptions = {
       method: options.method || 'GET',
       headers: options.headers || {}
@@ -612,7 +718,7 @@ ipcMain.handle('ai:fetch', async (_, { url, options = {} }) => {
     if (options.body) {
       fetchOptions.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
     }
-    const res = await fetch(url, fetchOptions);
+    const res = await fetch(policy.url.toString(), fetchOptions);
     const text = await res.text();
     let data = null;
     try {
@@ -631,6 +737,71 @@ ipcMain.handle('ai:fetch', async (_, { url, options = {} }) => {
       ok: false,
       error: err.message
     };
+  }
+});
+
+// Streaming counterpart of `ai:fetch`.
+//
+// The model generation request must go through this channel (and not a raw
+// renderer fetch) so the host allowlist above governs the request that
+// actually carries prompts and API keys. Chunks are pushed to the renderer
+// with `ai:stream-chunk` / `ai:stream-end` / `ai:stream-error` events.
+ipcMain.handle('ai:fetch-stream', async (event, { id, url, options = {} }) => {
+  const sender = event.sender;
+  const fail = (message, status) => {
+    try {
+      sender.send('ai:stream-error', { id, error: message });
+    } catch {
+      // renderer already gone
+    }
+    return { ok: false, error: message, status };
+  };
+
+  const policy = isAllowedAiUrl(url);
+  if (!policy.ok) {
+    return fail(policy.error);
+  }
+
+  const fetchOptions = {
+    method: options.method || 'POST',
+    headers: options.headers || {}
+  };
+  if (options.body) {
+    fetchOptions.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+  }
+
+  try {
+    const res = await fetch(policy.url.toString(), fetchOptions);
+
+    if (!res.ok || !res.body) {
+      const detail = await res.text().catch(() => '');
+      return fail(
+        `LLM HTTP ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ''}`,
+        res.status
+      );
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+
+    (async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) {
+            sender.send('ai:stream-chunk', { id, chunk: decoder.decode(value, { stream: true }) });
+          }
+        }
+        sender.send('ai:stream-end', { id });
+      } catch (err) {
+        sender.send('ai:stream-error', { id, error: err.message });
+      }
+    })();
+
+    return { ok: true, status: res.status };
+  } catch (err) {
+    return fail(err.message);
   }
 });
 

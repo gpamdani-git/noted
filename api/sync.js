@@ -4,16 +4,32 @@
 // - GET /api/sync?userId=xxx: Pull latest pages and blocks from DB
 
 import { getPool, ensureSchema, getSqliteDb } from './lib/db.js';
+import { applyCors, getSessionFromRequest, sanitizeSyncPayload } from './lib/security.js';
 
 export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // CORS is restricted to the configured origin allowlist (never wildcard).
+  const corsAllowed = applyCors(req, res);
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
   }
+
+  if (!corsAllowed) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  // Every sync request must carry a server-issued session token.
+  // The workspace owner is derived from that token, never from client input.
+  const session = getSessionFromRequest(req);
+  if (!session) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized. Sign in with Google to sync this workspace.',
+      mode: 'offline_vault'
+    });
+  }
+  const sessionUserId = session.sub;
+  const sessionEmail = session.email;
 
   const pool = getPool();
 
@@ -23,9 +39,9 @@ export default async function handler(req, res) {
     if (sqliteInstance) {
       const { sqlite } = sqliteInstance;
 
-      // GET /api/sync?userId=xxx from Local SQLite
+      // GET /api/sync from Local SQLite (identity comes from the session token)
       if (req.method === 'GET') {
-        const userId = req.query?.userId || req.url?.split('userId=')?.[1]?.split('&')?.[0];
+        const userId = sessionUserId;
         if (!userId || userId === 'guest') {
           return res.status(200).json({
             success: true,
@@ -96,7 +112,12 @@ export default async function handler(req, res) {
       // POST /api/sync into Local SQLite
       if (req.method === 'POST') {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-        const { userId, user, pages = [], trash = [], workspaceSettings = null } = body || {};
+        const sanitized = sanitizeSyncPayload(body);
+        if (!sanitized.ok) {
+          return res.status(400).json({ success: false, error: sanitized.error });
+        }
+        const { user, pages, trash, workspaceSettings } = sanitized.payload;
+        const userId = sessionUserId;
 
         if (!userId || userId === 'guest') {
           return res.status(200).json({
@@ -110,7 +131,7 @@ export default async function handler(req, res) {
         const now = Date.now();
         try {
           const syncTx = sqlite.transaction(() => {
-            if (user && user.id) {
+            if (user) {
               sqlite.prepare(
                 `INSERT INTO users (id, email, name, picture, avatar, color, created_at, updated_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -122,8 +143,8 @@ export default async function handler(req, res) {
                    color = excluded.color,
                    updated_at = excluded.updated_at`
               ).run(
-                user.id,
-                user.email || null,
+                userId,
+                user.email || sessionEmail,
                 user.name || 'User',
                 user.picture || null,
                 user.avatar || 'U',
@@ -256,9 +277,9 @@ export default async function handler(req, res) {
     client = await pool.connect();
     await ensureSchema(client);
 
-    // GET /api/sync?userId=xxx - Pull workspace from PostgreSQL
+    // GET /api/sync - Pull workspace from PostgreSQL (session-scoped)
     if (req.method === 'GET') {
-      const userId = req.query?.userId || req.url?.split('userId=')?.[1]?.split('&')?.[0];
+      const userId = sessionUserId;
       if (!userId || userId === 'guest') {
         return res.status(200).json({
           success: true,
@@ -303,8 +324,9 @@ export default async function handler(req, res) {
       let finalTrash = trashRes.rows || [];
       let finalSettings = settingsRes.rows[0] || null;
 
-      // Notion REA Email Anchor: If no pages found for this specific userId, resolve by user email
-      const userEmail = req.query?.email || req.url?.split('email=')?.[1]?.split('&')?.[0];
+      // Notion REA Email Anchor: resolve the canonical account id from the
+      // verified session email (never from a client supplied parameter).
+      const userEmail = sessionEmail;
       if (finalPages.length === 0 && userEmail) {
         try {
           const decodedEmail = decodeURIComponent(userEmail).trim().toLowerCase();
@@ -362,7 +384,12 @@ export default async function handler(req, res) {
     // POST /api/sync - Push local pages and changes to PostgreSQL
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-      const { userId, user, pages = [], trash = [], workspaceSettings = null } = body || {};
+      const sanitized = sanitizeSyncPayload(body);
+      if (!sanitized.ok) {
+        return res.status(400).json({ success: false, error: sanitized.error });
+      }
+      const { user, pages, trash, workspaceSettings } = sanitized.payload;
+      const userId = sessionUserId;
 
       if (!userId || userId === 'guest') {
         return res.status(200).json({
@@ -378,9 +405,9 @@ export default async function handler(req, res) {
       await client.query('BEGIN');
 
       let targetUserId = userId;
-      if (user?.email) {
+      if (sessionEmail) {
         try {
-          const cleanEmail = user.email.trim().toLowerCase();
+          const cleanEmail = sessionEmail.trim().toLowerCase();
           const matchRes = await client.query(
             'SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1',
             [cleanEmail]
@@ -394,7 +421,7 @@ export default async function handler(req, res) {
       }
 
       // 1. Upsert User
-      if (user && user.id) {
+      if (user) {
         await client.query(
           `INSERT INTO users (id, email, name, picture, avatar, color, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -407,7 +434,7 @@ export default async function handler(req, res) {
              updated_at = EXCLUDED.updated_at`,
           [
             targetUserId,
-            user.email || null,
+            user.email || sessionEmail,
             user.name || 'User',
             user.picture || null,
             user.avatar || 'U',

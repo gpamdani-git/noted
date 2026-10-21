@@ -470,6 +470,42 @@ export const extractPagePlainText = (page) => {
 };
 
 /**
+ * Incremental Server-Sent Events parser.
+ *
+ * The buffer keeps the trailing partial line between chunks so an SSE frame
+ * that is split across two network chunks is not dropped.
+ */
+const createSseParser = (onDelta) => {
+  let buffer = '';
+
+  return {
+    push(text) {
+      buffer += text;
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith(':')) continue;
+        if (line === 'data: [DONE]') continue;
+        if (!line.startsWith('data: ')) continue;
+
+        try {
+          const json = JSON.parse(line.slice(6));
+          const content = json.choices?.[0]?.delta?.content || json.choices?.[0]?.text || '';
+          if (content) onDelta(content);
+        } catch {
+          // ignore malformed chunk
+        }
+      }
+    },
+    flush() {
+      buffer = '';
+    }
+  };
+};
+
+/**
  * Real LLM Stream Runner for Ollama, LM Studio, or OpenAI-compatible endpoints
  */
 export const runExternalLlmGeneration = async ({
@@ -486,6 +522,11 @@ export const runExternalLlmGeneration = async ({
     window.electronAPI?.isElectron ||
     window.location.protocol === 'file:'
   );
+
+  // In the desktop app the request must travel through the privileged bridge so
+  // the main process applies the AI host allowlist. A raw renderer fetch would
+  // reach any host the user configured, which turns the app into an open proxy.
+  const useBridge = isDesktop && typeof window !== 'undefined' && Boolean(window.electronAPI?.aiFetchStream);
 
   let endpoint = '';
   if (config.provider === 'ollama') {
@@ -531,53 +572,82 @@ Be direct, helpful, and high quality. Never output conversational preamble like 
     headers['Authorization'] = `Bearer ${config.apiKey}`;
   }
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: config.model || 'llama3.2',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      stream: true,
-      temperature: 0.7
-    })
+  const body = JSON.stringify({
+    model: config.model || 'llama3.2',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ],
+    stream: true,
+    temperature: 0.7
   });
 
-  if (!response.ok) {
-    throw new Error(`LLM HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder('utf-8');
   let accumulatedText = '';
+  const parser = createSseParser((content) => {
+    accumulatedText += content;
+    if (onProgress) onProgress(accumulatedText);
+  });
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const chunk = decoder.decode(value, { stream: true });
-    const lines = chunk.split('\n');
+  if (useBridge) {
+    const requestId = `ai-stream-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith(':')) continue;
-      if (trimmed === 'data: [DONE]') continue;
+    const streamPromise = new Promise((resolve, reject) => {
+      let offChunk = () => {};
+      let offEnd = () => {};
+      let offError = () => {};
+      const cleanup = () => {
+        offChunk();
+        offEnd();
+        offError();
+      };
 
-      if (trimmed.startsWith('data: ')) {
-        try {
-          const json = JSON.parse(trimmed.slice(6));
-          const content = json.choices?.[0]?.delta?.content || json.choices?.[0]?.text || '';
-          if (content) {
-            accumulatedText += content;
-            if (onProgress) onProgress(accumulatedText);
-          }
-        } catch (e) {
-          // ignore chunk parse error
-        }
-      }
+      offChunk = window.electronAPI.onAiStreamChunk(requestId, (chunk) => parser.push(chunk));
+      offEnd = window.electronAPI.onAiStreamEnd(requestId, () => {
+        cleanup();
+        resolve();
+      });
+      offError = window.electronAPI.onAiStreamError(requestId, (message) => {
+        cleanup();
+        reject(new Error(message));
+      });
+    });
+    // Prevents an unhandled rejection when the request fails before the
+    // invoke result is inspected below.
+    streamPromise.catch(() => {});
+
+    const result = await window.electronAPI.aiFetchStream(requestId, endpoint, {
+      method: 'POST',
+      headers,
+      body
+    });
+
+    if (!result?.ok) {
+      throw new Error(result?.error || `LLM request failed (${result?.status || 'no status'})`);
+    }
+
+    await streamPromise;
+  } else {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body
+    });
+
+    if (!response.ok) {
+      throw new Error(`LLM HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      parser.push(decoder.decode(value, { stream: true }));
     }
   }
+
+  parser.flush();
 
   if (!accumulatedText.trim()) {
     throw new Error('Empty response from LLM');
