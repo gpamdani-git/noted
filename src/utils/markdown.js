@@ -31,6 +31,7 @@ export const pageToMarkdown = (page) => {
       case 'numbered_list_item':
         lines.push(`1. ${block.text || ''}`);
         break;
+      case 'column_list':
       case 'column_list_2':
       case 'column_list_3':
         if (block.columns && block.columns.length) {

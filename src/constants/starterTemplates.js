@@ -100,8 +100,9 @@ export const STARTER_TEMPLATES = [
       },
       {
         id: `tpl-board-${Date.now()}-2`,
-        type: 'board',
+        type: 'table',
         viewType: 'board',
+        groupByCol: 1,
         headers: ['Task', 'Status', 'Assignee', 'Priority'],
         rows: [
           ['Desain Arsitektur Sistem', 'Done', 'Tech Lead', 'High'],

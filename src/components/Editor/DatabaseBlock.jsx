@@ -180,14 +180,28 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [showGroupSelector, setShowGroupSelector] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterConfig, setFilterConfig] = useState(null); // { colIdx: number, operator: string, value: string }
-  const [sortConfig, setSortConfig] = useState(null); // { colIdx: number, direction: 'asc' | 'desc' }
+  // { colIdx: number, operator: string, value: string }
+  const [filterConfig, setFilterConfig] = useState(block.filterConfig || null);
+  // { colIdx: number, direction: 'asc' | 'desc' }
+  const [sortConfig, setSortConfig] = useState(block.sortConfig || null);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [showSortPopover, setShowSortPopover] = useState(false);
   const [activeColMenu, setActiveColMenu] = useState(null); // colIdx
   const [activeStatusCell, setActiveStatusCell] = useState(null); // { rIdx: number, cIdx: number }
 
   const containerRef = useRef(null);
+
+  // The filter and the sort belong to the saved view, so they are written back
+  // to the block and survive a reload. The initial write is skipped because the
+  // state is already seeded from the block.
+  const hasPersistedViewConfig = useRef(false);
+  useEffect(() => {
+    if (!hasPersistedViewConfig.current) {
+      hasPersistedViewConfig.current = true;
+      return;
+    }
+    onUpdateBlock(block.id, { filterConfig, sortConfig });
+  }, [filterConfig, sortConfig]);
 
   // Modern click-outside dismissal: Avoids full-screen click blocking overlays!
   useEffect(() => {
@@ -651,26 +665,26 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
           <button
             className={`db-tab-btn ${viewType === 'board' ? 'active' : ''}`}
             onClick={() => setViewType('board')}
-            title="By Status (Board view)"
+            title={`Grouped by ${headers[groupByIndex] || 'Status'} (Board view)`}
           >
             <Kanban size={13} />
-            <span>By Status</span>
+            <span>By {headers[groupByIndex] || 'Status'}</span>
           </button>
           <button
             className={`db-tab-btn ${viewType === 'table' ? 'active' : ''}`}
             onClick={() => setViewType('table')}
-            title="All Projects (Table view)"
+            title="All rows (Table view)"
           >
             <Star size={13} className="db-tab-star-icon" />
-            <span>All Projects</span>
+            <span>Table</span>
           </button>
           <button
             className={`db-tab-btn ${viewType === 'gallery' ? 'active' : ''}`}
             onClick={() => setViewType('gallery')}
-            title="Gantt (Timeline view)"
+            title="Cover layout (Gallery view)"
           >
             <Calendar size={13} />
-            <span>Gantt</span>
+            <span>Gallery</span>
           </button>
         </div>
 

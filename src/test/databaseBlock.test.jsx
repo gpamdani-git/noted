@@ -51,14 +51,14 @@ describe('DatabaseBlock Component', () => {
     expect(screen.getByDisplayValue('Markdown Engine Audit')).toBeInTheDocument();
   });
 
-  it('switches between view modes (All Projects / Table, By Status / Board, Gantt)', () => {
+  it('switches between view modes (Table, Board grouped by the status column, Gallery)', () => {
     const handleUpdate = vi.fn();
     const { rerender } = render(
       <DatabaseBlock block={initialBlock} onUpdateBlock={handleUpdate} isLocked={false} />
     );
 
-    // Switch to By Status (Board / Kanban view)
-    const boardTab = screen.getByTitle('By Status (Board view)');
+    // Switch to the board (Kanban) view, grouped by the Status column
+    const boardTab = screen.getByTitle('Grouped by Status (Board view)');
     fireEvent.click(boardTab);
 
     expect(handleUpdate).toHaveBeenCalledWith('db-1', { viewType: 'board' });
@@ -78,8 +78,8 @@ describe('DatabaseBlock Component', () => {
     expect(screen.getByText('Done')).toBeInTheDocument();
 
     // Switch to Gallery view
-    const ganttTab = screen.getByTitle('Gantt (Timeline view)');
-    fireEvent.click(ganttTab);
+    const galleryTab = screen.getByTitle('Cover layout (Gallery view)');
+    fireEvent.click(galleryTab);
     expect(handleUpdate).toHaveBeenCalledWith('db-1', { viewType: 'gallery' });
 
     // Rerender with gallery view

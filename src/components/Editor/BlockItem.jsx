@@ -496,11 +496,19 @@ export const BlockItem = ({
         const targetOffset = pendingFocusRef.current?.offset ?? 0;
         pendingFocusRef.current = null;
 
+        // The text the block carries after the morph. The caret is only moved
+        // while the field still holds exactly this text, so a character that
+        // arrives between the morph and this effect is not relocated.
+        const expectedLength = (block.text || '').replace(/[\u200B\u00A0]/g, '').length;
+
         const place = () => {
-          if (inputRef.current) {
-            setCaretPosition(inputRef.current, targetOffset);
-            adjustHeight(inputRef.current);
+          const el = inputRef.current;
+          if (!el) return;
+          const currentLength = (el.textContent || '').replace(/[\u200B\u00A0]/g, '').length;
+          if (currentLength <= expectedLength) {
+            setCaretPosition(el, targetOffset);
           }
+          adjustHeight(el);
         };
         place();
         requestAnimationFrame(place);
@@ -650,20 +658,23 @@ export const BlockItem = ({
 
       // Heading 1: # 
       if (checkText === '# ' || checkText.startsWith('# ')) {
-        pendingFocusRef.current = { offset: 0 };
-        onUpdateBlock(block.id, { type: 'heading_1', text: checkText.replace(/^#\s*/, '') });
+        const preserved = checkText.replace(/^#\s*/, '');
+        pendingFocusRef.current = { offset: preserved.length };
+        onUpdateBlock(block.id, { type: 'heading_1', text: preserved });
         return;
       }
       // Heading 2: ## 
       if (checkText === '## ' || checkText.startsWith('## ')) {
-        pendingFocusRef.current = { offset: 0 };
-        onUpdateBlock(block.id, { type: 'heading_2', text: checkText.replace(/^##\s*/, '') });
+        const preserved = checkText.replace(/^##\s*/, '');
+        pendingFocusRef.current = { offset: preserved.length };
+        onUpdateBlock(block.id, { type: 'heading_2', text: preserved });
         return;
       }
       // Heading 3: ### 
       if (checkText === '### ' || checkText.startsWith('### ')) {
-        pendingFocusRef.current = { offset: 0 };
-        onUpdateBlock(block.id, { type: 'heading_3', text: checkText.replace(/^###\s*/, '') });
+        const preserved = checkText.replace(/^###\s*/, '');
+        pendingFocusRef.current = { offset: preserved.length };
+        onUpdateBlock(block.id, { type: 'heading_3', text: preserved });
         return;
       }
       // Heading 4-6 (Sub-headings): ####, #####, ###### -> heading_3
@@ -675,8 +686,9 @@ export const BlockItem = ({
         checkText === '###### ' ||
         checkText.startsWith('###### ')
       ) {
-        pendingFocusRef.current = { offset: 0 };
-        onUpdateBlock(block.id, { type: 'heading_3', text: checkText.replace(/^#{4,6}\s*/, '') });
+        const preserved = checkText.replace(/^#{4,6}\s*/, '');
+        pendingFocusRef.current = { offset: preserved.length };
+        onUpdateBlock(block.id, { type: 'heading_3', text: preserved });
         return;
       }
 
@@ -718,20 +730,22 @@ export const BlockItem = ({
 
       // To-Do Checklist: [] or [ ]
       if (checkText.startsWith('[] ') || checkText.startsWith('[ ] ')) {
-        pendingFocusRef.current = { offset: 0 };
+        const preserved = checkText.replace(/^\[\s*\]\s*/, '');
+        pendingFocusRef.current = { offset: preserved.length };
         onUpdateBlock(block.id, {
           type: 'to_do',
-          text: checkText.replace(/^\[\s*\]\s*/, ''),
+          text: preserved,
           checked: false
         });
         return;
       }
       // To-Do Checked: [x] or [X]
       if (checkText.startsWith('[x] ') || checkText.startsWith('[X] ')) {
-        pendingFocusRef.current = { offset: 0 };
+        const preserved = checkText.replace(/^\[[xX]\]\s*/, '');
+        pendingFocusRef.current = { offset: preserved.length };
         onUpdateBlock(block.id, {
           type: 'to_do',
-          text: checkText.replace(/^\[[xX]\]\s*/, ''),
+          text: preserved,
           checked: true
         });
         return;
@@ -739,40 +753,44 @@ export const BlockItem = ({
 
       // Bulleted List: - or * or +
       if (checkText.startsWith('- ') || checkText.startsWith('* ') || checkText.startsWith('+ ')) {
-        pendingFocusRef.current = { offset: 0 };
+        const preserved = checkText.replace(/^[-*+]\s+/, '');
+        pendingFocusRef.current = { offset: preserved.length };
         onUpdateBlock(block.id, {
           type: 'bulleted_list_item',
-          text: checkText.replace(/^[-*+]\s+/, '')
+          text: preserved
         });
         return;
       }
 
       // Numbered List: 1. or 1)
       if (/^\d+[.)]\s+/.test(checkText)) {
-        pendingFocusRef.current = { offset: 0 };
+        const preserved = checkText.replace(/^\d+[.)]\s+/, '');
+        pendingFocusRef.current = { offset: preserved.length };
         onUpdateBlock(block.id, {
           type: 'numbered_list_item',
-          text: checkText.replace(/^\d+[.)]\s+/, '')
+          text: preserved
         });
         return;
       }
 
       // Quote Block: > 
       if (checkText.startsWith('> ') || checkText.startsWith('" ')) {
-        pendingFocusRef.current = { offset: 0 };
+        const preserved = checkText.replace(/^(>|")\s+/, '');
+        pendingFocusRef.current = { offset: preserved.length };
         onUpdateBlock(block.id, {
           type: 'quote',
-          text: checkText.replace(/^(>|")\s+/, '')
+          text: preserved
         });
         return;
       }
 
       // Toggle Accordion: >> or >!
       if (checkText.startsWith('>> ') || checkText.startsWith('>! ')) {
-        pendingFocusRef.current = { offset: 0 };
+        const preserved = checkText.replace(/^(>>|>!)\s+/, '');
+        pendingFocusRef.current = { offset: preserved.length };
         onUpdateBlock(block.id, {
           type: 'toggle',
-          text: checkText.replace(/^(>>|>!)\s+/, ''),
+          text: preserved,
           isOpen: false,
           subtext: ''
         });
@@ -781,10 +799,11 @@ export const BlockItem = ({
 
       // Callout Box: ::: or |!
       if (checkText.startsWith('::: ') || checkText.startsWith('|! ')) {
-        pendingFocusRef.current = { offset: 0 };
+        const preserved = checkText.replace(/^::: ?|^\|! ?/, '');
+        pendingFocusRef.current = { offset: preserved.length };
         onUpdateBlock(block.id, {
           type: 'callout',
-          text: checkText.replace(/^::: ?|^\|! ?/, ''),
+          text: preserved,
           icon: '💡',
           color: 'blue'
         });
@@ -1146,7 +1165,11 @@ export const BlockItem = ({
 
     // Slash command trigger
     if (e.key === '/') {
-      const val = block.text || '';
+      // The live DOM text is used because the React state can lag behind the
+      // caret while the user is typing.
+      const domLive = inputRef.current ? (inputRef.current.innerText || inputRef.current.textContent || '') : '';
+      const rawText = domLive.trim() ? domLive : (block.text || '');
+      const val = rawText.replace(/[\u200B\u00A0]/g, ' ').trim();
       if (val === '' || val.endsWith(' ')) {
         setShowSlashMenu(true);
         setSlashFilter('');
