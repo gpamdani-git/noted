@@ -123,32 +123,79 @@ if (localIssues.length === 0 && serverIssues.length === 0) {
 if (shouldPush) {
   const token = process.env.VERCEL_TOKEN;
   const projectFile = path.join(rootDir, '.vercel', 'project.json');
-  const linked = existsSync(projectFile) ? JSON.parse(readFileSync(projectFile, 'utf-8')) : null;
-  const projectId = process.env.VERCEL_PROJECT_ID || linked?.projectId;
-  const orgId = process.env.VERCEL_ORG_ID || linked?.orgId;
+  const repoFile = path.join(rootDir, '.vercel', 'repo.json');
+  // A linked project has either project.json (single project) or repo.json
+  // (repo based linking).
+  const linked = existsSync(projectFile)
+    ? JSON.parse(readFileSync(projectFile, 'utf-8'))
+    : existsSync(repoFile)
+      ? JSON.parse(readFileSync(repoFile, 'utf-8'))
+      : null;
+  const projectId =
+    process.env.VERCEL_PROJECT_ID ||
+    linked?.projectId ||
+    linked?.projects?.[0]?.id ||
+    null;
+  const orgId = process.env.VERCEL_ORG_ID || linked?.orgId || linked?.projects?.[0]?.orgId || null;
 
-  if (!token) {
-    console.log('\nVERCEL_TOKEN belum ada, jadi variabel server tidak bisa dikirim.');
+  // The CLI can be used without a personal token when it is already signed in.
+  // The token is only needed for an unattended run, for example in CI.
+  const whoAmI = spawnSync('vercel', ['whoami'], { cwd: rootDir, encoding: 'utf-8' });
+  const cliUser = whoAmI.status === 0 ? String(whoAmI.stdout || '').trim().split('\n').pop() : '';
+  const authenticated = Boolean(token) || Boolean(cliUser);
+
+  if (!authenticated) {
+    console.log('\nCLI Vercel belum terautentikasi dan VERCEL_TOKEN tidak ada.');
+    console.log('Jalankan "vercel login" sekali, atau set VERCEL_TOKEN untuk penggunaan tanpa interaksi.');
   } else if (!projectId) {
     console.log('\nProject Vercel belum terhubung. Jalankan "npx vercel link" lebih dulu, atau set VERCEL_PROJECT_ID.');
   } else {
-    console.log('\nMengirim variabel server ke Vercel...');
+    console.log(`\nMengirim variabel ke Vercel sebagai ${token ? 'token' : cliUser}...`);
     for (const item of SERVER_VARS) {
-      if (!item.server) continue;
       const value = localEnv[item.key];
       if (!value) continue;
-      const args = ['vercel', 'env', 'add', item.key, 'production'];
+      // A VITE_ variable is exposed to the browser, so Vercel refuses to
+      // store it as a secret. Those are stored as a plain config value.
+      const isPublic = item.key.startsWith('VITE_');
+
+      const args = [
+        'env', 'add', item.key,
+        '--value', value,
+        '--environment', 'production,preview',
+        '--force', '--yes'
+      ];
+      if (isPublic) args.push('--type', 'config');
+      else args.push('--sensitive');
       if (orgId) args.push('--scope', orgId);
-      const result = spawnSync('npx', args, {
+      const result = spawnSync('vercel', args, {
         cwd: rootDir,
-        input: `${value}\n`,
-        env: { ...process.env, VERCEL_TOKEN: token, VERCEL_PROJECT_ID: projectId }
+        encoding: 'utf-8',
+        env: {
+          ...process.env,
+          ...(token ? { VERCEL_TOKEN: token } : {}),
+          // The CLI refuses to run when only one of the two is given.
+          ...(projectId ? { VERCEL_PROJECT_ID: projectId } : {}),
+          ...(orgId ? { VERCEL_ORG_ID: orgId } : {})
+        }
       });
-      const ok = result.status === 0;
+
+      // The CLI can exit with 0 and still report a failure in its output, so
+      // the result is read from the response as well.
+      const output = String(result.stdout || '') + String(result.stderr || '');
+      const reportedError = /"status"\s*:\s*"error"/.test(output) || /A variable with the name/.test(output);
+      const ok = result.status === 0 && !reportedError;
+
       console.log(`  ${ok ? 'OK   ' : 'GAGAL'} ${item.key}`);
-      if (!ok) console.log(String(result.stderr || '').split('\n').slice(0, 3).join('\n'));
+      if (!ok) {
+        const detail = output
+          .split('\n')
+          .filter((line) => line.trim() && !line.includes('Vercel CLI'))
+          .slice(0, 3)
+          .join('\n');
+        if (detail) console.log(`        ${detail}`);
+      }
     }
-    console.log('\nSelesai. Deploy ulang agar variabel baru dipakai:  npx vercel --prod');
+    console.log('\nSelesai. Variabel baru dipakai setelah deploy ulang:  npx vercel --prod');
   }
 } else {
   console.log('\nUntuk mengirim variabel yang sama ke server:  node scripts/check-env.mjs --push');

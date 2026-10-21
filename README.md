@@ -82,11 +82,23 @@ on the deployment (Vercel), not only in the local `.env`:
 To copy the local values to Vercel:
 
 ```bash
-npx vercel link
-export VERCEL_TOKEN=...            # from the Vercel account settings
-node scripts/check-env.mjs --push
-npx vercel --prod
+npx vercel link                          # sekali saja
+node scripts/check-env.mjs --push        # mengirim variabel ke server
+npx vercel --prod                        # deploy ulang
 ```
+
+A personal access token is **not** needed here. The Vercel CLI is already
+signed in after `vercel login`, and the script uses that session. The token is
+only required for an unattended run, for example in CI:
+
+```bash
+export VERCEL_TOKEN=...                  # hanya untuk CI
+node scripts/check-env.mjs --push
+```
+
+The `.env.local` file that `vercel link` writes holds a short lived
+`VERCEL_OIDC_TOKEN` for GitHub Actions. It is not a personal access token and
+it stays out of the repository.
 
 ---
 
