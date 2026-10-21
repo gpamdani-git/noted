@@ -46,8 +46,11 @@ export const testLlmConnection = async (config) => {
   if (cfg.provider === 'builtin') {
     return {
       success: true,
-      models: ['noted-embedded-v1'],
-      message: 'Built-in Engine is active and ready without setup.'
+      // The built-in engine is a local template and heuristic engine, not a
+      // model, so it does not expose a model id.
+      models: [],
+      engine: 'template',
+      message: 'Built-in Engine aktif. Memproses secara lokal di browser dengan templat bawaan, tanpa model AI eksternal.'
     };
   }
 
@@ -634,7 +637,16 @@ Be direct, helpful, and high quality. Never output conversational preamble like 
     });
 
     if (!response.ok) {
-      throw new Error(`LLM HTTP ${response.status}: ${response.statusText}`);
+      // The proxy reports why it could not reach the runtime.
+      let detail = '';
+      try {
+        const payload = await response.json();
+        detail = payload?.hint || payload?.error || '';
+      } catch {
+        detail = '';
+      }
+      const base = `LLM HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(detail ? `${base} — ${detail}` : base);
     }
 
     const reader = response.body.getReader();

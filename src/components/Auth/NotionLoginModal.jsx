@@ -9,6 +9,7 @@ import {
 import {
   loginWithGoogleCredential,
   loginWithEmail,
+  logout,
   getGoogleClientId,
   getSavedAccounts,
   isElectronApp,
@@ -281,7 +282,9 @@ export const NotionLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
             type="button"
             className="notion-guest-link"
             onClick={() => {
-              const user = loginWithEmail('guest@noted.local', 'Guest User');
+              // A real guest session: no account is created and no cloud
+              // session is issued, so the workspace stays local.
+              const user = logout();
               if (onLoginSuccess) onLoginSuccess(user);
               onClose();
             }}

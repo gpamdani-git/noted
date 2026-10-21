@@ -701,7 +701,7 @@ export const SettingsModal = ({
                 value={mcpConfig.provider || 'builtin'}
                 onChange={(e) => handleConfigChange('provider', e.target.value)}
               >
-                <option value="builtin">⚡ Built-in Engine (Default / Offline)</option>
+                <option value="builtin">⚡ Built-in Engine (lokal, berbasis templat)</option>
                 <option value="ollama">🦙 Ollama (http://localhost:11434)</option>
                 <option value="lmstudio">🧪 LM Studio (http://localhost:1234)</option>
                 <option value="custom">🌐 Custom OpenAI-compatible URL</option>
@@ -783,7 +783,7 @@ export const SettingsModal = ({
               </div>
               <div className="mcp-status-summary">
                 {mcpConfig.provider === 'builtin' ? (
-                  <span className="text-muted-xs">⚡ Menggunakan Built-in Engine (Cepat, 100% offline di browser tanpa instalasi tambahan).</span>
+                  <span className="text-muted-xs">⚡ Built-in Engine aktif: pemrosesan lokal di browser berbasis templat dan aturan bawaan. Tidak memakai model AI dan tidak mengirim isi halaman ke jaringan. Pilih Ollama, LM Studio, atau endpoint OpenAI-compatible untuk inferensi model sungguhan.</span>
                 ) : (
                   <span className="text-muted-xs">🦙 Terhubung ke <strong>{mcpConfig.provider.toUpperCase()}</strong> (Model: <code>{mcpConfig.model || 'default'}</code>) untuk inferensi AI sungguhan.</span>
                 )}

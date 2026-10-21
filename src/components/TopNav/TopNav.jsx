@@ -24,6 +24,7 @@ import { NotionOptionsMenu } from './NotionOptionsMenu';
 import { DiscussionsPopover } from '../Navigation/DiscussionsPopover';
 import { getUnresolvedCount } from '../../utils/comments';
 import { downloadMarkdownFile, pageToMarkdown } from '../../utils/markdown';
+import { buildShareablePageUrl } from '../../utils/pageUrl';
 import './TopNav.css';
 
 export const TopNav = ({
@@ -105,7 +106,10 @@ export const TopNav = ({
   }, []);
 
   const handleCopyPageLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    if (!page) return;
+    // The desktop app uses its own protocol, the web build a query parameter.
+    const link = buildShareablePageUrl(page.id);
+    navigator.clipboard.writeText(link);
     setCopiedPageLink(true);
     setTimeout(() => setCopiedPageLink(false), 1500);
   };
@@ -164,28 +168,16 @@ export const TopNav = ({
                 <span>Private (Only you)</span>
                 {privacySetting === 'Private' && <Check size={13} className="check-icon" />}
               </button>
-              <button
-                className={`dropdown-item ${privacySetting === 'Workspace' ? 'active-privacy' : ''}`}
-                onClick={() => {
-                  setPrivacySetting('Workspace');
-                  setShowPrivacyMenu(false);
-                }}
-              >
+              <div className="dropdown-item dropdown-item-disabled" title="Per-page permissions are not implemented in this build. Pages are only reachable by the signed-in account.">
                 <Users size={13} />
                 <span>Workspace (Team members)</span>
-                {privacySetting === 'Workspace' && <Check size={13} className="check-icon" />}
-              </button>
-              <button
-                className={`dropdown-item ${privacySetting === 'Public' ? 'active-privacy' : ''}`}
-                onClick={() => {
-                  setPrivacySetting('Public');
-                  setShowPrivacyMenu(false);
-                }}
-              >
+                <em className="dropdown-item-note">Not available</em>
+              </div>
+              <div className="dropdown-item dropdown-item-disabled" title="Publishing a page to the web is not implemented in this build.">
                 <Globe size={13} />
                 <span>Public Web (Anyone with link)</span>
-                {privacySetting === 'Public' && <Check size={13} className="check-icon" />}
-              </button>
+                <em className="dropdown-item-note">Not available</em>
+              </div>
             </div>
           )}
         </div>
@@ -227,7 +219,7 @@ export const TopNav = ({
                 }}
               >
                 <Printer size={14} />
-                <span>Export to PDF / Print</span>
+                <span>Print / Save as PDF</span>
               </button>
               <button className="dropdown-item" onClick={handleCopyMarkdown}>
                 {copiedMarkdown ? (

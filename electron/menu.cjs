@@ -66,7 +66,7 @@ function setupMenu(mainWindow) {
         },
         { type: 'separator' },
         {
-          label: 'Import Markdown / HTML...',
+          label: 'Import Markdown...',
           accelerator: 'CmdOrCtrl+O',
           click: () => sendAction('import')
         },
@@ -77,7 +77,7 @@ function setupMenu(mainWindow) {
         },
         { type: 'separator' },
         {
-          label: 'Trash & Archive...',
+          label: 'Move to Trash...',
           accelerator: 'CmdOrCtrl+Shift+T',
           click: () => sendAction('trash')
         },
