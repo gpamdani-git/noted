@@ -6,10 +6,15 @@ const SESSION_TOKEN_KEY = 'noted_session_token_v1';
 
 /**
  * Returns the base URL used to reach the Noted server API.
- * - Web / Electron dev: relative URLs (same origin or Vite dev middleware)
- * - Capacitor native: VITE_APP_URL (deployed Vercel instance)
+ * - Development: an empty string, so the request goes to the same origin and
+ *   is handled by the local API middleware of the dev server.
+ * - Packaged web, desktop and mobile build: VITE_APP_URL, because those run
+ *   from a file or from a different origin than the API.
  */
 export const getApiBaseUrl = () => {
+  if (import.meta.env?.DEV) {
+    return '';
+  }
   const configured = import.meta.env?.VITE_APP_URL;
   if (configured && typeof configured === 'string') {
     return configured.replace(/\/$/, '');

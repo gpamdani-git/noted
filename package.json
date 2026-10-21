@@ -13,6 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "env:check": "node scripts/check-env.mjs",
+    "qa:report": "node scripts/generate-qa-report.mjs",
     "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
     "electron:preview": "vite build && cross-env TEST_DIST=1 electron .",
     "electron:build": "vite build && electron-builder",

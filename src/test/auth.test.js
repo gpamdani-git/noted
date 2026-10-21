@@ -104,13 +104,44 @@ describe('Authentication & Notion Login Module', () => {
   it('rejects a Google credential that the server refuses to verify', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: false,
+      status: 401,
       json: async () => ({ error: 'Google credential could not be verified' })
     });
 
     await expect(loginWithGoogleCredential('header.payload.sig')).rejects.toThrow(
-      'Google credential could not be verified'
+      'Kredensial Google ditolak server'
     );
     expect(getSessionToken()).toBe('');
+  });
+
+  it('explains a server that has no session secret configured', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 503,
+      json: async () => ({ error: 'Server is not configured for authenticated sessions (SESSION_SECRET missing)' })
+    });
+
+    await expect(loginWithGoogleCredential('header.payload.sig')).rejects.toThrow('SESSION_SECRET');
+  });
+
+  it('explains an origin that the server does not allow', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: 'Origin not allowed' })
+    });
+
+    await expect(loginWithGoogleCredential('header.payload.sig')).rejects.toThrow('ALLOWED_ORIGINS');
+  });
+
+  it('explains a server that has no Google client id configured', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 503,
+      json: async () => ({ error: 'GOOGLE_CLIENT_ID is not configured on the server' })
+    });
+
+    await expect(loginWithGoogleCredential('header.payload.sig')).rejects.toThrow('GOOGLE_CLIENT_ID');
   });
 
   it('creates a local (offline) account with an email address', () => {

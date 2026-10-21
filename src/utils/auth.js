@@ -158,6 +158,33 @@ export const updateUserProfile = (updates) => {
 };
 
 /**
+ * Turns a server error into a message that says what to do about it.
+ */
+const describeAuthError = (status, serverMessage) => {
+  const message = String(serverMessage || '');
+
+  if (message.includes('SESSION_SECRET')) {
+    return 'Server belum dikonfigurasi untuk sesi login. Set SESSION_SECRET di environment server (Vercel), lalu deploy ulang.';
+  }
+  if (message.includes('GOOGLE_CLIENT_ID')) {
+    return 'Server belum dikonfigurasi untuk Google login. Set GOOGLE_CLIENT_ID di environment server, lalu deploy ulang.';
+  }
+  if (message.includes('Origin not allowed')) {
+    return 'Origin aplikasi belum diizinkan server. Tambahkan origin ini ke ALLOWED_ORIGINS di environment server.';
+  }
+  if (status === 503) {
+    return 'Server sedang tidak dikonfigurasi untuk login. Periksa environment server.';
+  }
+  if (status === 403) {
+    return 'Server menolak permintaan ini. Periksa ALLOWED_ORIGINS di environment server.';
+  }
+  if (message.includes('could not be verified')) {
+    return 'Kredensial Google ditolak server. Coba login ulang, dan pastikan GOOGLE_CLIENT_ID di server sama dengan yang di aplikasi.';
+  }
+  return message || 'Login Google gagal. Coba lagi beberapa saat lagi.';
+};
+
+/**
  * Signs in with a Google Identity Services credential.
  * The credential is verified server-side; the server returns a session token
  * that authorizes /api/sync calls.
@@ -175,14 +202,14 @@ export const loginWithGoogleCredential = async (credentialToken) => {
   });
 
   if (!response.ok) {
-    let message = 'Google sign-in could not be verified';
+    let serverMessage = '';
     try {
       const data = await response.json();
-      if (data?.error) message = data.error;
+      serverMessage = data?.error || '';
     } catch {
-      // keep default message
+      serverMessage = '';
     }
-    throw new Error(message);
+    throw new Error(describeAuthError(response.status, serverMessage));
   }
 
   const data = await response.json();

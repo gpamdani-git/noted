@@ -10,6 +10,7 @@ import {
   loginWithGoogleCredential,
   loginWithEmail,
   logout,
+  switchAccount,
   getGoogleClientId,
   getSavedAccounts,
   isElectronApp,
@@ -258,11 +259,18 @@ export const NotionLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 type="button"
                 className="google-account-item"
                 onClick={() => {
-                  if (acc.session) {
-                    window.dispatchEvent(new CustomEvent('noted_switch_account', { detail: { accountId: acc.id } }));
+                  // The account is restored from the local store, so it works
+                  // without the server. A missing session only means the
+                  // cloud sync needs a fresh Google sign-in.
+                  const switched = switchAccount(acc.id);
+                  if (!switched) {
+                    setError('Akun ini tidak bisa dipulihkan. Masuk ulang dengan Google.');
+                    return;
                   }
+                  if (onLoginSuccess) onLoginSuccess(switched);
+                  onClose();
                 }}
-                disabled={isLoading || !acc.session}
+                disabled={isLoading}
               >
                 <div className="google-account-avatar" style={{ backgroundColor: acc.color || '#2383e2' }}>
                   {acc.picture ? <img src={acc.picture} alt={acc.name} /> : (acc.avatar || acc.name?.[0] || 'N')}
@@ -271,6 +279,11 @@ export const NotionLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                   <span className="google-account-name">{acc.name}</span>
                   <span className="google-account-email">{acc.email}</span>
                 </div>
+                {!acc.session && (
+                  <span className="google-account-note" title="Sinkronisasi cloud butuh login Google baru">
+                    Perlu login ulang
+                  </span>
+                )}
               </button>
             ))}
           </div>

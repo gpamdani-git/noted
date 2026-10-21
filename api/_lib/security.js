@@ -41,19 +41,36 @@ export const getAllowedOrigins = () => {
 };
 
 /**
+ * Checks whether a request comes from the same host that serves the API.
+ * A same-origin request is never blocked: the browser sends an Origin header
+ * for POST requests, and the hosted app has to be able to call its own API.
+ */
+const isSameOrigin = (origin, req) => {
+  if (!origin || !req) return false;
+  try {
+    const originUrl = new URL(origin);
+    const host = String(req.headers?.['x-forwarded-host'] || req.headers?.host || '').split(',')[0].trim();
+    return Boolean(host) && originUrl.host === host;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Applies CORS headers for a whitelisted origin.
  * Returns false when the request origin is not allowed (browser will block it).
  */
 export const applyCors = (req, res) => {
   const origin = (req.headers?.origin || '').replace(/\/$/, '');
   const allowed = getAllowedOrigins();
+  const sameOrigin = isSameOrigin(origin, req);
 
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Max-Age', '600');
 
-  if (origin && allowed.includes(origin)) {
+  if (origin && (allowed.includes(origin) || sameOrigin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     return true;
   }
