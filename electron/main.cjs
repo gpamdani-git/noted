@@ -12,7 +12,50 @@ const path = require('node:path');
 const fs = require('node:fs');
 
 // Ensure single instance lock (Notion REA behavior)
-const gotTheLock = app.requestSingleInstanceLock();
+//
+// An instance that is killed or crashes leaves the lock behind. The next
+// start then finds the lock, believes another copy is running and quits
+// without a word, so the app never opens again. The lock points at the
+// owner, which makes a dead owner detectable.
+const isProcessAlive = (pid) => {
+  if (!pid || pid === process.pid) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return err.code === 'EPERM';
+  }
+};
+
+const acquireSingleInstanceLock = () => {
+  const userData = app.getPath('userData');
+
+  // A previous instance that was killed leaves the lock behind. The next
+  // start then believes another copy is running and quits without a word, so
+  // the app never opens again. The lock points at the owner, which makes a
+  // dead owner detectable. The lock is only requested once, because the
+  // request cannot be repeated after it failed.
+  try {
+    const owner = fs.readlinkSync(path.join(userData, 'SingletonLock'));
+    const pid = Number(owner.slice(owner.lastIndexOf('-') + 1));
+
+    if (!isProcessAlive(pid)) {
+      for (const name of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
+        try {
+          fs.unlinkSync(path.join(userData, name));
+        } catch {
+          // The file may already be gone
+        }
+      }
+    }
+  } catch {
+    // There is no lock, or it cannot be read
+  }
+
+  return app.requestSingleInstanceLock();
+};
+
+const gotTheLock = acquireSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
   process.exit(0);
@@ -185,6 +228,17 @@ ipcMain.handle('window:is-fullscreen', () => {
   return mainWindow ? mainWindow.isFullScreen() : false;
 });
 
+// Tells the renderer whether this app is registered as the handler of the
+// noted:// scheme. The renderer needs it before it offers the browser
+// hand-off, otherwise the browser opens the web page and nothing comes back.
+ipcMain.handle('app:is-protocol-registered', () => {
+  try {
+    return { registered: app.isDefaultProtocolClient('noted') };
+  } catch {
+    return { registered: false };
+  }
+});
+
 ipcMain.handle('app:get-info', () => {
   return {
     version: app.getVersion(),
@@ -276,6 +330,16 @@ const loadDatabaseUrl = () => {
   return fromUserConfig || null;
 };
 
+// The url of the Noted server that the desktop build talks to.
+const readAppUrl = () => {
+  const fromEnv = process.env.NOTED_APP_URL || process.env.VITE_APP_URL;
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  const fromFile = readEnvFileValue('VITE_APP_URL');
+  if (fromFile) return fromFile.replace(/\/$/, '');
+  const fromUserConfig = readUserConfig().appUrl;
+  return fromUserConfig ? String(fromUserConfig).replace(/\/$/, '') : null;
+};
+
 const loadSessionSecret = () => {
   const fromEnv = process.env.SESSION_SECRET;
   if (fromEnv && fromEnv.length >= 16) return fromEnv;
@@ -310,6 +374,55 @@ ipcMain.handle('cloud:get-config', async () => {
 // The renderer of the packaged app runs from a file:// origin, which the
 // server refuses because the Origin header is "null". The status is therefore
 // requested from the main process, where no CORS applies.
+// Performs an authenticated request against the Noted server.
+//
+// The renderer of the packaged app runs from a file:// origin, so the browser
+// sends an Origin of "null" and the server refuses the request. The main
+// process has no such restriction, so the cloud traffic of the desktop build
+// goes through here.
+ipcMain.handle('cloud:api-request', async (_, { path, method = 'GET', body = null, session, appUrl } = {}) => {
+  const target = String(path || '');
+  if (!target.startsWith('/api/')) {
+    return { ok: false, status: 400, error: 'Only the Noted server API can be called' };
+  }
+
+  // The renderer knows the url of the server it was built for, the main
+  // process falls back to the environment and the user config.
+  const requested = String(appUrl || '').replace(/\/$/, '');
+  if (requested && !/^https?:\/\//i.test(requested)) {
+    return { ok: false, status: 400, error: 'Invalid server url' };
+  }
+  const serverUrl = requested || readAppUrl();
+  if (!serverUrl) {
+    return { ok: false, status: 503, error: 'No Noted server url is configured for this build' };
+  }
+
+  try {
+    const headers = { Accept: 'application/json' };
+    if (session) headers.Authorization = `Bearer ${session}`;
+    if (body) headers['Content-Type'] = 'application/json';
+
+    const res = await fetch(`${serverUrl}${target}`, {
+      method,
+      headers,
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: AbortSignal.timeout(20000)
+    });
+
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = text;
+    }
+
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    return { ok: false, status: 0, error: err.message };
+  }
+});
+
 ipcMain.handle('cloud:check-server', async (_, { appUrl } = {}) => {
   const target = String(appUrl || '').replace(/\/$/, '');
   if (!/^https?:\/\//i.test(target)) {

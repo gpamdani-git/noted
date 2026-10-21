@@ -212,6 +212,56 @@ export const checkCloudDatabaseStatus = async () => {
   };
 };
 
+
+/**
+ * Performs a request against the Noted server.
+ *
+ * The desktop app runs from a file:// origin, so the browser sends an Origin
+ * of "null", which the server refuses. The request is therefore made by the
+ * main process, where no CORS applies. The web build uses a plain fetch.
+ */
+export const notedServerRequest = async (path, { method = 'GET', body = null, session = '' } = {}) => {
+  const baseUrl = getApiBaseUrl();
+
+  if (typeof window !== 'undefined' && window.electronAPI?.apiRequest) {
+    const result = await window.electronAPI.apiRequest({
+      path,
+      method,
+      body,
+      session: session || undefined,
+      appUrl: baseUrl || undefined
+    });
+    if (!result?.ok) {
+      const error = new Error(result?.error || `The Noted server answered ${result?.status || 'no status'}`);
+      error.status = result?.status;
+      throw error;
+    }
+    return result.data;
+  }
+
+  const res = await fetch(`${baseUrl}${path}`, {
+    method,
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/json',
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(session ? { Authorization: `Bearer ${session}` } : {})
+    },
+    ...(body ? { body: JSON.stringify(body) } : {})
+  });
+
+  // Guard: mock fetch objects in tests may not have headers
+  const contentType = res.headers?.get?.('content-type') || '';
+  const isJson = contentType.includes('application/json') || !res.headers;
+  if (res.ok && isJson) {
+    return res.json();
+  }
+  if (res.status === 401) {
+    console.warn('[cloudSync] Session rejected by server - sign in again to restore cloud sync.');
+  }
+  return null;
+};
+
 /**
  * Multi-Channel Remote Workspace Puller:
  * Channel 1: Electron Native IPC Bridge (electronAPI.syncPull)
@@ -227,44 +277,22 @@ export const fetchRemoteWorkspace = async (user) => {
     return null;
   }
 
-  // 1. Electron Native IPC Bridge
+  // 1. Electron Native IPC Bridge, when this device has a direct database
+  //    connection. Without one the request continues with the Noted server.
   if (typeof window !== 'undefined' && window.electronAPI?.syncPull) {
     try {
       const data = await window.electronAPI.syncPull({ userId: user.id, email: user.email, session });
       if (data && data.success) return data;
-      if (data && data.mode === 'offline_vault') {
-        throw new Error(data.error || 'Offline - Saved in Local Vault');
-      }
     } catch (err) {
       console.warn('[cloudSync] Electron IPC syncPull failed:', err.message);
-      return null;
     }
   }
 
-  // 2. Serverless API (/api/sync) - same origin on web, configured host on native
-  const baseUrl = isMobileNativePlatform() ? getApiBaseUrl() : '';
-  if (!baseUrl && typeof window !== 'undefined' && window.location.protocol === 'file:') {
-    return null;
-  }
-
+  // 2. The Noted server, which is the channel the web build and the desktop
+  //    build share. The desktop request is made by the main process.
   try {
-    const res = await fetch(`${baseUrl}/api/sync`, {
-      cache: 'no-store',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${session}`
-      }
-    });
-    // Guard: mock fetch objects in tests may not have headers
-    const contentType = res.headers?.get?.('content-type') || '';
-    const isJson = contentType.includes('application/json') || !res.headers;
-    if (res.ok && isJson) {
-      const data = await res.json();
-      if (data && data.success) return data;
-    }
-    if (res.status === 401) {
-      console.warn('[cloudSync] Session rejected by server - sign in again to restore cloud sync.');
-    }
+    const data = await notedServerRequest('/api/sync', { method: 'GET', session });
+    if (data && data.success) return data;
   } catch (err) {
     // Network failures are surfaced to the caller so the sync indicator can
     // report an offline state instead of silently degrading.
@@ -292,47 +320,39 @@ export const pushRemoteWorkspace = async (payload) => {
     };
   }
 
-  // 1. Electron Native IPC Bridge
+  // 1. Electron Native IPC Bridge, when this device has a direct database
+  //    connection. Without one the request continues with the Noted server.
   if (typeof window !== 'undefined' && window.electronAPI?.syncPush) {
     try {
       const data = await window.electronAPI.syncPush({ ...payload, session });
       if (data && data.success) return data;
-      if (data && data.mode === 'offline_vault') {
-        throw new Error(data.error || 'Offline - Saved in Local Vault');
-      }
     } catch (err) {
       console.warn('[cloudSync] Electron IPC syncPush failed:', err.message);
-      return { success: false, mode: 'offline_vault', error: err.message };
     }
   }
 
-  // 2. Serverless API (/api/sync) - same origin on web, configured host on native
-  const baseUrl = isMobileNativePlatform() ? getApiBaseUrl() : '';
-  if (!baseUrl && typeof window !== 'undefined' && window.location.protocol === 'file:') {
-    return { success: false, mode: 'offline_vault', error: 'No cloud API configured for this build.' };
-  }
-
+  // 2. The Noted server, which is the channel the web build and the desktop
+  //    build share. The desktop request is made by the main process.
   try {
-    const res = await fetch(`${baseUrl}/api/sync`, {
+    const data = await notedServerRequest('/api/sync', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session}`
-      },
-      body: JSON.stringify(payload)
+      body: payload,
+      session
     });
-    // Guard: mock fetch objects in tests may not have headers
-    const contentType = res.headers?.get?.('content-type') || '';
-    const isJson = contentType.includes('application/json') || !res.headers;
-    if (res.ok && isJson) {
-      const data = await res.json();
-      if (data && data.success) return data;
+    if (data && data.success) {
+      return { ...data, mode: 'server' };
     }
-    if (res.status === 401) {
+    return {
+      success: false,
+      mode: 'offline_vault',
+      error: data?.error || 'The server did not accept the sync.'
+    };
+  } catch (err) {
+    console.warn('[cloudSync] /api/sync POST failed:', err.message);
+    if (err.status === 401) {
       return { success: false, mode: 'offline_vault', error: 'Session expired. Sign in again to sync.' };
     }
-  } catch (webErr) {
-    console.warn('[cloudSync] /api/sync POST failed:', webErr.message);
+    return { success: false, mode: 'offline_vault', error: err.message };
   }
 
   return { success: false, mode: 'offline_vault', error: 'Saved in Local Vault' };
@@ -350,11 +370,14 @@ export const pullCloudWorkspace = async (user) => {
     notifyStatus({ status: 'syncing' });
     const data = await fetchRemoteWorkspace(user);
 
-    if (data && data.success && (data.mode === 'cloud_postgres' || data.mode === 'local_drizzle_sqlite')) {
+    if (data && data.success) {
+      // A successful response is accepted whatever the server calls its
+      // mode, so a new server mode does not silently drop the workspace.
+      const mode = data.mode || 'cloud_postgres';
       notifyStatus({
         status: 'synced',
         lastSyncedAt: data.serverTimestamp || Date.now(),
-        mode: data.mode,
+        mode,
         error: null
       });
       return {

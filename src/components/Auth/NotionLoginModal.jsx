@@ -124,6 +124,24 @@ export const NotionLoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       setError('Sign-in through the browser is not available. Set VITE_APP_URL to your deployed Noted server.');
       return;
     }
+
+    // The desktop app receives the session through the noted:// scheme. When
+    // the app is not registered as the handler of that scheme the browser
+    // would open the web page and the session would never come back.
+    if (window.electronAPI?.isProtocolRegistered) {
+      try {
+        const { registered } = await window.electronAPI.isProtocolRegistered();
+        if (!registered) {
+          setError(
+            'Aplikasi desktop ini belum terdaftar sebagai penangan noted://, jadi sesi tidak bisa dikembalikan ke sini. Daftarkan ulang aplikasi, atau masuk lewat browser.'
+          );
+          return;
+        }
+      } catch {
+        // The check is a convenience, the hand-off is still attempted
+      }
+    }
+
     setIsLoading(true);
     setError('');
     try {

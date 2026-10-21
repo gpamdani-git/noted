@@ -39,6 +39,9 @@ export const setSessionToken = (token) => {
     } else {
       window.localStorage.removeItem(SESSION_TOKEN_KEY);
     }
+    // The desktop hand-off listens for this, so a session that is issued
+    // outside the sign-in flow still reaches the desktop app.
+    window.dispatchEvent(new CustomEvent('noted_session_updated', { detail: { hasSession: Boolean(token) } }));
   } catch {
     // Storage unavailable - session stays in-memory only
   }

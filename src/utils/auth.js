@@ -10,6 +10,7 @@
 
 import { getCurrentUser, setCurrentUser, DEFAULT_USER } from './comments';
 import { getSessionToken, setSessionToken, clearSessionToken, getApiBaseUrl } from './session';
+import { notedServerRequest } from './cloudSync';
 
 const GOOGLE_CLIENT_ID_KEY = 'noted_google_client_id_v1';
 
@@ -239,15 +240,15 @@ export const applyDesktopSession = async (sessionToken) => {
 
   setSessionToken(sessionToken);
 
-  const baseUrl = getApiBaseUrl();
   try {
-    const response = await fetch(`${baseUrl}/api/sync`, {
+    // The request goes through the main process on the desktop, because a
+    // file:// origin is refused by the server.
+    const data = await notedServerRequest('/api/sync', {
       method: 'GET',
-      headers: { Authorization: `Bearer ${sessionToken}` }
+      session: sessionToken
     });
-    if (!response.ok) throw new Error('Session rejected by server');
-    const data = await response.json();
-    if (!data?.resolvedUserId && !data?.success) throw new Error('Invalid session response');
+    if (!data) throw new Error('Session rejected by server');
+    if (!data.resolvedUserId && !data.success) throw new Error('Invalid session response');
   } catch (err) {
     clearSessionToken();
     throw new Error(err.message || 'Invalid session token');

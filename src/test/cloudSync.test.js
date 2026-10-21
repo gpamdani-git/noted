@@ -3,6 +3,7 @@ import {
   getCloudSyncState,
   checkCloudDatabaseStatus,
   pullCloudWorkspace,
+  pushRemoteWorkspace,
   triggerCloudSync,
   broadcastLocalChange,
   subscribeToMultiTabSync,
@@ -134,5 +135,98 @@ describe('Cloud & PostgreSQL Sync Engine (Notion REA)', () => {
     cleanup();
     expect(removeEventSpy).toHaveBeenCalledWith('focus', expect.any(Function));
     expect(removeEventSpy).toHaveBeenCalledWith('online', expect.any(Function));
+  });
+});
+
+describe('Desktop sync falls back to the Noted server', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    clearSessionToken();
+    delete window.electronAPI;
+  });
+
+  it('asks the server when the direct database connection fails', async () => {
+    setSessionToken('server-issued-session-token');
+
+    // The desktop bridge talks to the database directly, which is not
+    // configured on a fresh install.
+    window.electronAPI = {
+      isElectron: true,
+      syncPull: vi.fn().mockRejectedValue(new Error('Cloud database is not configured on this device')),
+      syncPush: vi.fn().mockRejectedValue(new Error('Cloud database is not configured on this device'))
+    };
+
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => ({
+        success: true,
+        mode: 'cloud_postgres',
+        pages: [{ id: 'remote-1', title: 'From the server', blocks: [] }],
+        trash: []
+      })
+    });
+
+    const result = await pullCloudWorkspace({ id: 'user_1', isLoggedIn: true });
+
+    expect(result).toBeDefined();
+    expect(result.pages[0].title).toBe('From the server');
+    // The server was asked, not only the direct connection
+    expect(fetchSpy).toHaveBeenCalled();
+    const [url, options] = fetchSpy.mock.calls[0];
+    expect(String(url)).toContain('/api/sync');
+    expect(options.headers.Authorization).toBe('Bearer server-issued-session-token');
+  });
+
+  it('pushes to the server when the direct database connection fails', async () => {
+    setSessionToken('server-issued-session-token');
+
+    window.electronAPI = {
+      isElectron: true,
+      syncPush: vi.fn().mockRejectedValue(new Error('Cloud database is not configured on this device'))
+    };
+
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => ({ success: true, mode: 'cloud_postgres' })
+    });
+
+    const result = await pushRemoteWorkspace({
+      userId: 'user_1',
+      email: 'a@b.com',
+      pages: [],
+      trash: [],
+      comments: []
+    });
+
+    expect(result.success).toBe(true);
+    expect(fetchSpy).toHaveBeenCalled();
+    const [, options] = fetchSpy.mock.calls[0];
+    expect(options.method).toBe('POST');
+  });
+
+  it('goes through the main process on the desktop', async () => {
+    setSessionToken('server-issued-session-token');
+
+    const apiRequest = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: { success: true, pages: [{ id: 'via-main', title: 'Main process', blocks: [] }] }
+    });
+
+    window.electronAPI = {
+      isElectron: true,
+      apiRequest,
+      syncPull: vi.fn().mockRejectedValue(new Error('not configured'))
+    };
+
+    const fetchSpy = vi.spyOn(global, 'fetch');
+
+    const result = await pullCloudWorkspace({ id: 'user_1', isLoggedIn: true });
+
+    expect(result.pages[0].title).toBe('Main process');
+    expect(apiRequest).toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

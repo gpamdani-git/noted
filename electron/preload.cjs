@@ -21,6 +21,7 @@ const electronAPI = {
 
   // App Metadata
   getInfo: () => ipcRenderer.invoke('app:get-info'),
+  isProtocolRegistered: () => ipcRenderer.invoke('app:is-protocol-registered'),
 
   // External Browser Link Opener
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
@@ -39,6 +40,7 @@ const electronAPI = {
   syncPush: (payload) => ipcRenderer.invoke('cloud:sync-push', payload),
   getCloudConfig: () => ipcRenderer.invoke('cloud:get-config'),
   checkServerStatus: (appUrl) => ipcRenderer.invoke('cloud:check-server', { appUrl }),
+  apiRequest: (options) => ipcRenderer.invoke('cloud:api-request', options),
   setCloudConfig: (config) => ipcRenderer.invoke('cloud:set-config', config),
 
   // Native AI & LLM Bridge (bypasses browser CORS for Ollama & LM Studio)

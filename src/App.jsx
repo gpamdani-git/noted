@@ -115,17 +115,40 @@ export function App() {
 
   // Deep link hand-off: when the web app is opened with ?notedAuth=desktop it
   // forwards the verified session back to the desktop app via noted://auth.
+  //
+  // The hand-off is retried whenever the sign-in state changes, because the
+  // browser usually arrives before the user has signed in. Without the retry
+  // the browser would stay on the web page and the desktop app would never
+  // receive the session.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('notedAuth') !== 'desktop') return;
-      const token = getSessionToken();
-      if (!token) return;
-      window.location.replace(`noted://auth?session=${encodeURIComponent(token)}`);
-    } catch (err) {
-      console.warn('[Noted Desktop] Auth hand-off notice:', err);
-    }
+
+    let handedOff = false;
+
+    const forwardSessionToDesktop = () => {
+      if (handedOff) return;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('notedAuth') !== 'desktop') return;
+
+        const token = getSessionToken();
+        if (!token) return;
+
+        handedOff = true;
+        window.location.replace(`noted://auth?session=${encodeURIComponent(token)}`);
+      } catch (err) {
+        console.warn('[Noted Desktop] Auth hand-off notice:', err);
+      }
+    };
+
+    forwardSessionToDesktop();
+    window.addEventListener('noted_auth_changed', forwardSessionToDesktop);
+    window.addEventListener('noted_session_updated', forwardSessionToDesktop);
+
+    return () => {
+      window.removeEventListener('noted_auth_changed', forwardSessionToDesktop);
+      window.removeEventListener('noted_session_updated', forwardSessionToDesktop);
+    };
   }, []);
 
   // Web page addressing: a copied link carries ?pageId= and reopens that page.
