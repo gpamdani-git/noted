@@ -54,6 +54,10 @@ graphify-out/cache/
 release/
 dist-electron/
 
+# REA analysis output (170 MB, regenerate with scripts/rea-extract-index.mjs)
+docs/rea/*.rea.jsonl
+docs/rea/*.err.log
+
 # Playwright
 test-results/
 playwright-report/
