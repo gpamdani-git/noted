@@ -8,6 +8,7 @@ import {
   Star,
   FileText,
   Trash2,
+  Archive,
   MoreHorizontal,
   Copy,
   Sun,
@@ -41,6 +42,8 @@ export const Sidebar = ({
   onOpenSettings,
   onOpenTrash,
   trashCount,
+  onOpenArchive,
+  archivedCount = 0,
   theme,
   onToggleTheme,
   isCollapsed,
@@ -621,11 +624,16 @@ export const Sidebar = ({
             </div>
           </div>
 
-          {/* Section: Utility Links (Import, Trash) */}
+          {/* Section: Utility Links (Import, Archive, Trash) */}
           <div className="sidebar-section utility-section">
             <button className="utility-nav-link" onClick={onOpenImportModal} title="Import Markdown / Notes">
               <Download size={14} />
               <span>Import</span>
+            </button>
+            <button className="utility-nav-link" onClick={onOpenArchive} title="Archive">
+              <Archive size={14} />
+              <span>Archive</span>
+              {archivedCount > 0 && <span className="trash-badge">{archivedCount}</span>}
             </button>
             <button className="utility-nav-link" onClick={onOpenTrash} title="Trash">
               <Trash2 size={14} />

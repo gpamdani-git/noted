@@ -349,6 +349,8 @@ export const pullCloudWorkspace = async (user) => {
         resolvedUserId: data.resolvedUserId || user.id,
         pages: data.pages || [],
         trash: data.trash || [],
+        comments: data.comments || [],
+        deletedCommentIds: data.deletedCommentIds || [],
         workspaceSettings: data.workspaceSettings || null
       };
     } else {
@@ -372,7 +374,15 @@ export const pullCloudWorkspace = async (user) => {
 /**
  * Pushes workspace changes to PostgreSQL with debouncing (Notion REA saveTransactions)
  */
-export const triggerCloudSync = (user, pages, trash = [], workspaceSettings = null, immediate = false) => {
+export const triggerCloudSync = (
+  user,
+  pages,
+  trash = [],
+  workspaceSettings = null,
+  comments = [],
+  deletedCommentIds = [],
+  immediate = false
+) => {
   if (!user || !user.isLoggedIn || !user.id || user.id === 'guest') {
     notifyStatus({ status: 'local', mode: 'local_vault_only' });
     return;
@@ -398,6 +408,8 @@ export const triggerCloudSync = (user, pages, trash = [], workspaceSettings = nu
         },
         pages,
         trash,
+        comments,
+        deletedCommentIds,
         workspaceSettings,
         clientTimestamp: Date.now()
       };

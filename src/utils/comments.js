@@ -128,6 +128,68 @@ export const saveStoredComments = (comments) => {
   }
 };
 
+// Deleted comment ids are kept as tombstones, so a deletion survives the
+// round trip through the cloud instead of the comment coming back.
+const DELETED_KEY = 'noted_deleted_comments_v1';
+
+export const getDeletedCommentIds = () => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(DELETED_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+const rememberDeletedComment = (commentId) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const deleted = getDeletedCommentIds();
+    if (!deleted.includes(commentId)) {
+      localStorage.setItem(DELETED_KEY, JSON.stringify([...deleted, commentId].slice(-2000)));
+    }
+  } catch {
+    // The tombstone is best effort
+  }
+};
+
+/**
+ * Merges the comments of the cloud into the local store.
+ *
+ * The local comments that the cloud does not know yet are kept, the remote
+ * ones win when they are newer, and the comments that were deleted on any
+ * device are dropped. The deletion is remembered as a tombstone, so it is not
+ * resurrected by the next push.
+ */
+export const applyRemoteComments = (remoteComments, remoteDeletedIds = []) => {
+  if (!Array.isArray(remoteComments)) return getStoredComments();
+
+  const deleted = new Set([...getDeletedCommentIds(), ...(Array.isArray(remoteDeletedIds) ? remoteDeletedIds : [])]);
+
+  const byId = new Map();
+  for (const comment of getStoredComments()) {
+    if (comment?.id && !deleted.has(comment.id)) {
+      byId.set(comment.id, comment);
+    }
+  }
+
+  for (const comment of remoteComments) {
+    if (!comment || !comment.id || deleted.has(comment.id)) continue;
+    const existing = byId.get(comment.id);
+    const incomingAt = comment.updatedAt || comment.createdAt || 0;
+    const existingAt = existing?.updatedAt || existing?.createdAt || 0;
+    if (!existing || incomingAt >= existingAt) {
+      byId.set(comment.id, { ...comment, replies: Array.isArray(comment.replies) ? comment.replies : [] });
+    }
+  }
+
+  const merged = [...byId.values()];
+  saveStoredComments(merged);
+  return merged;
+};
+
 export const getPageComments = (pageId) => {
   const all = getStoredComments();
   return all.filter((c) => c.pageId === pageId);
@@ -215,6 +277,7 @@ export const toggleResolveComment = (commentId) => {
 export const deleteComment = (commentId) => {
   const all = getStoredComments();
   const updated = all.filter((c) => c.id !== commentId);
+  rememberDeletedComment(commentId);
   saveStoredComments(updated);
   return updated;
 };

@@ -55,7 +55,7 @@ export default async function handler(req, res) {
         try {
           const pagesRows = sqlite.prepare(
             `SELECT id, user_id AS userId, title, icon, cover, parent_id AS parentId,
-                    is_favorite AS isFavorite, is_locked AS isLocked,
+                    is_favorite AS isFavorite, is_locked AS isLocked, is_archived AS isArchived,
                     full_width AS fullWidth, font_family AS fontFamily,
                     blocks, version, created_at AS createdAt, updated_at AS updatedAt
              FROM pages
@@ -67,6 +67,7 @@ export default async function handler(req, res) {
             ...p,
             isFavorite: Boolean(p.isFavorite),
             isLocked: Boolean(p.isLocked),
+            isArchived: Boolean(p.isArchived),
             fullWidth: Boolean(p.fullWidth),
             blocks: typeof p.blocks === 'string' ? JSON.parse(p.blocks) : p.blocks
           }));
@@ -82,6 +83,34 @@ export default async function handler(req, res) {
             ...t,
             blocks: typeof t.blocks === 'string' ? JSON.parse(t.blocks) : t.blocks
           }));
+
+          const commentsRows = sqlite.prepare(
+            `SELECT id, user_id AS userId, page_id AS pageId, payload, created_at AS createdAt, updated_at AS updatedAt
+             FROM comments
+             WHERE user_id = ?`
+          ).all(userId);
+
+          const parsedComments = commentsRows.map((c) => {
+            let payload = c.payload;
+            if (typeof payload === 'string') {
+              try {
+                payload = JSON.parse(payload);
+              } catch {
+                payload = {};
+              }
+            }
+            return {
+              ...payload,
+              id: c.id,
+              pageId: c.pageId,
+              createdAt: payload?.createdAt || c.createdAt,
+              updatedAt: c.updatedAt
+            };
+          });
+
+          const deletedCommentsRows = sqlite.prepare(
+            'SELECT id FROM deleted_comments WHERE user_id = ?'
+          ).all(userId);
 
           const settingsRow = sqlite.prepare(
             `SELECT open_tabs AS openTabs, active_page_id AS activePageId, theme, updated_at AS updatedAt
@@ -101,6 +130,8 @@ export default async function handler(req, res) {
             serverTimestamp: Date.now(),
             pages: parsedPages,
             trash: parsedTrash,
+            comments: parsedComments,
+            deletedCommentIds: deletedCommentsRows.map((r) => r.id),
             workspaceSettings: parsedSettings
           });
         } catch (err) {
@@ -116,7 +147,7 @@ export default async function handler(req, res) {
         if (!sanitized.ok) {
           return res.status(400).json({ success: false, error: sanitized.error });
         }
-        const { user, pages, trash, workspaceSettings } = sanitized.payload;
+        const { user, pages, trash, comments = [], deletedCommentIds = [], workspaceSettings } = sanitized.payload;
         const userId = sessionUserId;
 
         if (!userId || userId === 'guest') {
@@ -158,10 +189,10 @@ export default async function handler(req, res) {
             const insertPage = sqlite.prepare(
               `INSERT INTO pages (
                  id, user_id, title, icon, cover, parent_id,
-                 is_favorite, is_locked, full_width, font_family,
+                 is_favorite, is_locked, is_archived, full_width, font_family,
                  blocks, version, created_at, updated_at, is_deleted
                )
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
                ON CONFLICT(id) DO UPDATE SET
                  title = excluded.title,
                  icon = excluded.icon,
@@ -169,6 +200,7 @@ export default async function handler(req, res) {
                  parent_id = excluded.parent_id,
                  is_favorite = excluded.is_favorite,
                  is_locked = excluded.is_locked,
+                 is_archived = excluded.is_archived,
                  full_width = excluded.full_width,
                  font_family = excluded.font_family,
                  blocks = excluded.blocks,
@@ -189,6 +221,7 @@ export default async function handler(req, res) {
                 page.parentId || null,
                 page.isFavorite ? 1 : 0,
                 page.isLocked ? 1 : 0,
+                page.isArchived ? 1 : 0,
                 page.fullWidth ? 1 : 0,
                 page.fontFamily || 'sans',
                 JSON.stringify(page.blocks || []),
@@ -226,6 +259,40 @@ export default async function handler(req, res) {
                 JSON.stringify(t.blocks || []),
                 t.deletedAt || now
               );
+            }
+
+            const insertComment = sqlite.prepare(
+              `INSERT INTO comments (id, user_id, page_id, payload, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET
+                 page_id = excluded.page_id,
+                 payload = excluded.payload,
+                 updated_at = excluded.updated_at`
+            );
+
+            for (const comment of comments) {
+              if (!comment || !comment.id) continue;
+              insertComment.run(
+                comment.id,
+                userId,
+                comment.pageId,
+                JSON.stringify(comment),
+                comment.createdAt || now,
+                now
+              );
+            }
+
+            // Tombstones remove the comments that were deleted elsewhere
+            const markDeletedComment = sqlite.prepare(
+              `INSERT INTO deleted_comments (id, user_id, deleted_at)
+               VALUES (?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET deleted_at = excluded.deleted_at`
+            );
+
+            for (const deletedId of deletedCommentIds) {
+              if (!deletedId) continue;
+              sqlite.prepare('DELETE FROM comments WHERE id = ? AND user_id = ?').run(deletedId, userId);
+              markDeletedComment.run(deletedId, userId, now);
             }
 
             if (workspaceSettings) {
@@ -293,7 +360,7 @@ export default async function handler(req, res) {
       // Query active pages
       const pagesRes = await client.query(
         `SELECT id, user_id AS "userId", title, icon, cover, parent_id AS "parentId",
-                is_favorite AS "isFavorite", is_locked AS "isLocked",
+                is_favorite AS "isFavorite", is_locked AS "isLocked", is_archived AS "isArchived",
                 full_width AS "fullWidth", font_family AS "fontFamily",
                 blocks, version, created_at AS "createdAt", updated_at AS "updatedAt"
          FROM pages
@@ -311,6 +378,21 @@ export default async function handler(req, res) {
         [userId]
       );
 
+      // Query comments
+      const commentsRes = await client.query(
+        `SELECT id, user_id AS "userId", page_id AS "pageId", payload,
+                created_at AS "createdAt", updated_at AS "updatedAt"
+         FROM comments
+         WHERE user_id = $1`,
+        [userId]
+      );
+
+      // Query the tombstones of the deleted comments
+      const deletedCommentsRes = await client.query(
+        'SELECT id FROM deleted_comments WHERE user_id = $1',
+        [userId]
+      );
+
       // Query workspace settings
       const settingsRes = await client.query(
         `SELECT open_tabs AS "openTabs", active_page_id AS "activePageId", theme, updated_at AS "updatedAt"
@@ -322,6 +404,11 @@ export default async function handler(req, res) {
       let effectiveUserId = userId;
       let finalPages = pagesRes.rows || [];
       let finalTrash = trashRes.rows || [];
+      let finalComments = (commentsRes.rows || []).map((c) => ({
+        ...(typeof c.payload === 'string' ? JSON.parse(c.payload || '{}') : c.payload || {}),
+        id: c.id,
+        pageId: c.pageId
+      }));
       let finalSettings = settingsRes.rows[0] || null;
 
       // Notion REA Email Anchor: resolve the canonical account id from the
@@ -338,7 +425,7 @@ export default async function handler(req, res) {
             effectiveUserId = altUserRes.rows[0].id;
             const altPagesRes = await client.query(
               `SELECT id, user_id AS "userId", title, icon, cover, parent_id AS "parentId",
-                      is_favorite AS "isFavorite", is_locked AS "isLocked",
+                      is_favorite AS "isFavorite", is_locked AS "isLocked", is_archived AS "isArchived",
                       full_width AS "fullWidth", font_family AS "fontFamily",
                       blocks, version, created_at AS "createdAt", updated_at AS "updatedAt"
                FROM pages
@@ -377,6 +464,8 @@ export default async function handler(req, res) {
         resolvedUserId: effectiveUserId,
         pages: finalPages,
         trash: finalTrash,
+        comments: finalComments,
+        deletedCommentIds: (deletedCommentsRes.rows || []).map((r) => r.id),
         workspaceSettings: finalSettings
       });
     }
@@ -388,7 +477,7 @@ export default async function handler(req, res) {
       if (!sanitized.ok) {
         return res.status(400).json({ success: false, error: sanitized.error });
       }
-      const { user, pages, trash, workspaceSettings } = sanitized.payload;
+      const { user, pages, trash, comments = [], deletedCommentIds = [], workspaceSettings } = sanitized.payload;
       const userId = sessionUserId;
 
       if (!userId || userId === 'guest') {
@@ -454,10 +543,10 @@ export default async function handler(req, res) {
         await client.query(
           `INSERT INTO pages (
              id, user_id, title, icon, cover, parent_id,
-             is_favorite, is_locked, full_width, font_family,
+             is_favorite, is_locked, is_archived, full_width, font_family,
              blocks, version, created_at, updated_at, is_deleted
            )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, FALSE)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, FALSE)
            ON CONFLICT (id) DO UPDATE SET
              title = EXCLUDED.title,
              icon = EXCLUDED.icon,
@@ -465,6 +554,7 @@ export default async function handler(req, res) {
              parent_id = EXCLUDED.parent_id,
              is_favorite = EXCLUDED.is_favorite,
              is_locked = EXCLUDED.is_locked,
+             is_archived = EXCLUDED.is_archived,
              full_width = EXCLUDED.full_width,
              font_family = EXCLUDED.font_family,
              blocks = EXCLUDED.blocks,
@@ -480,6 +570,7 @@ export default async function handler(req, res) {
             page.parentId || null,
             Boolean(page.isFavorite),
             Boolean(page.isLocked),
+            Boolean(page.isArchived),
             Boolean(page.fullWidth),
             page.fontFamily || 'sans',
             JSON.stringify(page.blocks || []),
@@ -521,7 +612,43 @@ export default async function handler(req, res) {
         );
       }
 
-      // 5. Upsert Workspace Settings
+      // 5. Upsert Comments
+      for (const comment of comments) {
+        if (!comment || !comment.id) continue;
+        await client.query(
+          `INSERT INTO comments (id, user_id, page_id, payload, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (id) DO UPDATE SET
+             page_id = EXCLUDED.page_id,
+             payload = EXCLUDED.payload,
+             updated_at = EXCLUDED.updated_at`,
+          [
+            comment.id,
+            targetUserId,
+            comment.pageId,
+            JSON.stringify(comment),
+            comment.createdAt || now,
+            now
+          ]
+        );
+      }
+
+      // Tombstones remove the comments that were deleted elsewhere
+      for (const deletedId of deletedCommentIds) {
+        if (!deletedId) continue;
+        await client.query(
+          'DELETE FROM comments WHERE id = $1 AND user_id = $2',
+          [deletedId, targetUserId]
+        );
+        await client.query(
+          `INSERT INTO deleted_comments (id, user_id, deleted_at)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (id) DO UPDATE SET deleted_at = EXCLUDED.deleted_at`,
+          [deletedId, targetUserId, now]
+        );
+      }
+
+      // 6. Upsert Workspace Settings
       if (workspaceSettings) {
         await client.query(
           `INSERT INTO workspace_settings (user_id, open_tabs, active_page_id, theme, updated_at)

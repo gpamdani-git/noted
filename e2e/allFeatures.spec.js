@@ -216,4 +216,50 @@ test.describe('Comprehensive E2E QA Test Suite: Noted Full Application Scenarios
     const activeClass = await page.evaluate(() => document.activeElement?.className || '');
     expect(activeClass).toContain('block-rich-text');
   });
+
+  test('Scenario 9: Archive a page and restore it from the archive', async ({ page }) => {
+    // Open the page options menu
+    const optionsBtn = page.locator('#nav-options-btn').first();
+    await expect(optionsBtn).toBeVisible();
+    await optionsBtn.click();
+
+    const archiveRow = page.locator('.notion-menu-row:has-text("Archive page")').first();
+    await expect(archiveRow).toBeVisible();
+    await archiveRow.click();
+
+    // The archived page leaves the sidebar
+    const archiveEntry = page.locator('.utility-nav-link:has-text("Archive")').first();
+    await expect(archiveEntry).toBeVisible();
+    await expect(archiveEntry.locator('.trash-badge')).toHaveText('1');
+
+    // Open the archive and restore the page
+    await archiveEntry.click();
+    const modal = page.locator('.trash-modal-card');
+    await expect(modal).toBeVisible();
+    await expect(modal.locator('.trash-item-row')).toHaveCount(1);
+
+    await modal.locator('button[title="Restore page"]').first().click();
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toBeVisible();
+  });
+
+  test('Scenario 10: The command palette runs commands, not only searches', async ({ page }) => {
+    await page.keyboard.press('ControlOrMeta+K');
+
+    const palette = page.locator('.command-palette-card');
+    await expect(palette).toBeVisible();
+
+    // The actions are listed next to the pages
+    await expect(palette.locator('.command-section-header:has-text("Actions")')).toBeVisible();
+    await expect(palette.locator('.command-section-header:has-text("Pages")')).toBeVisible();
+
+    // Filter down to a single command and run it
+    await palette.locator('.command-search-input').fill('Open the settings');
+    const settingsAction = palette.locator('.command-result-item:has-text("Open the settings")').first();
+    await expect(settingsAction).toBeVisible();
+    await settingsAction.click();
+
+    // The settings modal is opened by the command
+    await expect(page.locator('.settings-modal-card, .modal-card:has-text("Settings")').first()).toBeVisible();
+  });
 });

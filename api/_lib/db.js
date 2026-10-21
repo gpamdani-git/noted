@@ -123,6 +123,19 @@ export const getSqliteDb = async () => {
         blocks TEXT,
         deleted_at INTEGER
       );
+      CREATE TABLE IF NOT EXISTS comments (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        page_id TEXT,
+        payload TEXT,
+        created_at INTEGER,
+        updated_at INTEGER
+      );
+      CREATE TABLE IF NOT EXISTS deleted_comments (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        deleted_at INTEGER
+      );
       CREATE TABLE IF NOT EXISTS workspace_settings (
         user_id TEXT PRIMARY KEY,
         open_tabs TEXT,
@@ -131,7 +144,18 @@ export const getSqliteDb = async () => {
         updated_at INTEGER
       );
       CREATE INDEX IF NOT EXISTS idx_pages_user_id ON pages(user_id);
+      CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
     `);
+
+    // Migrations for databases that were created before these columns existed
+    const migrate = (statement) => {
+      try {
+        sqlite.exec(statement);
+      } catch {
+        // The column already exists
+      }
+    };
+    migrate('ALTER TABLE pages ADD COLUMN is_archived INTEGER DEFAULT 0');
 
     const db = drizzle(sqlite, { schema: sqliteSchema });
     sqliteDbInstance = { db, sqlite, schema: sqliteSchema, path: dbPath };
@@ -188,6 +212,23 @@ export const ensureSchema = async (client) => {
       deleted_at BIGINT
     );
 
+    -- Comments Table (Block and Page Discussions)
+    CREATE TABLE IF NOT EXISTS comments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+      page_id TEXT,
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at BIGINT,
+      updated_at BIGINT
+    );
+
+    -- Deleted Comments (tombstones so a deletion is not resurrected)
+    CREATE TABLE IF NOT EXISTS deleted_comments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+      deleted_at BIGINT
+    );
+
     -- Workspace Settings (Active Tab, Navigation State)
     CREATE TABLE IF NOT EXISTS workspace_settings (
       user_id TEXT PRIMARY KEY,
@@ -200,7 +241,11 @@ export const ensureSchema = async (client) => {
     -- Index for rapid per-user queries
     CREATE INDEX IF NOT EXISTS idx_pages_user_id ON pages(user_id);
     CREATE INDEX IF NOT EXISTS idx_trash_user_id ON trash(user_id);
+    CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
   `;
 
   await client.query(ddl);
+
+  // Migrations for databases that were created before these columns existed
+  await client.query('ALTER TABLE pages ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE');
 };

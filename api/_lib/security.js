@@ -201,6 +201,7 @@ export const sanitizeSyncPayload = (body) => {
       parentId: isSafeIdentifier(page.parentId) ? page.parentId : null,
       isFavorite: Boolean(page.isFavorite),
       isLocked: Boolean(page.isLocked),
+      isArchived: Boolean(page.isArchived),
       fullWidth: Boolean(page.fullWidth),
       fontFamily: String(page.fontFamily || 'sans').slice(0, 32),
       blocks,
@@ -245,6 +246,53 @@ export const sanitizeSyncPayload = (body) => {
       }
     : null;
 
+  // Comments are stored as a whole document, so the payload is kept as JSON
+  // with the fields the client needs.
+  const cleanComments = [];
+  const rawComments = Array.isArray(body.comments) ? body.comments : [];
+  for (const comment of rawComments.slice(0, 5000)) {
+    if (!comment || !isSafeIdentifier(comment.id)) continue;
+    if (!isSafeIdentifier(comment.pageId)) continue;
+
+    const author = comment.author && typeof comment.author === 'object'
+      ? {
+          id: String(comment.author.id || 'user').slice(0, 128),
+          name: String(comment.author.name || 'User').slice(0, 128),
+          email: isValidEmail(comment.author.email) ? comment.author.email : null,
+          avatar: comment.author.avatar ? String(comment.author.avatar).slice(0, 8) : 'U',
+          color: /^#[0-9a-fA-F]{3,8}$/.test(String(comment.author.color || '')) ? comment.author.color : '#2383e2'
+        }
+      : null;
+
+    const replies = Array.isArray(comment.replies)
+      ? comment.replies.slice(0, 200).map((reply) => ({
+          id: String(reply?.id || `reply_${Math.random().toString(36).slice(2, 8)}`).slice(0, 128),
+          author: reply?.author && typeof reply.author === 'object'
+            ? {
+                id: String(reply.author.id || 'user').slice(0, 128),
+                name: String(reply.author.name || 'User').slice(0, 128),
+                email: isValidEmail(reply.author.email) ? reply.author.email : null,
+                avatar: reply.author.avatar ? String(reply.author.avatar).slice(0, 8) : 'U',
+                color: /^#[0-9a-fA-F]{3,8}$/.test(String(reply.author.color || '')) ? reply.author.color : '#2383e2'
+              }
+            : null,
+          text: String(reply?.text || '').slice(0, 8000),
+          createdAt: Number(reply?.createdAt) || Date.now()
+        }))
+      : [];
+
+    cleanComments.push({
+      id: String(comment.id).slice(0, 128),
+      pageId: String(comment.pageId).slice(0, 128),
+      blockId: isSafeIdentifier(comment.blockId) ? comment.blockId : null,
+      author,
+      text: String(comment.text || '').slice(0, 8000),
+      createdAt: Number(comment.createdAt) || Date.now(),
+      resolved: Boolean(comment.resolved),
+      replies
+    });
+  }
+
   const user = body.user && typeof body.user === 'object'
     ? {
         name: String(body.user.name || 'User').slice(0, 128),
@@ -255,5 +303,20 @@ export const sanitizeSyncPayload = (body) => {
       }
     : null;
 
-  return { ok: true, payload: { pages: cleanPages, trash: cleanTrash, workspaceSettings: settings, user } };
+  // Tombstones of the comments that were deleted on another device
+  const cleanDeletedCommentIds = Array.isArray(body.deletedCommentIds)
+    ? body.deletedCommentIds.filter((id) => isSafeIdentifier(id)).slice(0, 2000)
+    : [];
+
+  return {
+    ok: true,
+    payload: {
+      pages: cleanPages,
+      trash: cleanTrash,
+      comments: cleanComments,
+      deletedCommentIds: cleanDeletedCommentIds,
+      workspaceSettings: settings,
+      user
+    }
+  };
 };

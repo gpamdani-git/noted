@@ -4,6 +4,7 @@ import {
   Link as LinkIcon,
   Copy,
   Trash2,
+  Archive as ArchiveIcon,
   Layout,
   Lock,
   FileDown,
@@ -24,6 +25,7 @@ export const NotionOptionsMenu = ({
   onUpdatePage,
   onDuplicatePage,
   onDeletePage,
+  onArchivePage,
   onCopyLink,
   onOpenHistory,
   onOpenAnalytics,
@@ -101,6 +103,20 @@ export const NotionOptionsMenu = ({
           return;
         }
         if (onDeletePage && page) onDeletePage(page.id);
+        onClose();
+      }
+    },
+    {
+      id: 'archive',
+      label: 'Archive page',
+      icon: ArchiveIcon,
+      section: 'actions',
+      onClick: () => {
+        if (page?.isLocked) {
+          alert('Halaman ini sedang dikunci. Silakan buka kunci halaman terlebih dahulu.');
+          return;
+        }
+        if (onArchivePage && page) onArchivePage(page.id);
         onClose();
       }
     },
@@ -300,6 +316,23 @@ export const NotionOptionsMenu = ({
                 <div className="notion-menu-row-left">
                   <Trash2 size={15} className="notion-menu-item-icon" />
                   <span className="notion-menu-item-label">Move to Trash</span>
+                </div>
+              </div>
+
+              <div
+                className="notion-menu-row"
+                onClick={() => {
+                  if (page?.isLocked) {
+                    alert('Halaman ini sedang dikunci. Silakan buka kunci halaman terlebih dahulu.');
+                    return;
+                  }
+                  if (onArchivePage && page) onArchivePage(page.id);
+                  onClose();
+                }}
+              >
+                <div className="notion-menu-row-left">
+                  <ArchiveIcon size={15} className="notion-menu-item-icon" />
+                  <span className="notion-menu-item-label">Archive page</span>
                 </div>
               </div>
             </div>

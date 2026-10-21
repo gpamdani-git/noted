@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Trash2, RotateCcw, AlertCircle } from 'lucide-react';
 import './Modals.css';
 
@@ -9,6 +9,17 @@ export const TrashModal = ({
   onEmptyTrash,
   onClose
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="trash-modal-card animate-popover" onClick={(e) => e.stopPropagation()}>

@@ -37,6 +37,7 @@ export const TopNav = ({
   onUpdatePage,
   onDuplicatePage,
   onDeletePage,
+  onArchivePage,
   onOpenHistory,
   onOpenAnalytics,
   onOpenImportModal,
@@ -358,6 +359,7 @@ export const TopNav = ({
               onUpdatePage={onUpdatePage}
               onDuplicatePage={onDuplicatePage}
               onDeletePage={onDeletePage}
+              onArchivePage={onArchivePage}
               onCopyLink={handleCopyPageLink}
               onOpenHistory={onOpenHistory}
               onOpenAnalytics={onOpenAnalytics}
