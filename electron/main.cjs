@@ -307,6 +307,32 @@ ipcMain.handle('cloud:get-config', async () => {
   };
 });
 
+// The renderer of the packaged app runs from a file:// origin, which the
+// server refuses because the Origin header is "null". The status is therefore
+// requested from the main process, where no CORS applies.
+ipcMain.handle('cloud:check-server', async (_, { appUrl } = {}) => {
+  const target = String(appUrl || '').replace(/\/$/, '');
+  if (!/^https?:\/\//i.test(target)) {
+    return { connected: false, configured: false, message: 'No server url is configured' };
+  }
+  const startedAt = Date.now();
+  try {
+    const res = await fetch(`${target}/api/status`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(8000)
+    });
+    const data = await res.json();
+    return { ...data, latencyMs: data.latencyMs ?? Date.now() - startedAt };
+  } catch (err) {
+    return {
+      connected: false,
+      configured: false,
+      error: err.message,
+      message: `The Noted server could not be reached: ${err.message}`
+    };
+  }
+});
+
 ipcMain.handle('cloud:set-config', async (_, { databaseUrl } = {}) => {
   try {
     if (typeof databaseUrl === 'string') {

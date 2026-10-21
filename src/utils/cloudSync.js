@@ -146,11 +146,23 @@ export const startLiveSyncPulse = ({ getUser, onRemoteUpdate, intervalMs = 10000
 export const checkCloudDatabaseStatus = async () => {
   if (typeof window === 'undefined') return { connected: false, configured: false };
 
-  // 1. In Electron desktop app, use native IPC bridge to check Cloud PostgreSQL directly
+  // 1. In Electron desktop app, use native IPC bridge to check Cloud PostgreSQL directly.
+  //    When no database url is configured on this device the check falls through
+  //    to the server, because the sync itself runs through the server.
   if (window.electronAPI?.checkCloudStatus) {
     try {
       const res = await window.electronAPI.checkCloudStatus();
-      if (res && res.connected !== undefined) return res;
+      if (res?.connected) return res;
+      if (res?.configured) {
+        // The direct connection was tried and failed, so the result is real
+        return res;
+      }
+      // No database url on this device: the sync itself runs through the
+      // Noted server, so the status is asked there instead.
+      if (window.electronAPI.checkServerStatus && getApiBaseUrl()) {
+        const serverRes = await window.electronAPI.checkServerStatus(getApiBaseUrl());
+        if (serverRes) return serverRes;
+      }
     } catch (err) {
       console.warn('[Desktop IPC] checkCloudStatus warning:', err);
     }
@@ -175,8 +187,8 @@ export const checkCloudDatabaseStatus = async () => {
     }
   }
 
-  // 3. Native platform: ask the configured API host for its status
-  if (isMobileNativePlatform() && getApiBaseUrl()) {
+  // 3. Native platform and the desktop app: ask the configured API host
+  if (getApiBaseUrl()) {
     try {
       const res = await fetch(`${getApiBaseUrl()}/api/status`, {
         headers: { 'Accept': 'application/json' },

@@ -38,6 +38,7 @@ const electronAPI = {
   syncPull: (payload) => ipcRenderer.invoke('cloud:sync-pull', payload),
   syncPush: (payload) => ipcRenderer.invoke('cloud:sync-push', payload),
   getCloudConfig: () => ipcRenderer.invoke('cloud:get-config'),
+  checkServerStatus: (appUrl) => ipcRenderer.invoke('cloud:check-server', { appUrl }),
   setCloudConfig: (config) => ipcRenderer.invoke('cloud:set-config', config),
 
   // Native AI & LLM Bridge (bypasses browser CORS for Ollama & LM Studio)

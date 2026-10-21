@@ -146,10 +146,51 @@ export const SettingsModal = ({
   const [showSqlSchema, setShowSqlSchema] = useState(false);
   const [copiedSqlSchema, setCopiedSqlSchema] = useState(false);
 
+  // Desktop only: the direct database connection of this device
+  const isDesktopApp = typeof window !== 'undefined' && Boolean(window.electronAPI?.isElectron);
+  const [desktopConfig, setDesktopConfig] = useState(null);
+  const [desktopDbUrl, setDesktopDbUrl] = useState('');
+  const [desktopFeedback, setDesktopFeedback] = useState(null);
+  const [savingDesktopConfig, setSavingDesktopConfig] = useState(false);
+
   useEffect(() => {
     checkStoragePersistence().then((info) => setStorageInfo(info));
     checkCloudDatabaseStatus().then((status) => setCloudStatus(status));
   }, []);
+
+  useEffect(() => {
+    if (!isDesktopApp || !window.electronAPI?.getCloudConfig) return;
+    window.electronAPI
+      .getCloudConfig()
+      .then((info) => setDesktopConfig(info))
+      .catch(() => setDesktopConfig(null));
+  }, [isDesktopApp]);
+
+  const handleSaveDesktopConfig = async () => {
+    if (!window.electronAPI?.setCloudConfig) return;
+    setSavingDesktopConfig(true);
+    setDesktopFeedback(null);
+    try {
+      const result = await window.electronAPI.setCloudConfig({ databaseUrl: desktopDbUrl });
+      if (result?.success) {
+        setDesktopFeedback({
+          type: 'success',
+          message: 'Koneksi database langsung disimpan di perangkat ini.'
+        });
+        setDesktopDbUrl('');
+        const info = await window.electronAPI.getCloudConfig();
+        setDesktopConfig(info);
+        const status = await checkCloudDatabaseStatus();
+        setCloudStatus(status);
+      } else {
+        setDesktopFeedback({ type: 'error', message: result?.error || 'Gagal menyimpan konfigurasi.' });
+      }
+    } catch (err) {
+      setDesktopFeedback({ type: 'error', message: err.message || 'Gagal menyimpan konfigurasi.' });
+    } finally {
+      setSavingDesktopConfig(false);
+    }
+  };
 
   const handleCheckCloudStatus = async () => {
     setIsCheckingCloud(true);
@@ -662,6 +703,70 @@ export const SettingsModal = ({
                     <Info size={13} className="text-blue-500" />
                   )}
                   <span>{cloudFeedback.message}</span>
+                </div>
+              )}
+
+              {isDesktopApp && (
+                <div className="cloud-desktop-config animate-fade-in">
+                  <div className="cloud-desktop-config-header">
+                    <div className="setting-info">
+                      <div className="setting-label">Koneksi database langsung (opsional)</div>
+                      <div className="setting-desc">
+                        Sinkronisasi berjalan lewat server Noted dan tidak butuh ini. Isi hanya jika
+                        Anda ingin app desktop terhubung ke PostgreSQL secara langsung.
+                      </div>
+                    </div>
+                    <span className={`cloud-status-badge ${desktopConfig?.configured ? 'badge-connected' : 'badge-standby'}`}>
+                      {desktopConfig?.configured ? (
+                        <>
+                          <CheckCircle2 size={11} />
+                          <span>Terisi</span>
+                        </>
+                      ) : (
+                        <>
+                          <CloudOff size={11} />
+                          <span>Belum diisi</span>
+                        </>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="cloud-desktop-config-row">
+                    <input
+                      type="password"
+                      className="settings-input"
+                      placeholder="postgresql://user:password@host/db?sslmode=require"
+                      value={desktopDbUrl}
+                      onChange={(e) => setDesktopDbUrl(e.target.value)}
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <button
+                      className="storage-btn-subtle"
+                      onClick={handleSaveDesktopConfig}
+                      disabled={savingDesktopConfig || !desktopDbUrl.trim()}
+                    >
+                      {savingDesktopConfig ? <RefreshCw size={12} className="spin-icon" /> : <Check size={12} />}
+                      <span>Simpan</span>
+                    </button>
+                  </div>
+
+                  {desktopConfig?.configPath && (
+                    <div className="text-muted-xs">
+                      Disimpan di <code>{desktopConfig.configPath}</code> dengan izin 0600.
+                    </div>
+                  )}
+
+                  {desktopFeedback && (
+                    <div className={`cloud-feedback-banner animate-fade-in ${desktopFeedback.type}`}>
+                      {desktopFeedback.type === 'success' ? (
+                        <CheckCircle2 size={13} className="text-green-500" />
+                      ) : (
+                        <Info size={13} className="text-blue-500" />
+                      )}
+                      <span>{desktopFeedback.message}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
