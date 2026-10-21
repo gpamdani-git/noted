@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { SLASH_COMMANDS } from '../../constants/initialData';
 import {
   Type,
   Heading1,
@@ -275,6 +274,185 @@ const EXTENDED_COMMANDS = [
       caption: 'Horizontal divider line'
     },
     keywords: ['divider', 'line', 'hr', 'separator', 'border']
+  },
+  {
+    id: 'board',
+    type: 'board',
+    title: 'Board',
+    description: 'Group the rows by a column and move them as cards.',
+    category: 'advanced',
+    icon: 'Kanban',
+    shortcut: '',
+    preview: {
+      title: 'Sprint board',
+      bullets: ['Design system — In progress', 'Sync engine — Done'],
+      caption: 'Kanban board grouped by a column'
+    },
+    keywords: ['board', 'kanban', 'card', 'group', 'sprint']
+  },
+  {
+    id: 'gallery',
+    type: 'gallery',
+    title: 'Gallery',
+    description: 'Show the rows as a grid of cards.',
+    category: 'advanced',
+    icon: 'LayoutGrid',
+    shortcut: '',
+    preview: {
+      title: 'Gallery view',
+      bullets: ['One card per row', 'Cover preview on top'],
+      caption: 'Card grid layout'
+    },
+    keywords: ['gallery', 'grid', 'cards', 'cover']
+  },
+  {
+    id: 'columns2',
+    type: 'column_list_2',
+    title: '2 columns',
+    description: 'Place the blocks side by side in two columns.',
+    category: 'advanced',
+    icon: 'Columns2',
+    shortcut: '',
+    preview: {
+      title: 'Two columns',
+      bullets: ['Left column', 'Right column'],
+      caption: 'Side by side columns'
+    },
+    keywords: ['column', 'columns', 'side', 'by side', 'layout']
+  },
+  {
+    id: 'columns3',
+    type: 'column_list_3',
+    title: '3 columns',
+    description: 'Place the blocks side by side in three columns.',
+    category: 'advanced',
+    icon: 'Columns3',
+    shortcut: '',
+    preview: {
+      title: 'Three columns',
+      bullets: ['First', 'Second', 'Third'],
+      caption: 'Three equal columns'
+    },
+    keywords: ['column', 'columns', 'layout', 'three']
+  },
+  {
+    id: 'link_to_page',
+    type: 'link_to_page',
+    title: 'Link to page',
+    description: 'Reference another page in this workspace.',
+    category: 'advanced',
+    icon: 'Link2',
+    shortcut: '[[',
+    preview: {
+      title: 'Link to a page',
+      sampleText: 'Pick a page from the workspace to insert a link.',
+      caption: 'Reference to another page'
+    },
+    keywords: ['link', 'page', 'reference', 'link to page']
+  },
+  {
+    id: 'table_of_contents',
+    type: 'table_of_contents',
+    title: 'Table of contents',
+    description: 'List the headings of this page.',
+    category: 'advanced',
+    icon: 'List',
+    shortcut: '/toc',
+    preview: {
+      title: 'Table of contents',
+      bullets: ['Overview', 'Architecture', 'Roadmap'],
+      caption: 'Outline of the page headings'
+    },
+    keywords: ['toc', 'table of contents', 'outline', 'index']
+  },
+  {
+    id: 'breadcrumb',
+    type: 'breadcrumb',
+    title: 'Breadcrumb',
+    description: 'Show the position of this page in the hierarchy.',
+    category: 'advanced',
+    icon: 'Navigation',
+    shortcut: '/breadcrumb',
+    preview: {
+      title: 'Workspace / Section / Page',
+      caption: 'Position in the page tree'
+    },
+    keywords: ['breadcrumb', 'navigation', 'path', 'hierarchy']
+  },
+  {
+    id: 'math',
+    type: 'math',
+    title: 'Equation',
+    description: 'Write a formula that is rendered with KaTeX.',
+    category: 'advanced',
+    icon: 'Sigma',
+    shortcut: '/math',
+    preview: {
+      title: 'E = mc²',
+      sampleText: 'Block formulas are rendered with KaTeX.',
+      caption: 'Rendered equation'
+    },
+    keywords: ['math', 'equation', 'formula', 'katex', 'latex']
+  },
+  {
+    id: 'image',
+    type: 'image',
+    title: 'Image',
+    description: 'Add a picture to the page.',
+    category: 'media',
+    icon: 'Image',
+    shortcut: '',
+    preview: {
+      title: 'Image block',
+      sampleText: 'Pick a file to embed it into the page.',
+      caption: 'Embedded picture'
+    },
+    keywords: ['image', 'picture', 'photo', 'media', 'upload']
+  },
+  {
+    id: 'bookmark',
+    type: 'bookmark',
+    title: 'Bookmark',
+    description: 'Save a link with a preview of the page.',
+    category: 'media',
+    icon: 'Bookmark',
+    shortcut: '/bookmark',
+    preview: {
+      title: 'Bookmark',
+      sampleText: 'Paste a URL to preview the linked page.',
+      caption: 'Link preview'
+    },
+    keywords: ['bookmark', 'link', 'url', 'preview', 'embed']
+  },
+  {
+    id: 'video',
+    type: 'video',
+    title: 'Video',
+    description: 'Embed a video from a URL.',
+    category: 'media',
+    icon: 'Video',
+    shortcut: '/video',
+    preview: {
+      title: 'Video',
+      sampleText: 'Paste a video URL to embed the player.',
+      caption: 'Embedded video'
+    },
+    keywords: ['video', 'embed', 'youtube', 'player', 'media']
+  },
+  {
+    id: 'comment',
+    type: 'comment',
+    title: 'Comment',
+    description: 'Start a discussion on this block.',
+    category: 'media',
+    icon: 'MessageSquare',
+    shortcut: '/comment',
+    preview: {
+      title: 'Discussion',
+      sampleText: 'Comments are attached to the block and listed in the drawer.',
+      caption: 'Block discussion'
+    },
+    keywords: ['comment', 'discussion', 'note', 'feedback']
   }
 ];
 
@@ -337,7 +515,9 @@ export const SlashMenu = ({ filterText, onSelect, onClose }) => {
 
   // Group items by category if not filtering, otherwise show flat list
   const suggestedCommands = filteredCommands.filter((c) => c.category === 'suggested');
-  const basicCommands = filteredCommands.filter((c) => c.category !== 'suggested');
+  const basicCommands = filteredCommands.filter((c) => c.category === 'basic');
+  const advancedCommands = filteredCommands.filter((c) => c.category === 'advanced');
+  const mediaCommands = filteredCommands.filter((c) => c.category === 'media');
 
   const renderCommandItem = (cmd) => {
     const globalIdx = filteredCommands.findIndex((c) => c.id === cmd.id);
@@ -387,6 +567,18 @@ export const SlashMenu = ({ filterText, onSelect, onClose }) => {
                 <div className="slash-menu-section">
                   <div className="slash-menu-section-header">Basic blocks</div>
                   {basicCommands.map(renderCommandItem)}
+                </div>
+              )}
+              {advancedCommands.length > 0 && (
+                <div className="slash-menu-section">
+                  <div className="slash-menu-section-header">Advanced</div>
+                  {advancedCommands.map(renderCommandItem)}
+                </div>
+              )}
+              {mediaCommands.length > 0 && (
+                <div className="slash-menu-section">
+                  <div className="slash-menu-section-header">Media and embeds</div>
+                  {mediaCommands.map(renderCommandItem)}
                 </div>
               )}
             </>

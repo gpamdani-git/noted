@@ -329,9 +329,13 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
     new Set(rows.map((r) => (r[groupByIndex] || 'Unassigned').trim()))
   ).filter(Boolean);
 
-  const kanbanColumns = existingGroups.length > 0
-    ? existingGroups
-    : ['To Do', 'In Progress', 'Completed'];
+  // Groups that were added by hand and have no rows yet
+  const customGroups = Array.isArray(block.groups) ? block.groups : [];
+
+  const kanbanColumns = Array.from(new Set([
+    ...(existingGroups.length > 0 ? existingGroups : ['To Do', 'In Progress', 'Completed']),
+    ...customGroups
+  ]));
 
   const handleMoveCard = (rIdx, targetColumn) => {
     if (isLocked) return;
@@ -349,7 +353,6 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   const handleAddCardToColumn = (columnName) => {
     if (isLocked) return;
     const initial = headers.map(() => '');
-    initial[0] = `New Task ${rows.length + 1}`;
     initial[groupByIndex] = columnName;
     handleAddRow(initial);
   };
@@ -357,9 +360,10 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   const handleAddKanbanColumn = () => {
     if (isLocked) return;
     const newColName = prompt('Enter new column group name:');
-    if (newColName && newColName.trim()) {
-      handleAddCardToColumn(newColName.trim());
-    }
+    if (!newColName || !newColName.trim()) return;
+    const name = newColName.trim();
+    if (kanbanColumns.some((c) => c.toLowerCase() === name.toLowerCase())) return;
+    onUpdateBlock(block.id, { groups: [...customGroups, name] });
   };
 
   // --- Processing Pipeline: Search, Filter & Sort with Original Index Preservation ---

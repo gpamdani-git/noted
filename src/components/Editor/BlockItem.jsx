@@ -1316,13 +1316,9 @@ export const BlockItem = ({
         viewType: newType === 'table' ? 'table' : newType,
         groupByCol: 1,
         text: '',
-        headers: ['Task Name', 'Status', 'Priority', 'Assignee'],
-        rows: [
-          ['Project Architecture', 'In Progress', 'High', 'Dani'],
-          ['UI Kanban & Gallery View', 'Completed', 'Medium', 'Dani'],
-          ['Local Offline Storage', 'Completed', 'High', 'Platform'],
-          ['Desktop App Packaging', 'To Do', 'Medium', 'Team']
-        ]
+        headers: ['Name', 'Status', 'Priority'],
+        // An empty table, not a filled in sample: the rows belong to the user
+        rows: [['', '', '']]
       });
     } else if (newType === 'code') {
       onUpdateBlock(block.id, {
@@ -2223,7 +2219,7 @@ export const BlockItem = ({
           <MentionMenu
             filterText={mentionQuery}
             pages={allPages}
-            currentPageId={block.pageId}
+            currentPageId={currentPage?.id}
             onSelectPage={handleSelectMentionPage}
             onClose={() => setShowMentionMenu(false)}
           />
