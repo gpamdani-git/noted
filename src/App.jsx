@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { TopNav } from './components/TopNav/TopNav';
 import { TabBar } from './components/Navigation/TabBar';
@@ -6,6 +6,7 @@ import { Editor } from './components/Editor/Editor';
 import { CommandPaletteModal } from './components/Modals/CommandPaletteModal';
 import { SettingsModal } from './components/Modals/SettingsModal';
 import { TrashModal } from './components/Modals/TrashModal';
+import { ArchiveModal } from './components/Modals/ArchiveModal';
 import { ImportMarkdownModal } from './components/Modals/ImportMarkdownModal';
 import { VersionHistoryDrawer } from './components/Modals/VersionHistoryDrawer';
 import { PageAnalyticsModal } from './components/Modals/PageAnalyticsModal';
@@ -13,6 +14,7 @@ import { CommentsDrawer } from './components/Comments/CommentsDrawer';
 import { NotionLoginModal } from './components/Auth/NotionLoginModal';
 import { getAuthState, logout as authLogout, updateUserProfile, applyDesktopSession, switchAccount } from './utils/auth';
 import { getSessionToken } from './utils/session';
+import { getStoredComments, getDeletedCommentIds, applyRemoteComments } from './utils/comments';
 import { savePageSnapshot } from './utils/versionHistory';
 import {
   loadStoredPages,
@@ -65,6 +67,7 @@ export function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTrashOpen, setIsTrashOpen] = useState(false);
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -177,12 +180,23 @@ export function App() {
           if (remoteData && remoteData.pages && remoteData.pages.length > 0) {
             setPages(remoteData.pages);
             if (remoteData.trash) setTrashPages(remoteData.trash);
+            if (remoteData.comments) {
+              applyRemoteComments(remoteData.comments, remoteData.deletedCommentIds || []);
+            }
             if (remoteData.resolvedUserId && remoteData.resolvedUserId !== currentUser.id) {
               updateUserProfile({ id: remoteData.resolvedUserId });
             }
           } else {
             // Seed cloud database with local pages if cloud is empty
-            triggerCloudSync(currentUser, userPages, userTrash, { openTabs: userTabs, activePageId: initialTab, theme }, true);
+            triggerCloudSync(
+              currentUser,
+              userPages,
+              userTrash,
+              { openTabs: userTabs, activePageId: initialTab, theme },
+              getStoredComments(),
+              getDeletedCommentIds(),
+              true
+            );
           }
         });
       }
@@ -313,6 +327,9 @@ export function App() {
             }, 200);
 
             if (remoteData.trash) setTrashPages(remoteData.trash);
+            if (remoteData.comments) {
+              applyRemoteComments(remoteData.comments, remoteData.deletedCommentIds || []);
+            }
             broadcastLocalChange({ pages: remoteData.pages, trashPages: remoteData.trash });
             return remoteData.pages;
           }
@@ -332,7 +349,14 @@ export function App() {
     if (!isIncomingSyncRef.current) {
       broadcastLocalChange({ pages, trashPages, activePageId });
       if (currentUser?.isLoggedIn) {
-        triggerCloudSync(currentUser, pages, trashPages, { openTabs, activePageId, theme });
+        triggerCloudSync(
+          currentUser,
+          pages,
+          trashPages,
+          { openTabs, activePageId, theme },
+          getStoredComments(),
+          getDeletedCommentIds()
+        );
       }
     }
   }, [pages, currentUser]);
@@ -343,10 +367,37 @@ export function App() {
     if (!isIncomingSyncRef.current) {
       broadcastLocalChange({ pages, trashPages, activePageId });
       if (currentUser?.isLoggedIn) {
-        triggerCloudSync(currentUser, pages, trashPages, { openTabs, activePageId, theme });
+        triggerCloudSync(
+          currentUser,
+          pages,
+          trashPages,
+          { openTabs, activePageId, theme },
+          getStoredComments(),
+          getDeletedCommentIds()
+        );
       }
     }
   }, [trashPages, currentUser]);
+
+  // A comment change is pushed to the cloud as well, so the discussions
+  // follow the workspace to the other devices.
+  useEffect(() => {
+    const handleCommentsUpdated = () => {
+      if (isIncomingSyncRef.current) return;
+      if (!currentUser?.isLoggedIn) return;
+      triggerCloudSync(
+        currentUser,
+        pages,
+        trashPages,
+        { openTabs, activePageId, theme },
+        getStoredComments(),
+        getDeletedCommentIds()
+      );
+    };
+
+    window.addEventListener('noted_comments_updated', handleCommentsUpdated);
+    return () => window.removeEventListener('noted_comments_updated', handleCommentsUpdated);
+  }, [currentUser, pages, trashPages, openTabs, activePageId, theme]);
 
   // Persist open tabs whenever they change for the current user (Kategori G)
   useEffect(() => {
@@ -355,7 +406,15 @@ export function App() {
 
   const handleTriggerCloudSync = () => {
     if (currentUser?.isLoggedIn) {
-      triggerCloudSync(currentUser, pages, trashPages, { openTabs, activePageId, theme }, true);
+      triggerCloudSync(
+        currentUser,
+        pages,
+        trashPages,
+        { openTabs, activePageId, theme },
+        getStoredComments(),
+        getDeletedCommentIds(),
+        true
+      );
     }
   };
 
@@ -471,8 +530,11 @@ export function App() {
     handleDuplicatePage(tabId);
   };
 
-  const activePage = pages.find((p) => p.id === activePageId) || pages[0];
+  // Archived pages stay in the workspace but are hidden from the sidebar
+  const visiblePages = useMemo(() => pages.filter((p) => !p.isArchived), [pages]);
+  const archivedPages = useMemo(() => pages.filter((p) => p.isArchived), [pages]);
 
+  const activePage = visiblePages.find((p) => p.id === activePageId) || visiblePages[0];
   // Auto-record snapshot on active page load/switch (Kategori E)
   useEffect(() => {
     if (activePage && activePage.blocks && activePage.blocks.length > 0) {
@@ -779,6 +841,59 @@ export function App() {
     );
   };
 
+  // Archive operations
+  // An archived page keeps its content and stays in the workspace, it is only
+  // hidden from the sidebar until it is restored.
+  const handleArchivePage = (pageId) => {
+    const pageToArchive = pages.find((p) => p.id === pageId);
+    if (!pageToArchive) return;
+
+    if (pageToArchive.isLocked) {
+      alert('Halaman ini sedang dikunci (Read-Only). Buka kunci halaman terlebih dahulu sebelum mengarsipkan.');
+      return;
+    }
+
+    setPages((prev) =>
+      prev.map((p) =>
+        p.id === pageId ? { ...p, isArchived: true, updatedAt: Date.now() } : p
+      )
+    );
+
+    setOpenTabs((prevTabs) => {
+      const filtered = prevTabs.filter((id) => id !== pageId);
+      if (filtered.length === 0) {
+        const remaining = visiblePages.filter((p) => p.id !== pageId);
+        return remaining.length > 0 ? [remaining[0].id] : [];
+      }
+      return filtered;
+    });
+
+    if (activePageId === pageId) {
+      const remaining = visiblePages.filter((p) => p.id !== pageId);
+      setActivePageId(remaining.length > 0 ? remaining[0].id : null);
+    }
+  };
+
+  const handleRestoreArchivedPage = (pageId) => {
+    setPages((prev) =>
+      prev.map((p) =>
+        p.id === pageId ? { ...p, isArchived: false, updatedAt: Date.now() } : p
+      )
+    );
+  };
+
+  const handleArchivedPageToTrash = (pageId) => {
+    const page = pages.find((p) => p.id === pageId);
+    if (!page) return;
+    setPages((prev) => prev.filter((p) => p.id !== pageId));
+    setTrashPages((prev) => [page, ...prev]);
+  };
+
+  const handleArchiveActivePage = () => {
+    if (!activePageId) return;
+    handleArchivePage(activePageId);
+  };
+
   // Trash operations
   const handleRestorePage = (pageId) => {
     const pageToRestore = trashPages.find((p) => p.id === pageId);
@@ -979,15 +1094,135 @@ export function App() {
     }
   }, [activePage, activePageId]);
 
+  // Commands that the command palette can run. The palette is not only a
+  // search over the pages, it also exposes the actions of the app.
+  const paletteCommands = [
+    {
+      id: 'new-page',
+      title: 'New page',
+      section: 'Create',
+      icon: '📄',
+      keywords: ['create', 'add', 'new', 'page'],
+      run: () => handleCreatePage(null)
+    },
+    {
+      id: 'new-subpage',
+      title: 'New subpage',
+      section: 'Create',
+      icon: '📂',
+      keywords: ['create', 'add', 'new', 'child', 'nested'],
+      run: () => handleCreatePage(activePageId || null)
+    },
+    {
+      id: 'import',
+      title: 'Import Markdown',
+      section: 'Files',
+      icon: '📥',
+      keywords: ['import', 'markdown', 'upload', 'open'],
+      run: () => setIsImportOpen(true)
+    },
+    {
+      id: 'export',
+      title: 'Export this page as Markdown',
+      section: 'Files',
+      icon: '📤',
+      keywords: ['export', 'markdown', 'download', 'save'],
+      run: handleExportPage
+    },
+    {
+      id: 'toggle-theme',
+      title: theme === 'dark' ? 'Switch to the light theme' : 'Switch to the dark theme',
+      section: 'View',
+      icon: theme === 'dark' ? '☀️' : '🌙',
+      keywords: ['theme', 'dark', 'light', 'appearance', 'mode'],
+      run: handleToggleTheme
+    },
+    {
+      id: 'toggle-sidebar',
+      title: 'Toggle the sidebar',
+      section: 'View',
+      icon: '↔️',
+      keywords: ['sidebar', 'hide', 'show', 'collapse'],
+      run: () => setIsSidebarCollapsed((prev) => !prev)
+    },
+    {
+      id: 'open-settings',
+      title: 'Open the settings',
+      section: 'View',
+      icon: '⚙️',
+      keywords: ['settings', 'preferences', 'config', 'options'],
+      run: () => setIsSettingsOpen(true)
+    },
+    {
+      id: 'open-trash',
+      title: 'Open the trash',
+      section: 'Workspace',
+      icon: '🗑️',
+      keywords: ['trash', 'bin', 'deleted', 'restore'],
+      run: () => setIsTrashOpen(true)
+    },
+    {
+      id: 'open-archive',
+      title: 'Open the archive',
+      section: 'Workspace',
+      icon: '🗄️',
+      keywords: ['archive', 'archived', 'storage'],
+      run: () => setIsArchiveOpen(true)
+    },
+    {
+      id: 'analytics',
+      title: 'Page analytics',
+      section: 'Insights',
+      icon: '📊',
+      keywords: ['analytics', 'stats', 'statistics', 'insights'],
+      run: () => setIsAnalyticsOpen(true)
+    },
+    {
+      id: 'history',
+      title: 'Version history',
+      section: 'Insights',
+      icon: '🕘',
+      keywords: ['history', 'versions', 'restore', 'snapshots'],
+      run: () => setIsHistoryOpen(true)
+    },
+    {
+      id: 'comments',
+      title: 'Comments and discussions',
+      section: 'Insights',
+      icon: '💬',
+      keywords: ['comments', 'discussion', 'feedback', 'thread'],
+      run: () => setIsCommentsOpen(true)
+    },
+    {
+      id: 'toggle-lock',
+      title: activePage?.isLocked ? 'Unlock this page' : 'Lock this page',
+      section: 'Workspace',
+      icon: activePage?.isLocked ? '🔓' : '🔒',
+      keywords: ['lock', 'unlock', 'readonly', 'read only'],
+      run: () => handleUpdateActivePage({ isLocked: !activePage?.isLocked })
+    },
+    {
+      id: 'archive-page',
+      title: 'Archive this page',
+      section: 'Workspace',
+      icon: '🗄️',
+      keywords: ['archive', 'remove', 'hide', 'page'],
+      run: handleArchiveActivePage
+    }
+  ];
+
   return (
     <div className={`noted-app-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}>
       {/* Sidebar Navigation */}
       <Sidebar
-        pages={pages}
+        pages={visiblePages}
+        archivedCount={archivedPages.length}
+        onOpenArchive={() => setIsArchiveOpen(true)}
         activePageId={activePageId}
         onSelectPage={(id) => setActivePageId(id)}
         onCreatePage={handleCreatePage}
         onDeletePage={handleDeletePage}
+        onArchivePage={handleArchivePage}
         onDuplicatePage={handleDuplicatePage}
         onToggleFavorite={handleToggleFavorite}
         onOpenSearch={() => setIsSearchOpen(true)}
@@ -1016,7 +1251,7 @@ export function App() {
         {/* Notion Desktop Tab Bar (Unified Top Window Bar) */}
         <TabBar
           tabs={openTabs}
-          pages={pages}
+          pages={visiblePages}
           activeTabId={activePageId}
           activePage={activePage}
           onSelectTab={handleSelectTab}
@@ -1047,6 +1282,7 @@ export function App() {
               onUpdatePage={handleUpdateActivePage}
               onDuplicatePage={handleDuplicatePage}
               onDeletePage={handleDeletePage}
+              onArchivePage={handleArchivePage}
               onOpenHistory={() => setIsHistoryOpen(true)}
               onOpenAnalytics={() => setIsAnalyticsOpen(true)}
               onOpenImportModal={() => setIsImportOpen(true)}
@@ -1061,7 +1297,7 @@ export function App() {
             <Editor
               key={activePage.id}
               page={activePage}
-              allPages={pages}
+              allPages={visiblePages}
               onNavigatePage={(id) => handleSelectTab(id)}
               onUpdatePage={handleUpdateActivePage}
               isAIOpen={isAIOpen}
@@ -1115,7 +1351,8 @@ export function App() {
       {/* Modals */}
       {isSearchOpen && (
         <CommandPaletteModal
-          pages={pages}
+          pages={visiblePages}
+          commands={paletteCommands}
           onSelectPage={(id) => setActivePageId(id)}
           onClose={() => setIsSearchOpen(false)}
         />
@@ -1164,6 +1401,15 @@ export function App() {
         />
       )}
 
+      {isArchiveOpen && (
+        <ArchiveModal
+          archivedPages={archivedPages}
+          onRestorePage={handleRestoreArchivedPage}
+          onMoveToTrash={handleArchivedPageToTrash}
+          onClose={() => setIsArchiveOpen(false)}
+        />
+      )}
+
       {/* Import from AI Chat / Markdown Modal */}
       <ImportMarkdownModal
         isOpen={isImportOpen}
@@ -1178,7 +1424,7 @@ export function App() {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         page={activePage}
-        allPages={pages}
+        allPages={visiblePages}
         onRestorePage={handleRestorePageVersion}
       />
 
