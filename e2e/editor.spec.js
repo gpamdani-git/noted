@@ -1,41 +1,59 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * The app keeps a background sync pulse running, so the network never goes
+ * idle. Every test waits for the shell and the editor instead of for
+ * "networkidle".
+ */
+const openApp = async (page) => {
+  await page.goto('/');
+  await page.locator('.noted-sidebar').first().waitFor({ state: 'visible' });
+  await page.locator('.noted-editor-container').first().waitFor({ state: 'visible' });
+};
+
 test.describe('E2E QA Automation: Noted Core Editor (Notion Desktop Parity)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await openApp(page);
   });
 
   test('Page loads properly with sidebar, header, and editor area', async ({ page }) => {
-    await expect(page.locator('.app-sidebar, .sidebar')).toBeVisible();
-    await expect(page.locator('.editor-container, .editor-content-area')).toBeVisible();
+    await expect(page.locator('.noted-sidebar').first()).toBeVisible();
+    await expect(page.locator('.noted-editor-container').first()).toBeVisible();
+    await expect(page.locator('.editor-content-area').first()).toBeVisible();
+    await expect(page.locator('.page-title-input').first()).toBeVisible();
   });
 
   test('Markdown [] shortcut morphs into to-do checklist with caret preserved', async ({ page }) => {
-    // Find or add an editable block
-    const block = page.locator('.block-rich-text').first();
+    const block = page.locator('.block-type-paragraph .block-rich-text').first();
     await block.click();
     await block.fill('');
+
+    const todos = page.locator('.block-todo-wrapper');
+    const before = await todos.count();
 
     // Type [] and space
     await block.pressSequentially('[] ');
 
-    // Verify block morphed into to_do checkbox
-    const todoCheckbox = page.locator('.block-checkbox, .block-checkbox-custom').first();
+    // The native checkbox input is hidden by the custom control, so the
+    // visible element is the styled label.
+    const todoCheckbox = page.locator('.block-checkbox-custom').first();
     await expect(todoCheckbox).toBeVisible();
+    await expect(todos).toHaveCount(before + 1);
 
-    // Verify we can continue typing immediately next to the checkbox
+    // The morphed block keeps the caret, so the text lands in the new to-do
+    const todoInput = page.locator('.block-rich-text:focus').first();
+    await expect(todoInput).toHaveClass(/block-todo-input/);
+
     await page.keyboard.type('Automated QA Task');
-    await expect(page.locator('.block-todo-input').first()).toContainText('Automated QA Task');
+    await expect(todoInput).toContainText('Automated QA Task');
 
-    // Press Enter to create new to-do block
+    // Press Enter to create a new to-do block
     await page.keyboard.press('Enter');
-    const todos = page.locator('.block-todo-wrapper');
-    await expect(todos).toHaveCount(2);
+    await expect(todos).toHaveCount(before + 2);
 
-    // Press Backspace on empty to-do to un-morph back to paragraph
+    // Press Backspace on the empty to-do to un-morph back to a paragraph
     await page.keyboard.press('Backspace');
-    await expect(todos).toHaveCount(1);
+    await expect(todos).toHaveCount(before + 1);
   });
 
   test('Floating Bubble Menu appears on text selection and applies formatting live', async ({ page }) => {
@@ -68,11 +86,14 @@ test.describe('E2E QA Automation: Noted Core Editor (Notion Desktop Parity)', ()
   });
 
   test('Comments & Discussions popover can be toggled', async ({ page }) => {
-    // Check if comments icon or button exists in header
-    const commentBtn = page.locator('button:has-text("Add comment"), button:has-text("Komentar"), button[title*="comment"]').first();
-    if (await commentBtn.isVisible()) {
-      await commentBtn.click();
-      await expect(page.locator('.comments-sidebar, .comment-popover, .notion-discussion-thread').first()).toBeVisible();
-    }
+    // The block context menu opens on a right click of the grip handle
+    const grip = page.locator('.block-handle-btn.grip-btn').first();
+    await grip.click({ button: 'right' });
+
+    const commentItem = page.locator('.menu-action-item:has-text("Comment")').first();
+    await expect(commentItem).toBeVisible();
+    await commentItem.click();
+
+    await expect(page.locator('.block-comment-popover').first()).toBeVisible();
   });
 });

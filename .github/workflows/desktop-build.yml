@@ -31,10 +31,6 @@ jobs:
   e2e:
     name: Run End-to-End Tests
     runs-on: ubuntu-latest
-    # The Playwright suite still asserts against DOM selectors that the current
-    # UI no longer renders, so it cannot gate a release yet. It runs on every
-    # push to surface the remaining failures without blocking the build.
-    continue-on-error: true
 
     steps:
       - name: Checkout Repository
@@ -65,7 +61,7 @@ jobs:
 
   build:
     name: Build Desktop App (${{ matrix.os }})
-    needs: test
+    needs: [test, e2e]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
