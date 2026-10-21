@@ -60,3 +60,5 @@ playwright-report/
 blob-report/
 .playwright/
 
+.vercel
+.env.local

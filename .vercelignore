@@ -1,0 +1,40 @@
+# Files that are not part of the web deployment.
+#
+# The upload has a limit of 15000 files, and the local dependencies and the
+# desktop and android builds alone are far above that. Everything the server
+# needs is the api/ folder, the source, and the build configuration.
+
+node_modules
+.git
+.vercel
+
+# Build output, it is produced during the build
+dist
+dist-electron
+
+# Desktop and mobile projects, they are not deployed to Vercel
+electron
+android
+release
+
+# Local tooling artefacts
+.agents
+.conda
+graphify-out
+data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.drizzle
+
+# Test artefacts
+test-results
+playwright-report
+blob-report
+coverage
+
+# Local environment
+.env
+.env.*
+!.env.example
