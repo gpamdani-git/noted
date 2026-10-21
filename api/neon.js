@@ -6,9 +6,9 @@
 //
 // It is disabled on purpose. All cloud access now goes through /api/sync,
 // which requires a server-issued session token and derives the workspace owner
-// from that token. See api/lib/security.js and api/auth.js.
+// from that token. See api/_lib/security.js and api/auth.js.
 
-import { applyCors } from './lib/security.js';
+import { applyCors } from './_lib/security.js';
 
 export default async function handler(req, res) {
   applyCors(req, res);

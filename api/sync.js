@@ -3,8 +3,8 @@
 // - POST /api/sync: Upsert local workspace pages and blocks into DB
 // - GET /api/sync?userId=xxx: Pull latest pages and blocks from DB
 
-import { getPool, ensureSchema, getSqliteDb } from './lib/db.js';
-import { applyCors, getSessionFromRequest, sanitizeSyncPayload } from './lib/security.js';
+import { getPool, ensureSchema, getSqliteDb } from './_lib/db.js';
+import { applyCors, getSessionFromRequest, sanitizeSyncPayload } from './_lib/security.js';
 
 export default async function handler(req, res) {
   // CORS is restricted to the configured origin allowlist (never wildcard).

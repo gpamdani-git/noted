@@ -89,6 +89,11 @@ function localApiPlugin() {
   return {
     name: 'local-api-server',
     configureServer(server) {
+      // The config file itself is bundled into a temporary file, so a relative
+      // import would resolve against node_modules/.vite-temp. The route is
+      // resolved against the project root instead.
+      const apiRoute = (name) => path.join(server.config.root, 'api', name);
+
       server.middlewares.use(async (req, res, next) => {
         const rawUrl = req.url || '';
         if (rawUrl.startsWith('/api/sync') || rawUrl.startsWith('/api/status') || rawUrl.startsWith('/api/schema') || rawUrl.startsWith('/api/auth')) {
@@ -112,12 +117,12 @@ function localApiPlugin() {
           }
 
           const route = rawUrl.startsWith('/api/sync')
-            ? './api/sync.js'
+            ? apiRoute('sync.js')
             : rawUrl.startsWith('/api/status')
-              ? './api/status.js'
+              ? apiRoute('status.js')
               : rawUrl.startsWith('/api/auth')
-                ? './api/auth.js'
-                : './api/schema.js';
+                ? apiRoute('auth.js')
+                : apiRoute('schema.js');
 
           if (req.method === 'POST') {
             let body = '';
@@ -129,7 +134,7 @@ function localApiPlugin() {
                 req.body = {};
               }
               try {
-                const { default: handler } = await import(route);
+                const { default: handler } = await import(/* @vite-ignore */ route);
                 await handler(req, res);
               } catch (err) {
                 res.status(500).json({ error: err.message });
@@ -139,7 +144,7 @@ function localApiPlugin() {
           }
 
           try {
-            const { default: handler } = await import(route);
+            const { default: handler } = await import(/* @vite-ignore */ route);
             await handler(req, res);
           } catch (err) {
             res.status(500).json({ error: err.message });

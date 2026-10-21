@@ -5,7 +5,7 @@
 // Google's tokeninfo endpoint, then exchanged for a Noted session token that is
 // required by /api/sync. No credential or database secret ever ships to the client.
 
-import { applyCors, getSessionSecret, signSession } from './lib/security.js';
+import { applyCors, getSessionSecret, signSession } from './_lib/security.js';
 
 const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
 

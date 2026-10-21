@@ -32,6 +32,8 @@ import {
   startLiveSyncPulse
 } from './utils/cloudSync';
 import { pageToMarkdown, downloadMarkdownFile } from './utils/markdown';
+import { readPageIdFromUrl, writePageIdToUrl } from './utils/pageUrl';
+import { checkForUpdates } from './utils/updater';
 import './App.css';
 
 export function App() {
@@ -108,7 +110,7 @@ export function App() {
     };
   }, []);
 
-  // Desktop hand-off: when the web app is opened with ?notedAuth=desktop it
+  // Deep link hand-off: when the web app is opened with ?notedAuth=desktop it
   // forwards the verified session back to the desktop app via noted://auth.
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -122,6 +124,24 @@ export function App() {
       console.warn('[Noted Desktop] Auth hand-off notice:', err);
     }
   }, []);
+
+  // Web page addressing: a copied link carries ?pageId= and reopens that page.
+  const appliedUrlPageId = useRef(false);
+  useEffect(() => {
+    if (appliedUrlPageId.current) return;
+    const requestedPageId = readPageIdFromUrl();
+    if (!requestedPageId) return;
+    if (!pages.some((p) => p.id === requestedPageId)) return;
+
+    appliedUrlPageId.current = true;
+    setOpenTabs((prev) => (prev.includes(requestedPageId) ? prev : [...prev, requestedPageId]));
+    setActivePageId(requestedPageId);
+  }, [pages]);
+
+  useEffect(() => {
+    if (!activePageId) return;
+    writePageIdToUrl(activePageId);
+  }, [activePageId]);
 
   // Notion Desktop Workspace Switcher: Switch space and scope when account changes
   const prevUserIdRef = useRef(currentUser?.isLoggedIn ? currentUser?.id : 'guest');
@@ -862,17 +882,67 @@ export function App() {
     downloadMarkdownFile(activePage);
   };
 
+  const handleShowAbout = async () => {
+    try {
+      const info = window.electronAPI?.getInfo ? await window.electronAPI.getInfo() : null;
+      const version = info?.version || import.meta.env?.VITE_APP_VERSION || '1.0.0';
+      const platform = info?.platform ? ` (${info.platform})` : '';
+      alert(`Noted${platform}\nVersi ${version}\n\nWorkspace catatan lokal-first dengan sinkronisasi cloud opsional.`);
+    } catch (err) {
+      console.warn('[About] Could not read the app info:', err);
+      alert('Noted\nInformasi versi tidak dapat dibaca.');
+    }
+  };
+
+  const handleCheckForUpdates = async () => {
+    const result = await checkForUpdates();
+    if (result.status === 'available') {
+      const open = window.electronAPI?.openExternal
+        ? window.confirm(`Versi ${result.latest} tersedia (kamu memakai ${result.current}).\nBuka halaman unduhan?`)
+        : false;
+      if (open) {
+        window.electronAPI.openExternal(result.url);
+      }
+      return;
+    }
+    if (result.status === 'current') {
+      alert(`Noted ${result.current} adalah versi terbaru.`);
+      return;
+    }
+    alert(`Pemeriksaan versi gagal: ${result.message}`);
+  };
+
+  const handleShowShortcuts = () => {
+    const mod = navigator.platform?.toLowerCase().includes('mac') ? '⌘' : 'Ctrl';
+    alert([
+      'Pintasan keyboard Noted',
+      '',
+      `${mod} + K — Pencarian cepat`,
+      `${mod} + \\ — Sembunyikan / tampilkan sidebar`,
+      `${mod} + Shift + ] — Tab berikutnya`,
+      `${mod} + Shift + [ — Tab sebelumnya`,
+      `${mod} + 1…9 — Lompat ke tab`,
+      `${mod} + P — Pencarian cepat`,
+      `${mod} + O — Impor Markdown`,
+      `${mod} + Shift + E — Ekspor halaman sebagai Markdown`,
+      `${mod} + Shift + T — Buka Sampah`,
+      `${mod} + , — Pengaturan`
+    ].join('\n'));
+  };
+
   // Native Application Menu Listener (macOS & Windows Notion REA Menus)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.electronAPI?.onMenuAction) {
       const cleanupMenu = window.electronAPI.onMenuAction((action) => {
         switch (action) {
           case 'open-settings':
-          case 'about':
             setIsSettingsOpen(true);
             break;
+          case 'about':
+            handleShowAbout();
+            break;
           case 'check-updates':
-            alert('Noted Desktop v1.0.0\nAnda menggunakan versi terbaru Noted.');
+            handleCheckForUpdates();
             break;
           case 'new-page':
             handleCreatePage(null);
@@ -899,7 +969,7 @@ export function App() {
             handleToggleTheme();
             break;
           case 'shortcuts':
-            setIsSettingsOpen(true);
+            handleShowShortcuts();
             break;
           default:
             break;

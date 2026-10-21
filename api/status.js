@@ -1,7 +1,7 @@
 // Vercel Serverless Function: PostgreSQL & Local SQLite Health & Telemetry Check
 
-import { getPool, ensureSchema, getConnectionString, getSqliteDb } from './lib/db.js';
-import { applyCors } from './lib/security.js';
+import { getPool, ensureSchema, getConnectionString, getSqliteDb } from './_lib/db.js';
+import { applyCors } from './_lib/security.js';
 
 export default async function handler(req, res) {
   // CORS is restricted to the configured origin allowlist (never wildcard).
