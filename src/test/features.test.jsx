@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { CommandPaletteModal } from '../components/Modals/CommandPaletteModal';
 import { ArchiveModal } from '../components/Modals/ArchiveModal';
 import { SlashMenu } from '../components/Editor/SlashMenu';
+import { DatabaseBlock, PROPERTY_TYPES } from '../components/Editor/DatabaseBlock';
 import { getStoredComments, saveStoredComments, applyRemoteComments, getDeletedCommentIds } from '../utils/comments';
 import { sanitizeSyncPayload } from '../../api/_lib/security.js';
 
@@ -242,6 +243,72 @@ describe('Feature additions', () => {
       });
 
       expect(result.payload.comments).toHaveLength(0);
+    });
+  });
+  describe('Database property types and views', () => {
+    const block = {
+      id: 'db-1',
+      type: 'table',
+      viewType: 'table',
+      headers: ['Task', 'Status', 'Priority', 'Owner', 'Contact', 'Due'],
+      rows: [
+        ['Design system', 'In progress', 'High', 'Dani', 'dani@example.com', '2026-10-20'],
+        ['Sync engine', 'Done', 'Medium', 'Team', 'team@example.com', '2026-10-22']
+      ]
+    };
+
+    it('offers the new property types', () => {
+      const ids = PROPERTY_TYPES.map((t) => t.id);
+      expect(ids).toEqual(expect.arrayContaining(['text', 'status', 'multi_select', 'date', 'number', 'checkbox', 'url', 'select', 'email', 'phone', 'people']));
+    });
+
+    it('infers the type of a column from its name', () => {
+      render(<DatabaseBlock block={block} onUpdateBlock={vi.fn()} isLocked={false} />);
+
+      // The "Owner" column is a people column and shows an avatar per person
+      expect(screen.getAllByText('Dani').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Team').length).toBeGreaterThan(0);
+    });
+
+    it('renders the list view with one row per entry', () => {
+      render(
+        <DatabaseBlock
+          block={{ ...block, viewType: 'list' }}
+          onUpdateBlock={vi.fn()}
+          isLocked={false}
+        />
+      );
+
+      expect(screen.getByText('Design system')).toBeInTheDocument();
+      expect(screen.getByText('Sync engine')).toBeInTheDocument();
+    });
+
+    it('renders the calendar view as a month grid', () => {
+      render(
+        <DatabaseBlock
+          block={{ ...block, viewType: 'calendar' }}
+          onUpdateBlock={vi.fn()}
+          isLocked={false}
+        />
+      );
+
+      const cells = document.querySelectorAll('.db-calendar-cell');
+      expect(cells.length).toBe(42);
+      expect(document.querySelectorAll('.db-calendar-weekday').length).toBe(7);
+    });
+
+    it('places the rows with a date on the day of the calendar', () => {
+      render(
+        <DatabaseBlock
+          block={{ ...block, viewType: 'calendar' }}
+          onUpdateBlock={vi.fn()}
+          isLocked={false}
+        />
+      );
+
+      const events = [...document.querySelectorAll('.db-calendar-event')].map((el) => el.textContent);
+      expect(events).toContain('Design system');
+      expect(events).toContain('Sync engine');
     });
   });
 });

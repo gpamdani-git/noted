@@ -25,7 +25,13 @@ import {
   ArrowUp,
   ArrowDown,
   Maximize2,
-  Star
+  Star,
+  Mail,
+  Phone,
+  User,
+  Circle,
+  Rows3,
+  CalendarDays
 } from 'lucide-react';
 import './DatabaseBlock.css';
 
@@ -37,7 +43,11 @@ export const PROPERTY_TYPES = [
   { id: 'date', label: 'Date', icon: Calendar, description: 'Dates, deadlines, and reminders' },
   { id: 'number', label: 'Number', icon: Hash, description: 'Numeric values with progress bar' },
   { id: 'checkbox', label: 'Checkbox', icon: CheckSquare, description: 'Simple boolean toggle' },
-  { id: 'url', label: 'URL', icon: LinkIcon, description: 'Clickable links and websites' }
+  { id: 'url', label: 'URL', icon: LinkIcon, description: 'Clickable links and websites' },
+  { id: 'select', label: 'Select', icon: Circle, description: 'One value out of a list' },
+  { id: 'email', label: 'Email', icon: Mail, description: 'An email address with a mail link' },
+  { id: 'phone', label: 'Phone', icon: Phone, description: 'A phone number with a dial link' },
+  { id: 'people', label: 'People', icon: User, description: 'One or more people' }
 ];
 
 // Status presets with authentic Notion colors from screenshot
@@ -168,6 +178,10 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
     if (name.includes('number') || name.includes('score') || name.includes('count') || name.includes('progress') || name.includes('amount') || name.includes('price')) return 'number';
     if (name.includes('done') || name.includes('check') || name.includes('complete') || name.includes('active')) return 'checkbox';
     if (name.includes('url') || name.includes('link') || name.includes('website')) return 'url';
+    if (name.includes('email') || name.includes('mail')) return 'email';
+    if (name.includes('phone') || name.includes('telephone') || name.includes('mobile')) return 'phone';
+    if (name.includes('owner') || name.includes('assignee') || name.includes('person') || name.includes('people') || name.includes('author') || name.includes('member')) return 'people';
+    if (name.includes('priority') || name.includes('type') || name.includes('option') || name.includes('stage')) return 'select';
     return 'text';
   };
 
@@ -188,6 +202,7 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   const [showSortPopover, setShowSortPopover] = useState(false);
   const [activeColMenu, setActiveColMenu] = useState(null); // colIdx
   const [activeStatusCell, setActiveStatusCell] = useState(null); // { rIdx: number, cIdx: number }
+  const [activeSelectCell, setActiveSelectCell] = useState(null); // { rIdx: number, cIdx: number }
 
   const containerRef = useRef(null);
 
@@ -439,6 +454,69 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
     });
   }, [filteredRows, sortConfig, headers, block.columnTypes]);
 
+  // --- Calendar View ---
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+
+  // The first date column of the table feeds the calendar
+  const calendarDateColumnIndex = useMemo(() => {
+    const idx = headers.findIndex((_, i) => i > 0 && getColType(i) === 'date');
+    return idx;
+  }, [headers, block.columnTypes]);
+
+  const shiftMonth = (date, delta) =>
+    new Date(date.getFullYear(), date.getMonth() + delta, 1);
+
+  const calendarCells = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    // The week starts on Monday
+    const leading = (firstDay.getDay() + 6) % 7;
+    const start = new Date(year, month, 1 - leading);
+    const todayKey = new Date().toDateString();
+
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const key = date.toDateString();
+
+      const events =
+        calendarDateColumnIndex === -1
+          ? []
+          : processedRows
+              .filter(({ row }) => {
+                const raw = row[calendarDateColumnIndex];
+                if (!raw) return false;
+                const parsed = new Date(raw);
+                return !isNaN(parsed.getTime()) && parsed.toDateString() === key;
+              })
+              .map(({ row, originalIndex }) => ({
+                originalIndex,
+                title: row[0] || 'Untitled'
+              }));
+
+      cells.push({
+        key,
+        day: date.getDate(),
+        isToday: key === todayKey,
+        isOutside: date.getMonth() !== month,
+        events
+      });
+    }
+    return cells;
+  }, [calendarMonth, processedRows, calendarDateColumnIndex]);
+
+  // The values that are already in use in a column are the options of a
+  // single select, so the picker offers what the workspace really uses.
+  const getSelectOptions = (colIdx) => {
+    const values = new Set();
+    for (const row of rows) {
+      const raw = (row[colIdx] || '').toString().trim();
+      if (raw) raw.split(',').forEach((v) => values.add(v.trim()));
+    }
+    return [...values].filter(Boolean).sort((a, b) => a.localeCompare(b));
+  };
+
   // --- Rich Cell Content Renderer ---
   const renderCellContent = (originalIndex, cIdx, cellValue) => {
     const colType = getColType(cIdx);
@@ -645,6 +723,174 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
         );
       }
 
+      case 'select': {
+        const selectOptions = getSelectOptions(cIdx);
+        const currentVal = cellValue || '';
+        const isPickerOpen =
+          activeSelectCell &&
+          activeSelectCell.rIdx === originalIndex &&
+          activeSelectCell.cIdx === cIdx;
+        const selectColor = currentVal ? getTagColor(currentVal) : null;
+
+        return (
+          <div className="db-cell-select-wrap">
+            {currentVal ? (
+              <button
+                type="button"
+                className="db-select-pill-btn"
+                style={{ backgroundColor: selectColor.bg, color: selectColor.text }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isLocked) {
+                    setActiveSelectCell(isPickerOpen ? null : { rIdx: originalIndex, cIdx });
+                  }
+                }}
+                title="Change the value"
+              >
+                <span>{currentVal}</span>
+              </button>
+            ) : (
+              <input
+                type="text"
+                className="db-cell-input"
+                value=""
+                placeholder="Empty"
+                readOnly={isLocked}
+                disabled={isLocked}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isLocked) setActiveSelectCell({ rIdx: originalIndex, cIdx });
+                }}
+              />
+            )}
+
+            {isPickerOpen && !isLocked && (
+              <div
+                className="db-select-picker-dropdown animate-popover"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="db-popover-title">Select a value</div>
+                {selectOptions.map((opt) => {
+                  const optColor = getTagColor(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      className="db-select-option"
+                      onClick={() => {
+                        handleTableCellChange(originalIndex, cIdx, opt);
+                        setActiveSelectCell(null);
+                      }}
+                    >
+                      <span
+                        className="db-select-option-dot"
+                        style={{ backgroundColor: optColor.text }}
+                      />
+                      <span>{opt}</span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="db-select-option db-select-option-clear"
+                  onClick={() => {
+                    handleTableCellChange(originalIndex, cIdx, '');
+                    setActiveSelectCell(null);
+                  }}
+                >
+                  <span>Clear</span>
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      case 'email': {
+        const mailHref = cellValue ? `mailto:${cellValue}` : null;
+        return (
+          <div className="db-cell-url-wrap">
+            <Mail size={12} className="db-url-icon" />
+            <input
+              type="email"
+              className="db-cell-input db-url-input"
+              value={cellValue || ''}
+              placeholder="name@example.com"
+              readOnly={isLocked}
+              disabled={isLocked}
+              onChange={(e) => handleTableCellChange(originalIndex, cIdx, e.target.value)}
+            />
+            {mailHref && (
+              <a
+                href={mailHref}
+                className="db-url-external-link"
+                title="Write an email"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Mail size={12} />
+              </a>
+            )}
+          </div>
+        );
+      }
+
+      case 'phone': {
+        const telHref = cellValue ? `tel:${String(cellValue).replace(/\s+/g, '')}` : null;
+        return (
+          <div className="db-cell-url-wrap">
+            <Phone size={12} className="db-url-icon" />
+            <input
+              type="tel"
+              className="db-cell-input db-url-input"
+              value={cellValue || ''}
+              placeholder="+62 ..."
+              readOnly={isLocked}
+              disabled={isLocked}
+              onChange={(e) => handleTableCellChange(originalIndex, cIdx, e.target.value)}
+            />
+            {telHref && (
+              <a
+                href={telHref}
+                className="db-url-external-link"
+                title="Call this number"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Phone size={12} />
+              </a>
+            )}
+          </div>
+        );
+      }
+
+      case 'people': {
+        const people = (cellValue || '')
+          .split(',')
+          .map((p) => p.trim())
+          .filter(Boolean);
+
+        return (
+          <div className="db-cell-tags-wrap">
+            <div className="db-tags-list">
+              {people.map((person, pIdx) => (
+                <span key={pIdx} className="db-person-pill">
+                  <span className="db-person-avatar">{person[0].toUpperCase()}</span>
+                  <span className="db-person-name">{person}</span>
+                </span>
+              ))}
+            </div>
+            <input
+              type="text"
+              className={`db-cell-input ${people.length > 0 ? 'hidden-until-focus' : ''}`}
+              value={cellValue || ''}
+              placeholder={people.length === 0 ? 'Add people (comma separated)...' : ''}
+              readOnly={isLocked}
+              disabled={isLocked}
+              onChange={(e) => handleTableCellChange(originalIndex, cIdx, e.target.value)}
+            />
+          </div>
+        );
+      }
+
       case 'text':
       default:
         return (
@@ -689,6 +935,22 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
           >
             <Calendar size={13} />
             <span>Gallery</span>
+          </button>
+          <button
+            className={`db-tab-btn ${viewType === 'list' ? 'active' : ''}`}
+            onClick={() => setViewType('list')}
+            title="Compact list (List view)"
+          >
+            <Rows3 size={13} />
+            <span>List</span>
+          </button>
+          <button
+            className={`db-tab-btn ${viewType === 'calendar' ? 'active' : ''}`}
+            onClick={() => setViewType('calendar')}
+            title="Months and deadlines (Calendar view)"
+          >
+            <CalendarDays size={13} />
+            <span>Calendar</span>
           </button>
         </div>
 
@@ -1281,6 +1543,29 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                                 });
                               }
 
+                              if (colType === 'select') {
+                                const selCol = getTagColor(prop);
+                                return (
+                                  <span
+                                    key={pIdx}
+                                    className="kanban-prop-badge"
+                                    style={{ backgroundColor: selCol.bg, color: selCol.text }}
+                                  >
+                                    {prop}
+                                  </span>
+                                );
+                              }
+
+                              if (colType === 'people') {
+                                const people = prop.split(',').map((p) => p.trim()).filter(Boolean);
+                                return people.map((person, idx) => (
+                                  <span key={`${pIdx}-${idx}`} className="kanban-prop-badge">
+                                    <User size={10} />
+                                    <span>{person}</span>
+                                  </span>
+                                ));
+                              }
+
                               if (colType === 'date') {
                                 return (
                                   <span key={pIdx} className="kanban-prop-badge date-badge">
@@ -1424,6 +1709,21 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                               <span className="gallery-prop-badge check">
                                 {prop === 'true' || prop === '1' ? '✓ Completed' : 'Pending'}
                               </span>
+                            ) : colType === 'people' ? (
+                              <span className="gallery-prop-badge">
+                                <User size={10} />
+                                {prop.split(',').map((p) => p.trim()).filter(Boolean).join(', ')}
+                              </span>
+                            ) : colType === 'email' ? (
+                              <span className="gallery-prop-badge">
+                                <Mail size={10} />
+                                {prop}
+                              </span>
+                            ) : colType === 'phone' ? (
+                              <span className="gallery-prop-badge">
+                                <Phone size={10} />
+                                {prop}
+                              </span>
                             ) : (
                               <span
                                 className="gallery-prop-badge"
@@ -1449,6 +1749,164 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* 4. LIST VIEW */}
+      {viewType === 'list' && (
+        <div className="db-list-view">
+          {processedRows.map(({ row, originalIndex }) => {
+            const title = row[0] || 'Untitled';
+            const properties = row.slice(1).filter(Boolean);
+
+            return (
+              <div
+                key={originalIndex}
+                className="db-list-row"
+                onClick={() => setSelectedRowIndex(originalIndex)}
+              >
+                <span className="db-list-row-title">{title}</span>
+                <div className="db-list-row-props">
+                  {properties.map((prop, pIdx) => {
+                    const actualColIdx = pIdx + 1;
+                    const colType = getColType(actualColIdx);
+                    const headerName = headers[actualColIdx] || 'Property';
+
+                    if (colType === 'status') {
+                      const stColor = getStatusColor(prop);
+                      return (
+                        <span
+                          key={pIdx}
+                          className="db-list-prop-pill"
+                          style={{ backgroundColor: stColor.bg, color: stColor.text }}
+                        >
+                          {prop}
+                        </span>
+                      );
+                    }
+                    if (colType === 'date') {
+                      return (
+                        <span key={pIdx} className="db-list-prop-text">
+                          <Calendar size={10} />
+                          {formatDateDisplay(prop)}
+                        </span>
+                      );
+                    }
+                    if (colType === 'checkbox') {
+                      return (
+                        <span key={pIdx} className="db-list-prop-text">
+                          <CheckSquare size={10} />
+                          {prop === 'true' || prop === '1' ? 'Done' : 'Pending'}
+                        </span>
+                      );
+                    }
+                    if (colType === 'select') {
+                      const selColor = getTagColor(prop);
+                      return (
+                        <span
+                          key={pIdx}
+                          className="db-list-prop-pill"
+                          style={{ backgroundColor: selColor.bg, color: selColor.text }}
+                        >
+                          {prop}
+                        </span>
+                      );
+                    }
+                    return (
+                      <span key={pIdx} className="db-list-prop-text" title={headerName}>
+                        {prop}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {processedRows.length === 0 && (
+            <div className="db-list-empty">No rows match the current filter</div>
+          )}
+
+          {!isLocked && (
+            <button type="button" className="db-list-add-row" onClick={() => handleAddRow()}>
+              <Plus size={14} />
+              <span>New item</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* 5. CALENDAR VIEW */}
+      {viewType === 'calendar' && (
+        <div className="db-calendar-view">
+          <div className="db-calendar-toolbar">
+            <button
+              type="button"
+              className="db-calendar-nav-btn"
+              onClick={() => setCalendarMonth((prev) => shiftMonth(prev, -1))}
+              title="Previous month"
+            >
+              <ChevronDown size={14} className="db-calendar-nav-icon flip-horizontal" />
+            </button>
+            <span className="db-calendar-title">
+              {calendarMonth.toLocaleDateString(undefined, {
+                month: 'long',
+                year: 'numeric'
+              })}
+            </span>
+            <button
+              type="button"
+              className="db-calendar-nav-btn"
+              onClick={() => setCalendarMonth((prev) => shiftMonth(prev, 1))}
+              title="Next month"
+            >
+              <ChevronDown size={14} className="db-calendar-nav-icon" />
+            </button>
+            <button
+              type="button"
+              className="db-calendar-today-btn"
+              onClick={() => setCalendarMonth(new Date())}
+            >
+              Today
+            </button>
+          </div>
+
+          <div className="db-calendar-weekdays">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+              <div key={day} className="db-calendar-weekday">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="db-calendar-grid">
+            {calendarCells.map((cell) => (
+              <div
+                key={cell.key}
+                className={`db-calendar-cell ${cell.isToday ? 'today' : ''} ${cell.isOutside ? 'outside' : ''}`}
+              >
+                <div className="db-calendar-cell-day">{cell.day}</div>
+                <div className="db-calendar-cell-events">
+                  {cell.events.map((event) => (
+                    <div
+                      key={event.originalIndex}
+                      className="db-calendar-event"
+                      onClick={() => setSelectedRowIndex(event.originalIndex)}
+                    >
+                      {event.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {calendarDateColumnIndex === -1 && (
+            <div className="db-calendar-hint">
+              This table has no date column, so the calendar stays empty. Add a date property to
+              see the rows on a calendar.
+            </div>
+          )}
         </div>
       )}
 
@@ -1559,6 +2017,93 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                                 handleTableCellChange(selectedRowIndex, actualColIdx, newDate)
                               }
                               isLocked={isLocked}
+                            />
+                          </div>
+                        ) : colType === 'select' ? (
+                          <div className="db-peek-status-control">
+                            {getSelectOptions(actualColIdx).map((opt) => {
+                              const isSelected = val === opt;
+                              const optColor = getTagColor(opt);
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  className={`db-peek-status-chip ${isSelected ? 'active' : ''}`}
+                                  style={{
+                                    backgroundColor: isSelected ? optColor.bg : 'var(--bg-hover)',
+                                    color: isSelected ? optColor.text : 'var(--text-secondary)',
+                                    borderColor: isSelected ? optColor.text : 'transparent'
+                                  }}
+                                  onClick={() =>
+                                    !isLocked &&
+                                    handleTableCellChange(
+                                      selectedRowIndex,
+                                      actualColIdx,
+                                      isSelected ? '' : opt
+                                    )
+                                  }
+                                >
+                                  {opt}
+                                </button>
+                              );
+                            })}
+                            {!val && <span className="db-peek-prop-hint">No value yet</span>}
+                          </div>
+                        ) : colType === 'email' ? (
+                          <div className="db-peek-url-field">
+                            <input
+                              type="email"
+                              className="db-peek-prop-input"
+                              value={val}
+                              readOnly={isLocked}
+                              disabled={isLocked}
+                              placeholder="name@example.com"
+                              onChange={(e) =>
+                                handleTableCellChange(selectedRowIndex, actualColIdx, e.target.value)
+                              }
+                            />
+                            {val && (
+                              <a href={`mailto:${val}`} className="db-peek-url-btn">
+                                <Mail size={13} />
+                                <span>Mail</span>
+                              </a>
+                            )}
+                          </div>
+                        ) : colType === 'phone' ? (
+                          <div className="db-peek-url-field">
+                            <input
+                              type="tel"
+                              className="db-peek-prop-input"
+                              value={val}
+                              readOnly={isLocked}
+                              disabled={isLocked}
+                              placeholder="+62 ..."
+                              onChange={(e) =>
+                                handleTableCellChange(selectedRowIndex, actualColIdx, e.target.value)
+                              }
+                            />
+                            {val && (
+                              <a
+                                href={`tel:${String(val).replace(/\s+/g, '')}`}
+                                className="db-peek-url-btn"
+                              >
+                                <Phone size={13} />
+                                <span>Call</span>
+                              </a>
+                            )}
+                          </div>
+                        ) : colType === 'people' ? (
+                          <div className="db-peek-prop-input-row">
+                            <input
+                              type="text"
+                              className="db-peek-prop-input"
+                              value={val}
+                              readOnly={isLocked}
+                              disabled={isLocked}
+                              placeholder="Add people (comma separated)"
+                              onChange={(e) =>
+                                handleTableCellChange(selectedRowIndex, actualColIdx, e.target.value)
+                              }
                             />
                           </div>
                         ) : colType === 'url' ? (

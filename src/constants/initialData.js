@@ -92,7 +92,7 @@ export const INITIAL_PAGES = [
       {
         id: 'b-bullet-5',
         type: 'bulleted_list_item',
-        text: 'Syntax-highlighted code blocks with one-click copy'
+        text: 'Code blocks with a language selector and one-click copy'
       },
       {
         id: 'b-bullet-6',

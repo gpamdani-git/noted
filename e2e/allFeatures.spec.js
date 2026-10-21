@@ -139,10 +139,14 @@ test.describe('Comprehensive E2E QA Test Suite: Noted Full Application Scenarios
     const boardTab = dbWrapper.locator('button[title*="Board view"]').first();
     const tableTab = dbWrapper.locator('button[title*="Table view"]').first();
     const galleryTab = dbWrapper.locator('button[title*="Gallery view"]').first();
+    const listTab = dbWrapper.locator('button[title*="List view"]').first();
+    const calendarTab = dbWrapper.locator('button[title*="Calendar view"]').first();
 
     await expect(boardTab).toBeVisible();
     await expect(tableTab).toBeVisible();
     await expect(galleryTab).toBeVisible();
+    await expect(listTab).toBeVisible();
+    await expect(calendarTab).toBeVisible();
 
     await boardTab.click();
     await expect(dbWrapper.locator('.db-kanban-view').first()).toBeVisible();
@@ -153,6 +157,15 @@ test.describe('Comprehensive E2E QA Test Suite: Noted Full Application Scenarios
 
     await galleryTab.click();
     await expect(dbWrapper.locator('.db-gallery-view').first()).toBeVisible();
+
+    await listTab.click();
+    await expect(dbWrapper.locator('.db-list-view').first()).toBeVisible();
+    expect(await dbWrapper.locator('.db-list-row').count()).toBeGreaterThan(0);
+
+    await calendarTab.click();
+    await expect(dbWrapper.locator('.db-calendar-view').first()).toBeVisible();
+    await expect(dbWrapper.locator('.db-calendar-weekday').first()).toBeVisible();
+    expect(await dbWrapper.locator('.db-calendar-cell').count()).toBe(42);
 
     // 2. Test the quick search filter on the table view
     await tableTab.click();

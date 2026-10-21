@@ -756,6 +756,114 @@
   display: inline-block;
 }
 
+/* Single select cell */
+.db-cell-select-wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.db-select-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.db-select-pill-btn:hover {
+  opacity: 0.85;
+}
+
+.db-select-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 150px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  padding: 6px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.db-select-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.db-select-option:hover {
+  background: var(--bg-hover);
+}
+
+.db-select-option-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.db-select-option-clear {
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0;
+  margin-top: 4px;
+  padding-top: 7px;
+}
+
+/* People cell */
+.db-person-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  padding: 1px 7px 1px 1px;
+  border-radius: 12px;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.db-person-avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-blue, #2383e2);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.db-person-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
 .db-status-pill-btn {
   display: inline-flex;
   align-items: center;
@@ -1613,6 +1721,19 @@
   gap: 10px;
 }
 
+.db-peek-prop-hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.db-peek-prop-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
 .db-peek-url-field {
   display: flex;
   align-items: center;
@@ -1692,4 +1813,234 @@
   .db-gallery-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* List view */
+.db-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+}
+
+.db-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.db-list-row:hover {
+  background: var(--bg-hover);
+}
+
+.db-list-row-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 120px;
+  flex: 0 1 40%;
+}
+
+.db-list-row-props {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.db-list-prop-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.db-list-prop-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.db-list-empty {
+  padding: 20px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.db-list-add-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin: 4px 10px;
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.db-list-add-row:hover {
+  background: var(--bg-hover);
+}
+
+/* Calendar view */
+.db-calendar-view {
+  padding: 8px 0 4px;
+}
+
+.db-calendar-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 10px;
+}
+
+.db-calendar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 140px;
+  text-align: center;
+}
+
+.db-calendar-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.db-calendar-nav-btn:hover {
+  background: var(--bg-hover);
+}
+
+.db-calendar-nav-icon.flip-horizontal {
+  transform: rotate(90deg);
+}
+
+.db-calendar-today-btn {
+  margin-left: auto;
+  font-size: 11.5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.db-calendar-today-btn:hover {
+  background: var(--bg-hover);
+}
+
+.db-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid var(--border-color);
+}
+
+.db-calendar-weekday {
+  padding: 5px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.db-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+}
+
+.db-calendar-cell {
+  min-height: 84px;
+  padding: 4px 5px;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.db-calendar-cell.outside {
+  background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+}
+
+.db-calendar-cell.outside .db-calendar-cell-day {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.db-calendar-cell-day {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.db-calendar-cell.today .db-calendar-cell-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-blue, #2383e2);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.db-calendar-cell-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.db-calendar-event {
+  font-size: 10.5px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-calendar-event:hover {
+  background: var(--color-blue-bg, #e7f3f8);
+}
+
+.db-calendar-hint {
+  padding: 10px;
+  font-size: 11.5px;
+  color: var(--text-muted);
 }
