@@ -9,10 +9,12 @@ import {
   startLiveSyncPulse,
   tabId
 } from '../utils/cloudSync';
+import { setSessionToken, clearSessionToken } from '../utils/session';
 
 describe('Cloud & PostgreSQL Sync Engine (Notion REA)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    clearSessionToken();
   });
 
   it('provides the current sync state synchronously', () => {
@@ -33,7 +35,8 @@ describe('Cloud & PostgreSQL Sync Engine (Notion REA)', () => {
     expect(getCloudSyncState().status).toBe('local');
   });
 
-  it('pulls workspace data from remote PostgreSQL when user is logged in', async () => {
+  it('pulls workspace data from the sync API when a session token is present', async () => {
+    setSessionToken('server-issued-session-token');
     const mockUser = { id: 'user_test_99', isLoggedIn: true, name: 'Dani' };
     const mockResponse = {
       success: true,
@@ -43,7 +46,7 @@ describe('Cloud & PostgreSQL Sync Engine (Notion REA)', () => {
       workspaceSettings: { theme: 'light' }
     };
 
-    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse
     });
@@ -52,9 +55,23 @@ describe('Cloud & PostgreSQL Sync Engine (Notion REA)', () => {
     expect(result).toBeDefined();
     expect(result.pages.length).toBe(1);
     expect(result.pages[0].title).toBe('Remote Page 1');
+
+    // The session token must be attached as a bearer token
+    const [, options] = fetchSpy.mock.calls[0];
+    expect(options.headers.Authorization).toBe('Bearer server-issued-session-token');
+  });
+
+  it('does not call the network when no cloud session exists', async () => {
+    const mockUser = { id: 'user_test_99', isLoggedIn: true, name: 'Dani' };
+    const fetchSpy = vi.spyOn(global, 'fetch');
+
+    const result = await pullCloudWorkspace(mockUser);
+    expect(result).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it('handles network failure during pull by falling back gracefully to offline status', async () => {
+    setSessionToken('server-issued-session-token');
     const mockUser = { id: 'user_test_99', isLoggedIn: true, name: 'Dani' };
 
     vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));

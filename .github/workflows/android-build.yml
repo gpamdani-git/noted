@@ -8,8 +8,29 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Unit Test Suite
+        run: npm test
+
   build-apk:
     name: Build Android APK
+    needs: test
     runs-on: ubuntu-latest
 
     steps:

@@ -66,9 +66,17 @@ describe('Mobile Editor Experience (Notion Mobile REA)', () => {
     expect(handleUpdateBlock).toHaveBeenCalledWith('b1', { text: 'A' });
   });
 
-  it('detects native/mobile environment and enables direct 1-click Google auth to avoid Error 400 origin_mismatch', () => {
-    // In Capacitor or localhost environments
-    expect(shouldUseNativeGoogleAuth()).toBe(true);
+  it('keeps Google Identity Services on a normal web origin and uses native auth only in a native runtime', () => {
+    // JSDOM runs on http://localhost:3000, which is a normal web context.
+    // It must not be mistaken for a native runtime, otherwise the Google
+    // Identity Services button is hidden on the dev server.
+    expect(isMobileNativeApp()).toBe(false);
+    expect(shouldUseNativeGoogleAuth()).toBe(false);
+
+    // A real native runtime (Capacitor) enables the direct native auth path
+    window.Capacitor = { isNativePlatform: () => true };
     expect(isMobileNativeApp()).toBe(true);
+    expect(shouldUseNativeGoogleAuth()).toBe(true);
+    delete window.Capacitor;
   });
 });

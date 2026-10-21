@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
   getGoogleClientId,
   setGoogleClientId,
@@ -6,7 +6,6 @@ import {
   getAuthState,
   loginWithGoogleCredential,
   loginWithEmail,
-  loginWithDemoGoogle,
   logout,
   updateUserProfile,
   getSavedAccounts,
@@ -14,11 +13,17 @@ import {
   removeAccountFromList,
   logoutAllAccounts
 } from '../utils/auth';
+import { getSessionToken, setSessionToken, clearSessionToken } from '../utils/session';
 
 describe('Authentication & Notion Login Module', () => {
   beforeEach(() => {
     localStorage.clear();
+    clearSessionToken();
     logout();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('manages Google Client ID in localStorage correctly', () => {
@@ -51,7 +56,7 @@ describe('Authentication & Notion Login Module', () => {
     expect(parsed.picture).toBe('https://example.com/avatar.jpg');
   });
 
-  it('logs in successfully using Google OAuth credential JWT token', () => {
+  it('verifies the Google credential on the server and stores the returned session', async () => {
     const mockPayload = {
       sub: 'google_user_999',
       name: 'Dani Akbar',
@@ -61,24 +66,59 @@ describe('Authentication & Notion Login Module', () => {
     const b64Payload = btoa(JSON.stringify(mockPayload));
     const mockToken = `header.${b64Payload}.sig`;
 
-    const user = loginWithGoogleCredential(mockToken);
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        session: 'server-issued-session-token',
+        user: {
+          id: 'google_user_999',
+          name: 'Dani Akbar',
+          email: 'dani.noted@gmail.com',
+          picture: 'https://example.com/dani.jpg',
+          avatar: 'D',
+          color: '#2383e2'
+        }
+      })
+    });
+
+    const user = await loginWithGoogleCredential(mockToken);
     expect(user.isLoggedIn).toBe(true);
     expect(user.loginProvider).toBe('google');
     expect(user.email).toBe('dani.noted@gmail.com');
     expect(user.name).toBe('Dani Akbar');
     expect(user.picture).toBe('https://example.com/dani.jpg');
 
+    // The credential is exchanged server-side, never trusted from the client
+    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/api/auth'), expect.objectContaining({
+      method: 'POST'
+    }));
+    expect(getSessionToken()).toBe('server-issued-session-token');
+
     const authState = getAuthState();
     expect(authState.isLoggedIn).toBe(true);
     expect(authState.user.email).toBe('dani.noted@gmail.com');
+    expect(authState.hasCloudSession).toBe(true);
   });
 
-  it('logs in with email and formats display name correctly', () => {
+  it('rejects a Google credential that the server refuses to verify', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: 'Google credential could not be verified' })
+    });
+
+    await expect(loginWithGoogleCredential('header.payload.sig')).rejects.toThrow(
+      'Google credential could not be verified'
+    );
+    expect(getSessionToken()).toBe('');
+  });
+
+  it('creates a local (offline) account with an email address', () => {
     const user = loginWithEmail('dani.akbar@company.com');
     expect(user.isLoggedIn).toBe(true);
     expect(user.email).toBe('dani.akbar@company.com');
     expect(user.name).toBe('Dani akbar');
-    expect(user.loginProvider).toBe('email');
+    expect(user.loginProvider).toBe('local');
 
     const authState = getAuthState();
     expect(authState.isLoggedIn).toBe(true);
@@ -88,12 +128,12 @@ describe('Authentication & Notion Login Module', () => {
     expect(() => loginWithEmail('invalid-email-format')).toThrow();
   });
 
-  it('logs in with demo Google account for instant offline testing', () => {
-    const user = loginWithDemoGoogle();
-    expect(user.isLoggedIn).toBe(true);
-    expect(user.loginProvider).toBe('google');
-    expect(user.email).toBe('dani.akbarr@gmail.com');
-    expect(user.name).toBe('Dani Akbar');
+  it('clears the cloud session on logout', () => {
+    setSessionToken('session-to-clear');
+    expect(getSessionToken()).toBe('session-to-clear');
+
+    logout();
+    expect(getSessionToken()).toBe('');
   });
 
   it('logs out and reverts to guest mode', () => {
