@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { GithubNavPill, GITHUB_CONFIG } from '../common/OpenSourceLinks';
 import { NotedFooter } from '../common/NotedFooter';
+import notedLogo from '../../assets/noted-brand-logo.png';
 import { LANDING_CONTENT } from './landingData';
 import {
   NotedHero3DCanvas,
@@ -125,7 +126,7 @@ export function NotionLandingPage({
             >
               <div className="noted-brand-icon">
                 <img
-                  src="/noted-brand-logo.png"
+                  src={notedLogo}
                   alt="Noted"
                   className="noted-brand-logo-img"
                 />
@@ -347,36 +348,64 @@ export function NotionLandingPage({
             >
               GitHub (★ Star)
             </a>
-            <button
-              type="button"
-              className="mobile-nav-item"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                onOpenApp?.();
-              }}
-            >
-              {lang === 'id' ? 'Buka Workspace' : 'Open Workspace'}
-            </button>
-            <button
-              type="button"
-              className="mobile-nav-item"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                onOpenLogin?.();
-              }}
-            >
-              Log in
-            </button>
-            <button
-              type="button"
-              className="mobile-cta-btn"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                onOpenApp?.();
-              }}
-            >
-              {t.nav.getStartedFree}
-            </button>
+            {currentUser && !currentUser.isGuest ? (
+              <button
+                type="button"
+                className="mobile-cta-btn"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onOpenApp?.();
+                }}
+              >
+                <span>{lang === 'id' ? 'Buka Workspace' : 'Open Workspace'}</span>
+                <ArrowRight size={14} />
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="mobile-nav-item"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenLogin?.();
+                  }}
+                >
+                  Log in
+                </button>
+                <button
+                  type="button"
+                  className="mobile-cta-btn"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenApp?.();
+                  }}
+                >
+                  <span>{t.nav.startFree}</span>
+                  <ArrowRight size={14} />
+                </button>
+              </>
+            )}
+            <div className="mobile-drawer-lang-row">
+              <span className="mobile-drawer-lang-label">
+                {lang === 'id' ? 'Bahasa:' : 'Language:'}
+              </span>
+              <div className="mobile-drawer-lang-btns">
+                <button
+                  type="button"
+                  className={`mobile-lang-pill ${lang === 'id' ? 'active' : ''}`}
+                  onClick={() => onSetLang?.('id')}
+                >
+                  Bahasa Indonesia
+                </button>
+                <button
+                  type="button"
+                  className={`mobile-lang-pill ${lang === 'en' ? 'active' : ''}`}
+                  onClick={() => onSetLang?.('en')}
+                >
+                  English (US)
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </header>
@@ -512,7 +541,9 @@ export function NotionLandingPage({
                 {/* Mockup Mini-Sidebar */}
                 <aside className="noted-mockup-sidebar">
                   <div className="mockup-sidebar-header">
-                    <div className="user-avatar-mini">ø</div>
+                    <div className="user-avatar-mini">
+                      <img src={notedLogo} alt="Noted" className="mockup-avatar-logo-img" />
+                    </div>
                     <span className="workspace-name">{t.mockup.workspaceName}</span>
                   </div>
                   <div className="mockup-sidebar-section">

@@ -330,9 +330,9 @@
     "semantic_hash": "bbc05c5a6b80c03695c40da2c93f7dbb"
   },
   "src/components/Editor/VideoEmbedBlock.jsx": {
-    "mtime": 1792847529.296853,
-    "seen": 1792852037.8029509,
-    "ast_hash": "7f4e2b55d65d8ef90e23bf88154b9647",
+    "mtime": 1792867181.2961094,
+    "seen": 1792867356.7036002,
+    "ast_hash": "86fb9219a4300deab8aad5c7846a6079",
     "semantic_hash": ""
   },
   "src/components/Editor/WebBookmarkBlock.jsx": {
@@ -624,8 +624,8 @@
     "semantic_hash": ""
   },
   "public/favicon.svg": {
-    "mtime": 1792865827.3248937,
-    "seen": 1792866365.849622,
+    "mtime": 1792866775.9959633,
+    "seen": 1792867356.708127,
     "ast_hash": "19b9011234e2ed54143c037cb3b3bbd8",
     "semantic_hash": ""
   },
@@ -1056,9 +1056,9 @@
     "semantic_hash": ""
   },
   "src/components/Auth/NotionLoginModal.jsx": {
-    "mtime": 1792865903.739117,
-    "seen": 1792866365.844606,
-    "ast_hash": "9843e1857fdfe3397d23bf147df92c11",
+    "mtime": 1792866967.4664474,
+    "seen": 1792867356.702765,
+    "ast_hash": "1b04d05ded7fe2ef2d3c1179866ea77e",
     "semantic_hash": ""
   },
   "src/test/auth.test.js": {
@@ -1368,9 +1368,9 @@
     "semantic_hash": ""
   },
   "electron/main.cjs": {
-    "mtime": 1792857507.3111122,
-    "seen": 1792857555.6972291,
-    "ast_hash": "24428c84d65783ba890e9fd3c517a9c6",
+    "mtime": 1792867156.3990617,
+    "seen": 1792867356.702295,
+    "ast_hash": "68eea4158f69b70217e09c54d94f33c2",
     "semantic_hash": ""
   },
   "electron/menu.cjs": {
@@ -1404,8 +1404,8 @@
     "semantic_hash": ""
   },
   "android/app/capacitor.build.gradle": {
-    "mtime": 1792866350.424919,
-    "seen": 1792866365.843403,
+    "mtime": 1792867207.710211,
+    "seen": 1792867356.701633,
     "ast_hash": "b863e425fbde80251bd3c68ac8ccba02",
     "semantic_hash": ""
   },
@@ -1434,8 +1434,8 @@
     "semantic_hash": ""
   },
   "android/capacitor.settings.gradle": {
-    "mtime": 1792866350.4246283,
-    "seen": 1792866365.84355,
+    "mtime": 1792867207.710115,
+    "seen": 1792867356.701772,
     "ast_hash": "455ebb7f9fe84a6974da6bdae43097c2",
     "semantic_hash": ""
   },
@@ -2154,8 +2154,8 @@
     "semantic_hash": ""
   },
   "scripts/generate-app-icons.py": {
-    "mtime": 1792865817.1445684,
-    "seen": 1792866365.8444319,
+    "mtime": 1792866776.0735993,
+    "seen": 1792867356.702593,
     "ast_hash": "7af20378143f79150d70fc22c6f2e5bf",
     "semantic_hash": ""
   },
@@ -2196,9 +2196,9 @@
     "semantic_hash": ""
   },
   "src/components/Landing/NotionLandingPage.jsx": {
-    "mtime": 1792865910.5206716,
-    "seen": 1792866365.845641,
-    "ast_hash": "b7a9d44da266538beb747142806eacff",
+    "mtime": 1792867029.8878365,
+    "seen": 1792867356.703732,
+    "ast_hash": "8cd30d689b6d5af28e53b36b804ac22d",
     "semantic_hash": ""
   },
   "src/test/landingPage.test.jsx": {
@@ -2238,9 +2238,9 @@
     "semantic_hash": ""
   },
   "src/components/Download/NotionDownloadPage.jsx": {
-    "mtime": 1792865917.6360092,
-    "seen": 1792866365.845056,
-    "ast_hash": "7ff7b7c3ccfb4dbc3d25e7601544e1f2",
+    "mtime": 1792867109.6796105,
+    "seen": 1792867356.703191,
+    "ast_hash": "800843c7e02edcc94478151a6a3d3902",
     "semantic_hash": ""
   },
   "src/test/downloadPage.test.jsx": {
@@ -2256,9 +2256,9 @@
     "semantic_hash": ""
   },
   "src/components/Docs/NotedDocsPage.jsx": {
-    "mtime": 1792865914.1888902,
-    "seen": 1792866365.845025,
-    "ast_hash": "62b4398b011fad5c031fee835d2158e5",
+    "mtime": 1792866981.1971512,
+    "seen": 1792867356.703163,
+    "ast_hash": "ca4205564ce8a2ed917aad031ebf3985",
     "semantic_hash": ""
   },
   "src/components/Docs/docsData.js": {
@@ -2280,9 +2280,9 @@
     "semantic_hash": ""
   },
   "src/components/common/NotedFooter.jsx": {
-    "mtime": 1792865906.9596307,
-    "seen": 1792866365.8459678,
-    "ast_hash": "7ee89a901b3c7b3bb3787ae048ade281",
+    "mtime": 1792867071.2795932,
+    "seen": 1792867356.7040472,
+    "ast_hash": "bc64171e6b112a7d53264e3afc940f5a",
     "semantic_hash": ""
   },
   "src/components/common/OpenSourceLinks.jsx": {
@@ -2322,8 +2322,8 @@
     "semantic_hash": ""
   },
   "src/components/Landing/NotedIllustrations.jsx": {
-    "mtime": 1792865895.583311,
-    "seen": 1792866365.84564,
+    "mtime": 1792866776.3241615,
+    "seen": 1792867356.703731,
     "ast_hash": "3374768e68020e001064d1c623db9777",
     "semantic_hash": ""
   },

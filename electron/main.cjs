@@ -1003,6 +1003,7 @@ app.whenReady().then(() => {
       if (url.includes('youtube') || url.includes('googlevideo')) {
         requestHeaders['Referer'] = 'https://www.youtube.com/';
         requestHeaders['Origin'] = 'https://www.youtube.com';
+        delete requestHeaders['sec-ch-ua'];
       } else if (url.includes('vimeo')) {
         requestHeaders['Referer'] = 'https://player.vimeo.com/';
         requestHeaders['Origin'] = 'https://player.vimeo.com';

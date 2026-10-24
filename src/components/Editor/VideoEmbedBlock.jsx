@@ -19,7 +19,8 @@ export const VideoEmbedBlock = ({ block, onUpdateBlock, isLocked = false }) => {
     if (ytMatch && ytMatch[1]) {
       return {
         type: 'youtube',
-        embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0&enablejsapi=1`
+        videoId: ytMatch[1],
+        embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0&playsinline=1`
       };
     }
 
@@ -76,9 +77,13 @@ export const VideoEmbedBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   };
 
   const handleOpenOriginal = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     if (block.url) {
-      window.open(block.url, '_blank', 'noopener,noreferrer');
+      if (window.electronAPI?.openExternal) {
+        window.electronAPI.openExternal(block.url);
+      } else {
+        window.open(block.url, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
@@ -126,6 +131,7 @@ export const VideoEmbedBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                 className="notion-video-element"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen
               />
             ) : (

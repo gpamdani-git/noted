@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Globe, ChevronDown, ChevronUp } from 'lucide-react';
 import { GITHUB_CONFIG } from './OpenSourceLinks';
+import notedLogo from '../../assets/noted-brand-logo.png';
 import './NotedFooter.css';
 
 const FOOTER_DICTIONARY = {
@@ -127,7 +128,7 @@ export function NotedFooter({
           >
             <div className="noted-footer-brand-icon">
               <img
-                src="/noted-brand-logo.png"
+                src={notedLogo}
                 alt="Noted"
                 className="noted-footer-brand-img"
               />

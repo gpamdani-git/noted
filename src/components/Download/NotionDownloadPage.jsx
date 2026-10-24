@@ -24,6 +24,7 @@ import { showToast } from '../common/Toast';
 import { GithubNavPill } from '../common/OpenSourceLinks';
 import { NotedFooter } from '../common/NotedFooter';
 import { detectUserPlatform } from '../../utils/platform';
+import notedLogo from '../../assets/noted-brand-logo.png';
 import './NotionDownloadPage.css';
 
 // Bilingual Dictionary for English (en) and Bahasa Indonesia (id)
@@ -299,7 +300,7 @@ export function NotionDownloadPage({
               <ArrowLeft size={16} />
               <div className="noted-brand-icon-mini">
                 <img
-                  src="/noted-brand-logo.png"
+                  src={notedLogo}
                   alt="Noted"
                   className="download-brand-logo-img"
                 />
@@ -421,7 +422,7 @@ export function NotionDownloadPage({
             <div className="ecosystem-badge">{t.mobile.badge}</div>
             <div className="ecosystem-icon-wrap">
               <img
-                src="/noted-brand-logo.png"
+                src={notedLogo}
                 alt="Noted Mobile"
                 className="eco-uploaded-logo-img"
                 width="36"
@@ -451,7 +452,7 @@ export function NotionDownloadPage({
             <div className="ecosystem-badge">{t.webCard.badge}</div>
             <div className="ecosystem-icon-wrap">
               <img
-                src="/noted-brand-logo.png"
+                src={notedLogo}
                 alt="Noted Web"
                 className="eco-uploaded-logo-img"
                 width="36"

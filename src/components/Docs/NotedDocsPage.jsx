@@ -29,6 +29,7 @@ import { renderInlineMarkdown } from '../../utils/markdownRenderer';
 import { showToast } from '../common/Toast';
 import { GithubNavPill } from '../common/OpenSourceLinks';
 import { NotedFooter } from '../common/NotedFooter';
+import notedLogo from '../../assets/noted-brand-logo.png';
 import './NotedDocsPage.css';
 
 // Icon resolver helper for categories
@@ -477,7 +478,7 @@ export function NotedDocsPage({
               <ArrowLeft size={16} />
               <div className="docs-brand-badge">
                 <img
-                  src="/noted-brand-logo.png"
+                  src={notedLogo}
                   alt="Noted"
                   className="docs-brand-logo-img"
                 />

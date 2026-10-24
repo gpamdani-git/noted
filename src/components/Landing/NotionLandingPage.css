@@ -346,6 +346,55 @@
   border-radius: 6px;
   cursor: pointer;
   margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mobile-drawer-lang-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--lp-border-subtle);
+  margin-top: 4px;
+}
+
+.mobile-drawer-lang-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--lp-text-muted);
+}
+
+.mobile-drawer-lang-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.mobile-lang-pill {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--lp-bg-subtle);
+  color: var(--lp-text-secondary);
+  border: 1px solid var(--lp-border-subtle);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mobile-lang-pill.active {
+  background: var(--lp-text-primary);
+  color: var(--lp-bg-page);
+  border-color: var(--lp-text-primary);
+}
+
+.mockup-avatar-logo-img {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  display: block;
 }
 
 /* 2. HERO SECTION */
@@ -2053,13 +2102,19 @@
   .noted-landing-nav-links,
   .noted-demo-btn,
   .noted-login-link,
+  .noted-landing-nav-actions .noted-primary-cta-btn,
+  .noted-landing-nav-actions .noted-login-link,
+  .noted-landing-nav-actions .github-nav-pill,
+  .noted-landing-nav-actions .download-lang-toggle,
   .noted-landing-nav-right .noted-primary-cta-btn,
   .noted-landing-nav-right .github-nav-pill {
-    display: none;
+    display: none !important;
   }
 
   .noted-mobile-menu-toggle {
-    display: block;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
 
   .noted-3d-perspective-rig {

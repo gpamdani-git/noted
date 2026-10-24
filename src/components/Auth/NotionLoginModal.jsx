@@ -17,6 +17,7 @@ import {
   shouldUseNativeGoogleAuth,
 } from '../../utils/auth';
 import { getApiBaseUrl } from '../../utils/session';
+import notedLogo from '../../assets/noted-brand-logo.png';
 import './NotionLoginModal.css';
 
 export const AccountAvatar = ({ user }) => {
@@ -620,7 +621,7 @@ export const NotionLoginModal = ({
           <div className="notion-login-header">
             <div className="notion-login-logo">
               <img
-                src="/noted-brand-logo.png"
+                src={notedLogo}
                 alt="Noted"
                 className="notion-login-logo-img"
               />
