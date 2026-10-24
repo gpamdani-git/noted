@@ -1,5 +1,126 @@
-/* NotionLoginModal.css - Canonical Notion Desktop Authentication UI */
+/* NotionLoginModal.css - Clean-Room Specification Visual & Design Token Contract (spec.md) */
 
+:root,
+.noted-login-page,
+.notion-login-backdrop,
+.notion-login-modal {
+  --login-bg-primary: #FFFFFF;
+  --login-bg-secondary: #F9F8F7;
+  --login-bg-input: rgba(242, 241, 238, 0.6);
+  --login-text-primary: #2C2C2B;
+  --login-text-secondary: #7D7A75;
+  --login-text-tertiary: #A19E99;
+  --login-text-disabled: #BCBAB6;
+  --login-text-error: #CD3C3A;
+  --login-border-divider: #E6E5E3;
+  --login-input-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.039), 0px 0px 0px 1px rgba(42, 28, 0, 0.07);
+  --login-input-focus-ring: rgba(35, 131, 226, 0.57) 0px 0px 0px 1px inset, rgba(35, 131, 226, 0.35) 0px 0px 0px 2px;
+  --login-input-error-ring: 0px 0px 0px 1px rgba(205, 60, 58, 1) inset, 0px 0px 0px 1px rgba(205, 60, 58, 1);
+  --login-btn-primary-bg: #2383E2;
+  --login-btn-primary-hover: #0077D4;
+  --login-btn-primary-active: #006BC7;
+  --login-btn-primary-text: #FFFFFF;
+  --login-btn-sso-bg: #FFFFFF;
+  --login-btn-sso-border: 1px solid rgba(55, 53, 47, 0.16);
+  --login-btn-sso-hover: rgba(55, 53, 47, 0.06);
+  --login-btn-sso-active: rgba(55, 53, 47, 0.16);
+  --login-modal-shadow: 0px 20px 24px 0px rgba(25, 25, 25, 0.059), 0px 5px 9px 0px rgba(25, 25, 25, 0.029), 0px 0px 0px 1px rgba(42, 28, 0, 0.07);
+  --login-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  --login-font-mono: "iawriter-mono", Nitti, Menlo, Courier, monospace;
+}
+
+[data-theme='dark'],
+[data-theme='dark'] .noted-login-page,
+[data-theme='dark'] .notion-login-backdrop,
+[data-theme='dark'] .notion-login-modal {
+  --login-bg-primary: #191919;
+  --login-bg-secondary: #202020;
+  --login-bg-input: rgba(255, 255, 255, 0.055);
+  --login-text-primary: #F0EFED;
+  --login-text-secondary: #ADA9A3;
+  --login-text-tertiary: #7D7A75;
+  --login-text-disabled: #5F5E59;
+  --login-text-error: #DF5452;
+  --login-border-divider: #383836;
+  --login-input-shadow: 0px 0px 0px 1px rgba(56, 56, 54, 1), 0px 2px 4px 0px rgba(25, 25, 25, 0.079);
+  --login-input-focus-ring: rgba(35, 131, 226, 0.57) 0px 0px 0px 1px inset, rgba(35, 131, 226, 0.35) 0px 0px 0px 2px;
+  --login-input-error-ring: 0px 0px 0px 1px rgba(205, 60, 58, 1) inset, 0px 0px 0px 1px rgba(205, 60, 58, 1);
+  --login-btn-primary-bg: #2383E2;
+  --login-btn-primary-hover: #0077D4;
+  --login-btn-primary-active: #006BC7;
+  --login-btn-primary-text: #FFFFFF;
+  --login-btn-sso-bg: rgba(255, 255, 255, 0.055);
+  --login-btn-sso-border: 1px solid rgba(255, 255, 255, 0.13);
+  --login-btn-sso-hover: rgba(255, 255, 255, 0.055);
+  --login-btn-sso-active: rgba(255, 255, 255, 0.03);
+  --login-modal-shadow: 0px 0px 0px 1px rgba(56, 56, 54, 1), 0px 20px 24px 0px rgba(15, 15, 15, 0.35), 0px 5px 9px 0px rgba(15, 15, 15, 0.2);
+}
+
+/* 6.1 Full-Page Layout Structure */
+.noted-login-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  background-color: var(--login-bg-primary);
+  color: var(--login-text-primary);
+  font-family: var(--login-font-ui);
+}
+
+.noted-login-topbar {
+  width: 100%;
+  height: 45px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  -webkit-app-region: drag;
+  box-sizing: border-box;
+}
+
+.noted-login-topbar * {
+  -webkit-app-region: no-drag;
+}
+
+.noted-login-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-top: 45px;
+  padding-bottom: 60px;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.noted-login-container {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.noted-login-footer {
+  position: fixed;
+  bottom: 0;
+  inset-inline: 0;
+  padding-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.2;
+  background-color: var(--login-bg-primary);
+  color: var(--login-text-secondary);
+}
+
+/* Modal Backdrop & Dialog Card */
 .notion-login-backdrop {
   position: fixed;
   inset: 0;
@@ -10,29 +131,35 @@
   justify-content: center;
   z-index: 10000;
   padding: 16px;
+  font-family: var(--login-font-ui);
 }
 
 .notion-login-modal {
   position: relative;
   width: 100%;
-  max-width: 440px;
-  background: var(--bg-modal, #ffffff);
-  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  max-width: 480px;
+  background-color: var(--login-bg-primary);
+  color: var(--login-text-primary);
   border-radius: 12px;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--login-modal-shadow);
   padding: 32px 36px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  align-items: center;
+  gap: 16px;
   max-height: 92vh;
   overflow-y: auto;
   box-sizing: border-box;
 }
 
 [data-theme='dark'] .notion-login-modal {
-  background: #202020;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background-color: var(--login-bg-secondary);
+  box-shadow: var(--login-modal-shadow);
+}
+
+.notion-login-modal .noted-login-container {
+  max-width: 320px;
+  width: 100%;
 }
 
 .notion-login-close-btn {
@@ -44,17 +171,17 @@
   border-radius: 4px;
   border: none;
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--login-text-tertiary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.1s ease;
+  transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .notion-login-close-btn:hover {
-  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
-  color: var(--text-primary);
+  background: var(--login-btn-sso-hover);
+  color: var(--login-text-primary);
 }
 
 /* Header & Logo */
@@ -63,255 +190,462 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 6px;
+  width: 100%;
+  gap: 4px;
 }
 
 .notion-login-logo {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  background: var(--text-primary, #37352f);
-  color: var(--bg-primary, #ffffff);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: var(--login-text-primary);
+  color: var(--login-bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  margin-bottom: 10px;
 }
 
-[data-theme='dark'] .notion-login-logo {
-  background: #ffffff;
-  color: #191919;
+@media (min-width: 1021px) {
+  .notion-login-logo {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .notion-logo-glyph {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
   font-family: serif;
   line-height: 1;
 }
 
+.notion-login-logo-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 5px;
+  display: block;
+}
+
 .notion-login-title {
-  font-size: 21px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
   letter-spacing: -0.02em;
+  color: var(--login-text-primary);
+  margin: 0;
 }
 
 .notion-login-subtitle {
-  font-size: 13px;
-  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--login-text-secondary);
+  margin: 0 0 16px 0;
 }
 
-/* Error banner */
+/* 6.3 #6 Error Alert Component (role="alert") */
+.noted-login-alert,
 .notion-login-error {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: rgba(224, 62, 62, 0.1);
-  border: 1px solid rgba(224, 62, 62, 0.25);
-  color: #e03e3e;
-  font-size: 12.5px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--login-text-error);
+  text-align: center;
+  width: 100%;
+  margin: 12px 0;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
-/* Auth Buttons */
+/* 6.3 #5 SSO / Secondary Auth Buttons */
 .notion-login-methods {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
 }
 
 .google-gis-container {
   width: 100%;
+  position: relative;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 .google-rendered-button-slot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  min-height: 40px;
+  height: 100%;
+  opacity: 0.0001;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .google-rendered-button-slot > div,
 .google-rendered-button-slot iframe {
   width: 100% !important;
-  border-radius: 6px !important;
+  height: 100% !important;
+  cursor: pointer !important;
+  transform: scale(1.15);
+  transform-origin: center;
 }
 
+.noted-sso-btn,
 .notion-auth-btn {
   width: 100%;
-  height: 38px;
+  height: 40px;
+  min-height: 40px;
   border-radius: 6px;
-  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.16));
-  background: var(--bg-primary, #ffffff);
-  color: var(--text-primary);
-  font-size: 13.5px;
-  font-weight: 500;
-  cursor: pointer;
+  padding-inline: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  transition: all 0.15s ease;
-  padding: 0 16px;
+  position: relative;
+  background: var(--login-btn-sso-bg);
+  border: var(--login-btn-sso-border);
+  color: var(--login-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--login-font-ui);
+  cursor: pointer;
+  transition: background 20ms ease-in 0s;
+  box-sizing: border-box;
+  gap: 8px;
 }
 
-[data-theme='dark'] .notion-auth-btn {
-  background: #252525;
-  border-color: rgba(255, 255, 255, 0.12);
+.noted-sso-btn:hover:not(:disabled),
+.notion-auth-btn:hover:not(:disabled) {
+  background: var(--login-btn-sso-hover);
 }
 
-.notion-auth-btn:hover {
-  background: var(--bg-hover, rgba(55, 53, 47, 0.04));
-  border-color: var(--text-tertiary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+.noted-sso-btn:active:not(:disabled),
+.notion-auth-btn:active:not(:disabled) {
+  background: var(--login-btn-sso-active);
 }
 
-.apple-custom-btn:hover {
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border-color: var(--text-primary);
+.noted-sso-btn:disabled,
+.notion-auth-btn:disabled {
+  color: var(--login-text-disabled);
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-/* Divider */
+.noted-sso-icon {
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  inset-inline-start: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Divider ("OR") */
+.noted-login-divider,
 .notion-login-divider {
   display: flex;
   align-items: center;
   text-align: center;
-  color: var(--text-tertiary);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  margin: 4px 0;
+  width: 100%;
+  color: var(--login-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin: 12px 0;
 }
 
+.noted-login-divider::before,
+.noted-login-divider::after,
 .notion-login-divider::before,
 .notion-login-divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.1));
+  border-bottom: 1px solid var(--login-border-divider);
 }
 
+.noted-login-divider span,
 .notion-login-divider span {
-  padding: 0 10px;
+  padding: 0 12px;
 }
 
-/* Email Form */
+/* 6.3 #1 & #2 Form, Labels, Inputs, and Clear Button */
 .notion-login-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  width: 100%;
 }
 
+.noted-field-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.noted-field-label,
 .notion-login-field-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--login-text-secondary);
+  margin-bottom: 4px;
+  text-align: left;
 }
 
 .notion-login-input-group {
   position: relative;
   display: flex;
   align-items: center;
-}
-
-.notion-input-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--text-tertiary);
-  pointer-events: none;
+  width: 100%;
 }
 
 .notion-login-input {
   width: 100%;
-  height: 38px;
-  padding: 0 12px 0 34px;
+  height: 36px;
   border-radius: 6px;
-  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.14));
-  background: var(--bg-primary, #ffffff);
-  color: var(--text-primary);
-  font-size: 13.5px;
+  padding: 4px 32px 4px 10px;
+  font-size: 15px;
+  font-family: var(--login-font-ui);
+  background: var(--login-bg-input);
+  color: var(--login-text-primary);
+  border: none;
+  box-shadow: var(--login-input-shadow);
   outline: none;
-  transition: all 0.15s ease;
   box-sizing: border-box;
+  transition: box-shadow 150ms ease, background-color 150ms ease;
 }
 
-[data-theme='dark'] .notion-login-input {
-  background: #252525;
-  border-color: rgba(255, 255, 255, 0.12);
+.notion-login-input::placeholder {
+  color: var(--login-text-tertiary);
 }
 
 .notion-login-input:focus {
-  border-color: var(--accent, #2383e2);
-  box-shadow: 0 0 0 2px var(--accent-soft, rgba(35, 131, 226, 0.15));
+  box-shadow: var(--login-input-focus-ring);
 }
 
+.notion-login-input:disabled {
+  color: var(--login-text-disabled);
+  cursor: not-allowed;
+}
+
+.notion-login-input.noted-otp-input {
+  font-family: var(--login-font-mono);
+  letter-spacing: 0.08em;
+}
+
+.notion-login-input.inputRedFocusRing,
+.notion-login-input.noted-input-error,
+.notion-login-input[aria-invalid='true'] {
+  box-shadow: var(--login-input-error-ring);
+}
+
+/* 6.3 #2 Clear Input Button (16px x 16px circle) */
+.noted-clear-input-btn {
+  position: absolute;
+  inset-inline-end: 8px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background-color: transparent;
+  color: var(--login-text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.noted-clear-input-btn:hover {
+  background-color: rgba(33, 27, 23, 0.05);
+  color: var(--login-text-secondary);
+}
+
+/* 6.3 #3 Animated Step 2 Container */
+.noted-animated-step {
+  width: 100%;
+  transition: all 0.5s ease-in-out;
+}
+
+.noted-animated-step.is-closed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.noted-animated-step.is-open {
+  max-height: 5000px;
+  opacity: 1;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.noted-step2-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.noted-secondary-action-btn,
+.noted-back-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--login-text-secondary);
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.noted-secondary-action-btn:hover:not(:disabled),
+.noted-back-btn:hover:not(:disabled) {
+  color: var(--login-text-primary);
+  background-color: var(--login-btn-sso-hover);
+}
+
+.noted-secondary-action-btn:disabled,
+.noted-back-btn:disabled {
+  color: var(--login-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 6.3 #4 Primary Submit Button */
+.noted-submit-btn,
 .notion-login-submit-btn {
   width: 100%;
-  height: 38px;
+  height: 36px;
   border-radius: 6px;
+  margin-top: 6px;
+  padding-inline: 12px;
   border: none;
-  background: var(--text-primary, #2383e2);
-  color: var(--bg-primary, #ffffff);
-  font-size: 13.5px;
+  background-color: var(--login-btn-primary-bg);
+  color: var(--login-btn-primary-text);
+  font-size: 14px;
   font-weight: 500;
+  line-height: 1;
+  font-family: var(--login-font-ui);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 4px;
-  transition: opacity 0.15s ease;
+  transition: background-color 150ms ease, color 150ms ease;
+  box-sizing: border-box;
 }
 
-[data-theme='dark'] .notion-login-submit-btn {
-  background: #ffffff;
-  color: #191919;
+.noted-submit-btn:hover:not(:disabled),
+.notion-login-submit-btn:hover:not(:disabled) {
+  background-color: var(--login-btn-primary-hover);
 }
 
-.notion-login-submit-btn:hover {
-  opacity: 0.9;
+.noted-submit-btn:active:not(:disabled),
+.notion-login-submit-btn:active:not(:disabled) {
+  background-color: var(--login-btn-primary-active);
 }
 
-/* Footer links */
+.noted-submit-btn:disabled,
+.notion-login-submit-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.noted-submit-btn:focus-visible,
+.notion-login-submit-btn:focus-visible {
+  outline: none;
+  box-shadow: 0px 0px 0px 2px #F8F8F7, 0px 0px 0px 4px #2383E2, 0px 0px 0px 6px rgba(255, 255, 255, 0.25);
+}
+
+[data-theme='dark'] .noted-submit-btn:focus-visible,
+[data-theme='dark'] .notion-login-submit-btn:focus-visible {
+  box-shadow: 0px 0px 0px 2px #191919, 0px 0px 0px 4px #2383E2, 0px 0px 0px 6px #191919;
+}
+
+/* 6.3 #7 Loading Spinner */
+.noted-spinner {
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 6px;
+  border: 2px solid rgba(28, 19, 1, 0.11);
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid transparent;
+  border-left: 2px solid transparent;
+  border-radius: 50%;
+  animation: noted-spinner-rotate 1.2s linear infinite;
+  display: inline-block;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .noted-spinner {
+  border-color: rgba(255, 255, 235, 0.1);
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+
+.noted-spinner.noted-spinner-page {
+  width: 22px;
+  height: 22px;
+}
+
+@keyframes noted-spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Footer & Legal Links inside Modal */
 .notion-login-footer {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   text-align: center;
-  margin-top: 4px;
+  margin-top: 8px;
+  width: 100%;
 }
 
 .notion-guest-link {
   background: transparent;
   border: none;
-  color: var(--text-tertiary);
+  color: var(--login-text-secondary);
   font-size: 12px;
   cursor: pointer;
   transition: color 0.1s ease;
 }
 
 .notion-guest-link:hover {
-  color: var(--text-primary);
+  color: var(--login-text-primary);
   text-decoration: underline;
 }
 
 .notion-login-legal {
-  font-size: 10.5px;
-  color: var(--text-tertiary);
-  line-height: 1.4;
-  margin-top: 4px;
+  font-size: 12px;
+  color: var(--login-text-secondary);
+  line-height: 1.35;
+  margin: 4px 0 0 0;
 }
 
-/* Desktop Google Login & Switcher */
 .google-desktop-auth-wrap {
   display: flex;
   flex-direction: column;
@@ -322,8 +656,8 @@
 .notion-subtle-switch-link {
   background: none;
   border: none;
-  color: var(--text-tertiary);
-  font-size: 11.5px;
+  color: var(--login-text-secondary);
+  font-size: 12px;
   text-align: center;
   cursor: pointer;
   padding: 2px;
@@ -331,53 +665,21 @@
 }
 
 .notion-subtle-switch-link:hover {
-  color: var(--text-primary);
+  color: var(--login-text-primary);
   text-decoration: underline;
 }
 
-.notion-custom-google-form {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-}
-
-.notion-custom-google-form .mini-input {
-  flex: 1;
-  font-size: 12.5px;
-  padding: 6px 10px;
-}
-
-.notion-mini-confirm-btn {
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border: none;
-  border-radius: 6px;
-  padding: 0 14px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity 0.15s ease;
-}
-
-.notion-mini-confirm-btn:hover {
-  opacity: 0.9;
-}
-
-/* Google Account Chooser & Loading State */
+/* Saved Accounts Picker */
 .google-accounts-picker {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: var(--bg-hover, rgba(55, 53, 47, 0.04));
-  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.1));
+  width: 100%;
+  background: var(--login-bg-secondary);
+  border: var(--login-btn-sso-border);
   border-radius: 8px;
   padding: 8px;
-}
-
-[data-theme='dark'] .google-accounts-picker {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
 }
 
 .google-account-item {
@@ -388,7 +690,7 @@
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--login-text-primary);
   text-align: left;
   cursor: pointer;
   transition: background 0.12s ease;
@@ -396,11 +698,7 @@
 }
 
 .google-account-item:hover {
-  background: var(--bg-hover, rgba(55, 53, 47, 0.08));
-}
-
-[data-theme='dark'] .google-account-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--login-btn-sso-hover);
 }
 
 .google-account-avatar {
@@ -434,42 +732,18 @@
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.2;
-  color: var(--text-primary);
+  color: var(--login-text-primary);
 }
 
 .google-account-email {
   font-size: 11.5px;
-  color: var(--text-secondary);
+  color: var(--login-text-secondary);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.google-auth-loading-overlay {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.google-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(66, 133, 244, 0.2);
-  border-top-color: #4285F4;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Mobile Responsiveness - Notion Bottom Sheet Login */
 @media (max-width: 768px) {
   .notion-login-backdrop {
     align-items: flex-end;
@@ -481,53 +755,7 @@
     width: 100vw;
     border-radius: 20px 20px 0 0;
     max-height: 88vh;
-    max-height: 88dvh;
     padding: 22px 20px max(calc(env(safe-area-inset-bottom, 0px) + 16px), 24px);
     gap: 14px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.45);
-  }
-
-  .notion-login-header {
-    gap: 4px;
-    margin-bottom: 2px;
-  }
-
-  .notion-login-logo {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 2px;
-  }
-
-  .notion-login-title {
-    font-size: 19px;
-  }
-
-  .notion-login-subtitle {
-    font-size: 12.5px;
-  }
-
-  .notion-auth-btn {
-    height: 44px;
-    font-size: 14px;
-  }
-
-  .notion-login-input {
-    height: 44px;
-    font-size: 14px;
-  }
-
-  .notion-login-submit-btn {
-    height: 44px;
-    font-size: 14px;
-    font-weight: 600;
-    touch-action: manipulation;
-    margin-top: 6px;
-  }
-
-  .notion-guest-link {
-    font-size: 13px;
-    padding: 6px 0;
   }
 }

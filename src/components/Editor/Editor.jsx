@@ -1012,6 +1012,7 @@ export const Editor = ({
         page={page}
         onUpdatePage={onUpdatePage}
         fullWidth={page.fullWidth}
+        hasMarginComments={hasActiveComments}
         backlinks={backlinks}
         onNavigatePage={onNavigatePage}
         onOpenCommentsDrawer={onOpenComments}

@@ -145,6 +145,7 @@ export default async function handler(req, res) {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         const sanitized = sanitizeSyncPayload(body);
         if (!sanitized.ok) {
+          console.warn('[api/sync SQLite] Payload rejected:', sanitized.error);
           return res.status(400).json({ success: false, error: sanitized.error });
         }
         const { user, pages, trash, comments = [], deletedCommentIds = [], workspaceSettings } = sanitized.payload;
@@ -475,6 +476,7 @@ export default async function handler(req, res) {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const sanitized = sanitizeSyncPayload(body);
       if (!sanitized.ok) {
+        console.warn('[api/sync Postgres] Payload rejected:', sanitized.error);
         return res.status(400).json({ success: false, error: sanitized.error });
       }
       const { user, pages, trash, comments = [], deletedCommentIds = [], workspaceSettings } = sanitized.payload;

@@ -1,9 +1,9 @@
 /* TabBar.css - Unified Notion Desktop Top Window Bar */
 
 .noted-tab-bar {
-  height: 38px;
+  height: 44px;
   width: 100%;
-  background: var(--bg-sidebar, #f7f6f3);
+  background: #ffffff;
   border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.08));
   display: flex;
   align-items: center;
@@ -33,7 +33,7 @@
 }
 
 .is-mac-desktop:not(.is-fullscreen) .noted-tab-bar.sidebar-collapsed .tab-bar-left-zone {
-  padding-left: 86px;
+  padding-left: 80px;
 }
 
 .window-nav-icon-btn {
@@ -75,40 +75,40 @@
 /* Scrollable Tab Strip */
 .tab-bar-strip {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   height: 100%;
-  gap: 2px;
+  gap: 3px;
   overflow-x: auto;
   overflow-y: hidden;
   max-width: 100%;
   scrollbar-width: none;
-  padding-top: 5px;
+  padding: 0 4px;
 }
 
 .tab-bar-strip::-webkit-scrollbar {
   display: none;
 }
 
-/* Individual Tab Item */
+/* Individual Tab Item - Floating Pill Tab ala Notion Desktop */
 .tab-item {
   position: relative;
-  height: 33px;
-  min-width: 110px;
-  max-width: 190px;
+  height: 32px;
+  min-width: 100px;
+  max-width: 180px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 10px;
-  border-radius: 6px 6px 0 0;
+  padding: 0 8px;
+  border-radius: 6px;
   background: transparent;
-  color: var(--text-tertiary);
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid transparent;
-  border-bottom: none;
+  border: none;
   transition: all 0.12s ease;
   flex-shrink: 0;
+  user-select: none;
 }
 
 .tab-item:hover {
@@ -120,15 +120,14 @@
   background: var(--bg-primary, #ffffff);
   color: var(--text-primary);
   font-weight: 500;
-  border-color: var(--border-color, rgba(55, 53, 47, 0.08));
-  border-bottom: 1px solid var(--bg-primary, #ffffff);
-  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.03);
+  border: none;
+  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.08), 0 0 0 1px rgba(15, 15, 15, 0.04);
 }
 
 [data-theme='dark'] .tab-item.active {
-  background: #191919;
-  border-color: rgba(255, 255, 255, 0.07);
-  border-bottom-color: #191919;
+  background: #252525;
+  border: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .tab-item.is-dragging {
@@ -190,8 +189,7 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  margin-bottom: 4px;
-  margin-left: 2px;
+  margin: auto 2px;
   border-radius: 4px;
   color: var(--text-tertiary);
   cursor: pointer;

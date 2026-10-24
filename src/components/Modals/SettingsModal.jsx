@@ -334,12 +334,26 @@ export const SettingsModal = ({
               <div className="settings-account-profile">
                 <div className="settings-account-avatar">
                   {currentUser?.picture ? (
-                    <img src={currentUser.picture} alt={currentUser.name} />
-                  ) : (
-                    <span style={{ backgroundColor: currentUser?.color || '#00897b' }}>
-                      {currentUser?.avatar || currentUser?.name?.[0] || 'D'}
-                    </span>
-                  )}
+                    <img
+                      src={currentUser.picture}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextElementSibling) {
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <span
+                    style={{
+                      backgroundColor: currentUser?.color || '#00897b',
+                      display: currentUser?.picture ? 'none' : 'flex'
+                    }}
+                  >
+                    {currentUser?.avatar || currentUser?.name?.[0] || 'D'}
+                  </span>
                 </div>
                 <div className="settings-account-details">
                   <div className="settings-account-name-wrap">
@@ -504,10 +518,22 @@ export const SettingsModal = ({
                       <div className="saved-account-info">
                         <div className="saved-account-avatar" style={{ backgroundColor: acc.color || '#2383e2' }}>
                           {acc.picture ? (
-                            <img src={acc.picture} alt={acc.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                          ) : (
-                            acc.avatar || acc.name?.[0] || 'U'
-                          )}
+                            <img
+                              src={acc.picture}
+                              alt=""
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextElementSibling) {
+                                  e.currentTarget.nextElementSibling.style.display = 'inline';
+                                }
+                              }}
+                              style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                            />
+                          ) : null}
+                          <span style={{ display: acc.picture ? 'none' : 'inline' }}>
+                            {acc.avatar || acc.name?.[0] || 'U'}
+                          </span>
                         </div>
                         <div>
                           <div className="saved-account-name">

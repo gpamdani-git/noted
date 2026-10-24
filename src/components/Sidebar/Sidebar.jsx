@@ -25,10 +25,15 @@ import {
   User,
   ShieldCheck,
   Check,
-  UserPlus
+  UserPlus,
+  Globe
 } from 'lucide-react';
 import { getSavedAccounts, switchAccount } from '../../utils/auth';
 import './Sidebar.css';
+
+const MIN_SIDEBAR_WIDTH = 260;
+const MAX_SIDEBAR_WIDTH = 520;
+const DEFAULT_SIDEBAR_WIDTH = 260;
 
 export const Sidebar = ({
   pages,
@@ -55,12 +60,89 @@ export const Sidebar = ({
   onOpenInNewTab,
   currentUser,
   onOpenLogin,
-  onLogout
+  onLogout,
+  onOpenWebsite
 }) => {
   const [expandedPages, setExpandedPages] = useState({ 'page-projects': true });
   const [activeMenuPageId, setActiveMenuPageId] = useState(null);
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
+  const [isFavoritesCollapsed, setIsFavoritesCollapsed] = useState(false);
+  const [isPrivateCollapsed, setIsPrivateCollapsed] = useState(false);
   const workspaceMenuRef = useRef(null);
+
+  // Resizable Sidebar State
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    try {
+      const saved = localStorage.getItem('noted_sidebar_width');
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && parsed >= MIN_SIDEBAR_WIDTH && parsed <= MAX_SIDEBAR_WIDTH) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return DEFAULT_SIDEBAR_WIDTH;
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const isResizingRef = useRef(false);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, []);
+
+  const handleStartResize = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    isResizingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const handleMouseMove = (moveEvent) => {
+      if (!isResizingRef.current) return;
+      const clientX = moveEvent.clientX;
+      const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, clientX));
+      setSidebarWidth(newWidth);
+      document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+    };
+
+    const handleMouseUp = (upEvent) => {
+      isResizingRef.current = false;
+      setIsResizing(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      const clientX = upEvent.clientX;
+      const finalWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, clientX));
+      setSidebarWidth(finalWidth);
+      document.documentElement.style.setProperty('--sidebar-width', `${finalWidth}px`);
+      try {
+        localStorage.setItem('noted_sidebar_width', String(finalWidth));
+      } catch (err) {}
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleResetWidth = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSidebarWidth(DEFAULT_SIDEBAR_WIDTH);
+    document.documentElement.style.setProperty('--sidebar-width', `${DEFAULT_SIDEBAR_WIDTH}px`);
+    try {
+      localStorage.setItem('noted_sidebar_width', String(DEFAULT_SIDEBAR_WIDTH));
+    } catch (err) {}
+  };
 
   // Close workspace popover when clicking outside
   useEffect(() => {
@@ -174,7 +256,7 @@ export const Sidebar = ({
       <div key={page.id} className="sidebar-tree-node">
         <div
           className={`sidebar-page-item ${isActive ? 'active' : ''} ${dropPosClass} ${isDraggingClass}`}
-          style={{ paddingLeft: `${depth * 12 + 10}px` }}
+          style={{ paddingLeft: `${depth * 14 + 8}px` }}
           onClick={(e) => handlePageClick(page.id, e)}
           draggable={true}
           onDragStart={(e) => handleDragStart(e, page.id)}
@@ -183,16 +265,24 @@ export const Sidebar = ({
           onDrop={(e) => handleDrop(e, page)}
           onDragEnd={handleDragEnd}
         >
-          {/* Caret expander */}
-          <button
-            className={`page-caret-btn ${hasChildren ? '' : 'invisible'}`}
-            onClick={(e) => toggleExpand(page.id, e)}
+          {/* Unified Lead Container: Icon by default, Chevron toggle on hover */}
+          <div
+            className="sidebar-page-lead"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand(page.id, e);
+            }}
           >
-            {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-          </button>
-
-          {/* Page Icon */}
-          <span className="page-icon-span">{page.icon || '📄'}</span>
+            <span className="page-icon-span">{page.icon || '📄'}</span>
+            <button
+              type="button"
+              className="page-caret-btn"
+              onClick={(e) => toggleExpand(page.id, e)}
+              title={isExpanded ? 'Collapse' : 'Expand'}
+            >
+              {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+            </button>
+          </div>
 
           {/* Page Title */}
           <span className="page-title-text">{page.title || 'Untitled'}</span>
@@ -313,9 +403,18 @@ export const Sidebar = ({
           )}
         </div>
 
-        {hasChildren && isExpanded && (
+        {isExpanded && (
           <div className="sidebar-subpages">
-            {childPages.map((child) => renderPageItem(child, depth + 1))}
+            {hasChildren ? (
+              childPages.map((child) => renderPageItem(child, depth + 1))
+            ) : (
+              <div
+                className="sidebar-empty-subpages-hint"
+                style={{ paddingLeft: `${(depth + 1) * 14 + 8}px` }}
+              >
+                No pages inside
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -330,7 +429,7 @@ export const Sidebar = ({
           onClick={onToggleCollapse}
         />
       )}
-      <aside className={`noted-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <aside className={`noted-sidebar ${isCollapsed ? 'collapsed' : ''} ${isResizing ? 'is-resizing' : ''}`}>
         {/* Workspace Profile Header ala Notion Desktop */}
         <div className="sidebar-header" ref={workspaceMenuRef}>
           <div
@@ -340,14 +439,28 @@ export const Sidebar = ({
           >
             <div className="workspace-avatar-notion">
               {currentUser?.picture ? (
-                <img src={currentUser.picture} alt={currentUser.name} className="workspace-user-img" />
-              ) : currentUser?.isLoggedIn ? (
-                <span className="workspace-avatar-letter" style={{ backgroundColor: currentUser.color || '#2383e2' }}>
-                  {currentUser.avatar || currentUser.name?.[0] || 'U'}
-                </span>
-              ) : (
-                <span>💼</span>
-              )}
+                <img
+                  src={currentUser.picture}
+                  alt=""
+                  className="workspace-user-img"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextElementSibling) {
+                      e.currentTarget.nextElementSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <span
+                className="workspace-avatar-letter"
+                style={{
+                  backgroundColor: currentUser?.color || '#2383e2',
+                  display: currentUser?.picture ? 'none' : 'flex'
+                }}
+              >
+                {currentUser?.avatar || currentUser?.name?.[0] || 'U'}
+              </span>
             </div>
             <span className="workspace-name-notion">
               {currentUser?.isLoggedIn ? `${currentUser.name}'s Workspace` : 'Noted Workspace'}
@@ -361,12 +474,26 @@ export const Sidebar = ({
               <div className="workspace-popover-user-card">
                 <div className="popover-user-avatar">
                   {currentUser?.picture ? (
-                    <img src={currentUser.picture} alt={currentUser.name} />
-                  ) : (
-                    <span style={{ backgroundColor: currentUser?.color || '#2383e2' }}>
-                      {currentUser?.avatar || currentUser?.name?.[0] || '💼'}
-                    </span>
-                  )}
+                    <img
+                      src={currentUser.picture}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextElementSibling) {
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <span
+                    style={{
+                      backgroundColor: currentUser?.color || '#2383e2',
+                      display: currentUser?.picture ? 'none' : 'flex'
+                    }}
+                  >
+                    {currentUser?.avatar || currentUser?.name?.[0] || '💼'}
+                  </span>
                 </div>
                 <div className="popover-user-details">
                   <div className="popover-user-name">{currentUser?.name || 'Guest User'}</div>
@@ -424,12 +551,26 @@ export const Sidebar = ({
                       >
                         <div className="popover-mini-avatar">
                           {acc.picture ? (
-                            <img src={acc.picture} alt={acc.name} />
-                          ) : (
-                            <span style={{ backgroundColor: acc.color || '#2383e2' }}>
-                              {acc.avatar || acc.name?.[0] || 'U'}
-                            </span>
-                          )}
+                            <img
+                              src={acc.picture}
+                              alt=""
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextElementSibling) {
+                                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          ) : null}
+                          <span
+                            style={{
+                              backgroundColor: acc.color || '#2383e2',
+                              display: acc.picture ? 'none' : 'flex'
+                            }}
+                          >
+                            {acc.avatar || acc.name?.[0] || 'U'}
+                          </span>
                         </div>
                         <div className="popover-mini-info">
                           <span className="popover-mini-name">{acc.name}</span>
@@ -514,118 +655,205 @@ export const Sidebar = ({
         <div className="sidebar-scrollable-content">
           {/* Section: Favorites - preserved ala Notion Desktop spec */}
           <div className="sidebar-section favorites-section">
-            <div className="sidebar-section-header">
-              <span className="sidebar-section-title">Favorites</span>
+            <div
+              className="sidebar-section-header"
+              onClick={() => setIsFavoritesCollapsed((prev) => !prev)}
+            >
+              <div className="sidebar-section-header-left">
+                <button
+                  type="button"
+                  className={`section-caret-btn ${isFavoritesCollapsed ? 'is-collapsed' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsFavoritesCollapsed((prev) => !prev);
+                  }}
+                  title={isFavoritesCollapsed ? 'Expand Favorites' : 'Collapse Favorites'}
+                >
+                  {isFavoritesCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                </button>
+                <span className="sidebar-section-title">Favorites</span>
+              </div>
             </div>
-            <div className="sidebar-pages-list">
-              {favoritePages.length > 0 ? (
-                favoritePages.map((favPage) => (
-                  <div
-                    key={`fav-${favPage.id}`}
-                    className={`sidebar-page-item favorite-item ${
-                      favPage.id === activePageId ? 'active' : ''
-                    }`}
-                    style={{ paddingLeft: '22px' }}
-                    onClick={(e) => handlePageClick(favPage.id, e)}
-                  >
-                    <span className="page-icon-span">{favPage.icon || '📄'}</span>
-                    <span className="page-title-text">{favPage.title || 'Untitled'}</span>
+            {!isFavoritesCollapsed && (
+              <div className="sidebar-pages-list">
+                {favoritePages.length > 0 ? (
+                  favoritePages.map((favPage) => {
+                    const childPages = pages.filter((p) => p.parentId === favPage.id);
+                    const hasChildren = childPages.length > 0;
+                    const isExpanded = !!expandedPages[`fav-${favPage.id}`];
 
-                    <div className="page-hover-actions">
-                      <button
-                        className="page-hover-btn"
-                        title="Remove from favorites"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleFavorite(favPage.id);
-                        }}
-                      >
-                        <Star size={13} className="text-yellow star-filled" />
-                      </button>
-                      <button
-                        className="page-hover-btn"
-                        title="More actions"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenuPageId(
-                            activeMenuPageId === `fav-${favPage.id}` ? null : `fav-${favPage.id}`
-                          );
-                        }}
-                      >
-                        <MoreHorizontal size={13} />
-                      </button>
-                    </div>
-
-                    {/* Menu Popover for favorite item */}
-                    {activeMenuPageId === `fav-${favPage.id}` && (
-                      <div
-                        className="page-item-menu animate-popover"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          className="page-menu-option"
-                          onClick={() => {
-                            onToggleFavorite(favPage.id);
-                            setActiveMenuPageId(null);
-                          }}
+                    return (
+                      <React.Fragment key={`fav-${favPage.id}`}>
+                        <div
+                          className={`sidebar-page-item favorite-item ${
+                            favPage.id === activePageId ? 'active' : ''
+                          }`}
+                          style={{ paddingLeft: '8px' }}
+                          onClick={(e) => handlePageClick(favPage.id, e)}
                         >
-                          <Star size={14} className="text-yellow star-filled" />
-                          <span>Remove from Favorites</span>
-                        </button>
-                        <button
-                          className="page-menu-option"
-                          onClick={() => {
-                            onDuplicatePage(favPage.id);
-                            setActiveMenuPageId(null);
-                          }}
-                        >
-                          <Copy size={14} />
-                          <span>Duplicate</span>
-                        </button>
-                        {onOpenInNewTab && (
-                          <button
-                            className="page-menu-option"
-                            onClick={() => {
-                              onOpenInNewTab(favPage.id);
-                              setActiveMenuPageId(null);
+                          <div
+                            className="sidebar-page-lead"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedPages((prev) => ({
+                                ...prev,
+                                [`fav-${favPage.id}`]: !prev[`fav-${favPage.id}`],
+                              }));
                             }}
                           >
-                            <ExternalLink size={14} />
-                            <span>Open in New Tab</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
+                            <span className="page-icon-span">{favPage.icon || '📄'}</span>
+                            <button
+                              type="button"
+                              className="page-caret-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedPages((prev) => ({
+                                  ...prev,
+                                  [`fav-${favPage.id}`]: !prev[`fav-${favPage.id}`],
+                                }));
+                              }}
+                              title={isExpanded ? 'Collapse' : 'Expand'}
+                            >
+                              {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                            </button>
+                          </div>
+
+                          <span className="page-title-text">{favPage.title || 'Untitled'}</span>
+
+                          <div className="page-hover-actions">
+                            <button
+                              type="button"
+                              className="page-hover-btn"
+                              title="Remove from favorites"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleFavorite(favPage.id);
+                              }}
+                            >
+                              <Star size={13} className="text-yellow star-filled" />
+                            </button>
+                            <button
+                              type="button"
+                              className="page-hover-btn"
+                              title="More actions"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuPageId(
+                                  activeMenuPageId === `fav-${favPage.id}` ? null : `fav-${favPage.id}`
+                                );
+                              }}
+                            >
+                              <MoreHorizontal size={13} />
+                            </button>
+                          </div>
+
+                          {/* Menu Popover for favorite item */}
+                          {activeMenuPageId === `fav-${favPage.id}` && (
+                            <div
+                              className="page-item-menu animate-popover"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                className="page-menu-option"
+                                onClick={() => {
+                                  onToggleFavorite(favPage.id);
+                                  setActiveMenuPageId(null);
+                                }}
+                              >
+                                <Star size={14} className="text-yellow star-filled" />
+                                <span>Remove from Favorites</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="page-menu-option"
+                                onClick={() => {
+                                  onDuplicatePage(favPage.id);
+                                  setActiveMenuPageId(null);
+                                }}
+                              >
+                                <Copy size={14} />
+                                <span>Duplicate</span>
+                              </button>
+                              {onOpenInNewTab && (
+                                <button
+                                  type="button"
+                                  className="page-menu-option"
+                                  onClick={() => {
+                                    onOpenInNewTab(favPage.id);
+                                    setActiveMenuPageId(null);
+                                  }}
+                                >
+                                  <ExternalLink size={14} />
+                                  <span>Open in New Tab</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {isExpanded &&
+                          hasChildren &&
+                          childPages.map((child) => renderPageItem(child, 1))}
+                      </React.Fragment>
+                    );
+                  })
+                ) : (
+                  <div className="sidebar-empty-favorites-hint">
+                    <span>Star pages to see them here</span>
                   </div>
-                ))
-              ) : (
-                <div className="sidebar-empty-favorites-hint">
-                  <span>Star pages to see them here</span>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Section: Private (Projects, page, Notes, etc.) */}
           <div className="sidebar-section">
-            <div className="sidebar-section-header">
-              <span className="sidebar-section-title">Private</span>
+            <div
+              className="sidebar-section-header"
+              onClick={() => setIsPrivateCollapsed((prev) => !prev)}
+            >
+              <div className="sidebar-section-header-left">
+                <button
+                  type="button"
+                  className={`section-caret-btn ${isPrivateCollapsed ? 'is-collapsed' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPrivateCollapsed((prev) => !prev);
+                  }}
+                  title={isPrivateCollapsed ? 'Expand Private' : 'Collapse Private'}
+                >
+                  {isPrivateCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                </button>
+                <span className="sidebar-section-title">Private</span>
+              </div>
               <button
+                type="button"
                 className="section-add-btn"
                 title="Add a page"
-                onClick={() => onCreatePage(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCreatePage(null);
+                }}
               >
                 <Plus size={13} />
               </button>
             </div>
 
-            <div className="sidebar-pages-list">
-              {rootPages.map((page) => renderPageItem(page))}
-            </div>
+            {!isPrivateCollapsed && (
+              <div className="sidebar-pages-list">
+                {rootPages.map((page) => renderPageItem(page))}
+              </div>
+            )}
           </div>
 
-          {/* Section: Utility Links (Import, Archive, Trash) */}
+          {/* Section: Utility Links (Import, Archive, Trash, Website) */}
           <div className="sidebar-section utility-section">
+            {onOpenWebsite && (
+              <button className="utility-nav-link" onClick={onOpenWebsite} title="Noted Website">
+                <Globe size={14} />
+                <span>Website</span>
+              </button>
+            )}
             <button className="utility-nav-link" onClick={onOpenImportModal} title="Import Markdown / Notes">
               <Download size={14} />
               <span>Import</span>
@@ -683,6 +911,18 @@ export const Sidebar = ({
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
           </button>
         </div>
+
+        {/* Sidebar Drag Resizer Handle */}
+        {!isCollapsed && (
+          <div
+            className="sidebar-resizer"
+            onMouseDown={handleStartResize}
+            onDoubleClick={handleResetWidth}
+            title="Drag to resize sidebar (double-click to reset)"
+            role="separator"
+            aria-orientation="vertical"
+          />
+        )}
       </aside>
     </>
   );

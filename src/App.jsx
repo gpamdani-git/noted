@@ -12,7 +12,11 @@ import { VersionHistoryDrawer } from './components/Modals/VersionHistoryDrawer';
 import { PageAnalyticsModal } from './components/Modals/PageAnalyticsModal';
 import { CommentsDrawer } from './components/Comments/CommentsDrawer';
 import { NotionLoginModal } from './components/Auth/NotionLoginModal';
-import { getAuthState, logout as authLogout, updateUserProfile, applyDesktopSession, switchAccount } from './utils/auth';
+import { NotionLandingPage } from './components/Landing/NotionLandingPage';
+import { NotionDownloadPage } from './components/Download/NotionDownloadPage';
+import { NotedDocsPage } from './components/Docs/NotedDocsPage';
+import { Toast, showToast } from './components/common/Toast';
+import { getAuthState, logout as authLogout, updateUserProfile, applyDesktopSession, switchAccount, AUTH_CONFIG } from './utils/auth';
 import { getSessionToken } from './utils/session';
 import { getStoredComments, getDeletedCommentIds, applyRemoteComments } from './utils/comments';
 import { savePageSnapshot } from './utils/versionHistory';
@@ -36,7 +40,12 @@ import {
 import { pageToMarkdown, downloadMarkdownFile } from './utils/markdown';
 import { readPageIdFromUrl, writePageIdToUrl } from './utils/pageUrl';
 import { checkForUpdates } from './utils/updater';
+import { CollaborationProvider } from './utils/collaboration/yjsProvider';
+import RemoteCursor from './components/Collaboration/RemoteCursor';
+import TypingIndicator from './components/Collaboration/TypingIndicator';
 import './App.css';
+
+export const FIRST_WORKSPACE_LOGIN_KEY = 'noted_first_workspace_login_shown_v1';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState(() => getAuthState().user);
@@ -74,6 +83,148 @@ export function App() {
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  // Global Language state (Indonesian 'id' vs English 'en')
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem('noted_lang') || 'id';
+    } catch {
+      return 'id';
+    }
+  });
+
+  const handleSetLang = (newLang) => {
+    setLang(newLang);
+    try {
+      localStorage.setItem('noted_lang', newLang);
+    } catch {
+      // safe fallback
+    }
+  };
+
+  // Marketing Website vs Download Page vs Docs vs Workspace View
+  const [currentView, setCurrentView] = useState(() => {
+    if (typeof window === 'undefined') return 'app';
+    if (import.meta.env?.MODE === 'test') return 'app';
+    if (window.electronAPI?.isElectron || window.Capacitor?.isNativePlatform?.()) {
+      return 'app';
+    }
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view') === 'docs') return 'docs';
+    if (params.get('view') === 'download') return 'download';
+    if (params.get('view') === 'landing') return 'landing';
+    if (params.get('view') === 'app' || params.get('pageId')) return 'app';
+
+    const saved = localStorage.getItem('noted_current_view');
+    if (saved === 'app') return 'app';
+    if (saved === 'docs') return 'docs';
+    if (saved === 'download') return 'download';
+    if (saved === 'landing') return 'landing';
+    return 'landing';
+  });
+
+  const handleOpenWorkspace = () => {
+    setCurrentView('app');
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      localStorage.setItem('noted_current_view', 'app');
+      if (localStorage.getItem(FIRST_WORKSPACE_LOGIN_KEY) !== 'true' && !currentUser?.isLoggedIn) {
+        localStorage.setItem(FIRST_WORKSPACE_LOGIN_KEY, 'true');
+        setIsLoginModalOpen(true);
+      }
+      const url = new URL(window.location.href);
+      if (
+        url.searchParams.get('view') === 'landing' ||
+        url.searchParams.get('view') === 'download' ||
+        url.searchParams.get('view') === 'docs'
+      ) {
+        url.searchParams.delete('view');
+        window.history.replaceState(window.history.state, '', url.toString());
+      }
+    } catch {
+      // safe fallback
+    }
+  };
+
+  const handleOpenLandingWebsite = () => {
+    setCurrentView('landing');
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      localStorage.setItem('noted_current_view', 'landing');
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', 'landing');
+      window.history.replaceState(window.history.state, '', url.toString());
+    } catch {
+      // safe fallback
+    }
+  };
+
+  const [downloadTargetPlatform, setDownloadTargetPlatform] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('platform') || null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleOpenDownloadPage = (platformKey = null) => {
+    setDownloadTargetPlatform(platformKey || null);
+    setCurrentView('download');
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      localStorage.setItem('noted_current_view', 'download');
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', 'download');
+      if (platformKey) {
+        url.searchParams.set('platform', platformKey);
+      } else {
+        url.searchParams.delete('platform');
+      }
+      window.history.replaceState(window.history.state, '', url.toString());
+    } catch {
+      // safe fallback
+    }
+  };
+
+  const handleOpenDocsPage = () => {
+    setCurrentView('docs');
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      localStorage.setItem('noted_current_view', 'docs');
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', 'docs');
+      window.history.replaceState(window.history.state, '', url.toString());
+    } catch {
+      // safe fallback
+    }
+  };
+
+  // Ensure window scroll is enabled on marketing landing, download & docs pages and locked on desktop app workspace
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (currentView === 'landing' || currentView === 'download' || currentView === 'docs') {
+      document.documentElement.style.overflow = 'auto';
+      document.body.style.overflow = 'auto';
+      document.body.style.height = 'auto';
+    } else {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100%';
+    }
+  }, [currentView]);
+
+  // First-time workspace access login popup prompt
+  useEffect(() => {
+    if (currentView !== 'app') return;
+    try {
+      if (localStorage.getItem(FIRST_WORKSPACE_LOGIN_KEY) !== 'true' && !currentUser?.isLoggedIn) {
+        localStorage.setItem(FIRST_WORKSPACE_LOGIN_KEY, 'true');
+        setIsLoginModalOpen(true);
+      }
+    } catch {
+      // safe fallback
+    }
+  }, [currentView, currentUser]);
 
   // Cloud Sync state and listener (Notion REA Dual-DB Engine)
   const [cloudSyncStatus, setCloudSyncStatus] = useState('synced');
@@ -226,6 +377,34 @@ export function App() {
     }
   }, [currentUser]);
 
+  // Auth state change Toast notifications (Login / Logout / Switch Account)
+  useEffect(() => {
+    let prevUser = currentUser;
+
+    const handleAuthChange = (e) => {
+      const newUser = e.detail?.user;
+      if (!newUser) return;
+
+      // 1. Logged in from guest
+      if (newUser.isLoggedIn && (!prevUser || !prevUser.isLoggedIn)) {
+        showToast(`Berhasil masuk sebagai ${newUser.name || newUser.email}`, 'success');
+      }
+      // 2. Switched account
+      else if (newUser.isLoggedIn && prevUser?.isLoggedIn && prevUser.id !== newUser.id) {
+        showToast(`Beralih ke akun ${newUser.name || newUser.email}`, 'account');
+      }
+      // 3. Logged out to guest
+      else if (!newUser.isLoggedIn && prevUser?.isLoggedIn) {
+        showToast('Berhasil keluar. Beralih ke Mode Tamu (Offline)', 'logout');
+      }
+
+      prevUser = newUser;
+    };
+
+    window.addEventListener(AUTH_CONFIG.EVENTS.AUTH_CHANGED, handleAuthChange);
+    return () => window.removeEventListener(AUTH_CONFIG.EVENTS.AUTH_CHANGED, handleAuthChange);
+  }, [currentUser]);
+
   // Undo / Redo History Stack per page (Category B)
   const [pageHistory, setPageHistory] = useState({});
 
@@ -295,6 +474,37 @@ export function App() {
 
     return () => {
       document.removeEventListener('fullscreenchange', handleDomFullscreen);
+    };
+  }, []);
+
+  // Listen for mobile Capacitor deep links (noted://auth?session=...)
+  useEffect(() => {
+    const handleCapacitorDeepLink = (e) => {
+      const url = e?.detail;
+      if (!url || typeof url !== 'string') return;
+      try {
+        const parsed = new URL(url);
+        const session = parsed.searchParams.get('session');
+        if (session) {
+          applyDesktopSession(session)
+            .then((user) => setCurrentUser(user))
+            .catch((err) => console.warn('[Noted Mobile] Session hand-off failed:', err.message));
+          return;
+        }
+
+        const pageId = parsed.searchParams.get('pageId');
+        if (pageId) {
+          setOpenTabs((prev) => (prev.includes(pageId) ? prev : [...prev, pageId]));
+          setActivePageId(pageId);
+        }
+      } catch (err) {
+        console.warn('[Noted Mobile] Deep link parse failed:', err);
+      }
+    };
+
+    window.addEventListener('capacitor:deep-link', handleCapacitorDeepLink);
+    return () => {
+      window.removeEventListener('capacitor:deep-link', handleCapacitorDeepLink);
     };
   }, []);
 
@@ -448,6 +658,60 @@ export function App() {
     }
   }, [activePageId]);
 
+  // Real-time Collaboration (Yjs & Presence Protocol)
+  const [collaborators, setCollaborators] = useState([]);
+  const [remoteCursors, setRemoteCursors] = useState([]);
+  const [typingUsers, setTypingUsers] = useState([]);
+  const collabProviderRef = useRef(null);
+
+  useEffect(() => {
+    // Only connect WebSocket collaboration if server URL is configured
+    const collabServerUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_COLLAB_SERVER_URL;
+    if (!collabServerUrl || !activePageId) {
+      setCollaborators([]);
+      setRemoteCursors([]);
+      setTypingUsers([]);
+      return;
+    }
+
+    try {
+      const roomName = `noted_page_${activePageId}`;
+      const provider = new CollaborationProvider(roomName, null, {
+        serverUrl: collabServerUrl
+      });
+      collabProviderRef.current = provider;
+      provider.connect();
+
+      if (currentUser && currentUser.name) {
+        provider.setUser({
+          id: currentUser.id || 'guest',
+          name: currentUser.name,
+          color: currentUser.color,
+          avatar: currentUser.avatar
+        });
+      }
+
+      const updateUsers = () => {
+        setCollaborators(provider.getUsers());
+        setRemoteCursors(provider.getCursors());
+        setTypingUsers(provider.getTypingUsers());
+      };
+
+      if (provider.awareness) {
+        provider.awareness.on('change', updateUsers);
+      }
+
+      return () => {
+        if (provider.awareness) {
+          provider.awareness.off('change', updateUsers);
+        }
+        provider.destroy();
+      };
+    } catch {
+      // Graceful fallback if WebSocket is not available
+    }
+  }, [activePageId, currentUser?.id, currentUser?.name]);
+
   // Navigation history (< > back and forward)
   const [navHistory, setNavHistory] = useState(() => (activePageId ? [activePageId] : []));
   const [navHistoryIndex, setNavHistoryIndex] = useState(0);
@@ -488,6 +752,10 @@ export function App() {
       return [...sliced, pageId];
     });
     setNavHistoryIndex((prev) => prev + 1);
+  };
+
+  const handleSelectPage = (pageId) => {
+    handleOpenTab(pageId);
   };
 
   const handleCloseTab = (tabIdToClose) => {
@@ -1231,18 +1499,110 @@ export function App() {
       icon: '🗄️',
       keywords: ['archive', 'remove', 'hide', 'page'],
       run: handleArchiveActivePage
+    },
+    {
+      id: 'open-website',
+      title: 'Open Noted Website',
+      section: 'Workspace',
+      icon: '🌐',
+      keywords: ['website', 'marketing', 'landing', 'home'],
+      run: handleOpenLandingWebsite
+    },
+    {
+      id: 'open-download',
+      title: 'Download Desktop & Mobile Apps',
+      section: 'Workspace',
+      icon: '📥',
+      keywords: ['download', 'desktop', 'mac', 'windows', 'android', 'mobile', 'apk'],
+      run: handleOpenDownloadPage
+    },
+    {
+      id: 'open-docs',
+      title: 'Help Center & Documentation',
+      section: 'Workspace',
+      icon: '📖',
+      keywords: ['docs', 'help', 'guide', 'panduan', 'bantuan', 'documentation'],
+      run: handleOpenDocsPage
     }
   ];
 
+  // If in docs view, render the Notion-exact Help Center / Docs page
+  if (currentView === 'docs') {
+    return (
+      <div className="noted-app-root noted-page-transition" key="docs">
+        <NotedDocsPage
+          onOpenApp={handleOpenWorkspace}
+          onOpenLanding={handleOpenLandingWebsite}
+          onOpenDownload={handleOpenDownloadPage}
+          lang={lang}
+          onSetLang={handleSetLang}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
+        />
+        <Toast />
+      </div>
+    );
+  }
+
+  // If in download view, render the Notion-exact download page
+  if (currentView === 'download') {
+    return (
+      <div className="noted-app-root noted-page-transition" key="download">
+        <NotionDownloadPage
+          onOpenApp={handleOpenWorkspace}
+          onOpenLanding={handleOpenLandingWebsite}
+          onOpenDocs={handleOpenDocsPage}
+          targetPlatform={downloadTargetPlatform}
+          lang={lang}
+          onSetLang={handleSetLang}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
+        />
+        <Toast />
+      </div>
+    );
+  }
+
+  // If in landing view, render the Notion-exact marketing page
+  if (currentView === 'landing') {
+    return (
+      <div className="noted-app-root noted-page-transition" key="landing">
+        <NotionLandingPage
+          onOpenApp={handleOpenWorkspace}
+          onOpenDownload={handleOpenDownloadPage}
+          onOpenDocs={handleOpenDocsPage}
+          onOpenLogin={() => setIsLoginModalOpen(true)}
+          currentUser={currentUser}
+          lang={lang}
+          onSetLang={handleSetLang}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
+        />
+        <NotionLoginModal
+          isOpen={isLoginModalOpen}
+          showEmailAuth={false}
+          lang={lang}
+          onClose={() => setIsLoginModalOpen(false)}
+          onLoginSuccess={(user) => {
+            setCurrentUser(user);
+            setIsLoginModalOpen(false);
+            handleOpenWorkspace();
+          }}
+        />
+        <Toast />
+      </div>
+    );
+  }
+
   return (
-    <div className={`noted-app-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}>
+    <div className={`noted-app-layout noted-page-transition ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`} key="workspace">
       {/* Sidebar Navigation */}
       <Sidebar
         pages={visiblePages}
         archivedCount={archivedPages.length}
         onOpenArchive={() => setIsArchiveOpen(true)}
         activePageId={activePageId}
-        onSelectPage={(id) => setActivePageId(id)}
+        onSelectPage={handleSelectPage}
         onCreatePage={handleCreatePage}
         onDeletePage={handleDeletePage}
         onArchivePage={handleArchivePage}
@@ -1267,6 +1627,7 @@ export function App() {
           authLogout();
           setCurrentUser(getAuthState().user);
         }}
+        onOpenWebsite={handleOpenLandingWebsite}
       />
 
       {/* Main Workspace Frame */}
@@ -1297,6 +1658,8 @@ export function App() {
             {/* Notion Desktop Sub-Breadcrumb Bar */}
             <TopNav
               page={activePage}
+              pages={visiblePages}
+              onSelectPage={handleSelectPage}
               isSidebarCollapsed={isSidebarCollapsed}
               onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
               onOpenAI={() => setIsAIOpen((prev) => !prev)}
@@ -1316,7 +1679,10 @@ export function App() {
               onTriggerCloudSync={handleTriggerCloudSync}
               currentUser={currentUser}
               onOpenLogin={() => setIsLoginModalOpen(true)}
+              collaborators={collaborators}
+              onOpenWebsite={handleOpenLandingWebsite}
             />
+            <RemoteCursor cursors={remoteCursors} />
             <Editor
               key={activePage.id}
               page={activePage}
@@ -1331,6 +1697,11 @@ export function App() {
               onRedo={handleRedo}
               onOpenComments={() => setIsCommentsOpen(true)}
             />
+            {typingUsers.length > 0 && (
+              <div className="noted-typing-indicator-wrap">
+                <TypingIndicator typingUsers={typingUsers} />
+              </div>
+            )}
           </>
         ) : (
           <div className="empty-workspace-view">
@@ -1376,7 +1747,7 @@ export function App() {
         <CommandPaletteModal
           pages={visiblePages}
           commands={paletteCommands}
-          onSelectPage={(id) => setActivePageId(id)}
+          onSelectPage={handleSelectPage}
           onClose={() => setIsSearchOpen(false)}
         />
       )}
@@ -1407,6 +1778,8 @@ export function App() {
       {/* Notion Desktop Authentication Modal (Reverse Engineered from Notion DMG) */}
       <NotionLoginModal
         isOpen={isLoginModalOpen}
+        showEmailAuth={false}
+        lang={lang}
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
@@ -1465,6 +1838,8 @@ export function App() {
         page={activePage}
         onJumpToBlock={handleJumpToBlock}
       />
+      {/* Floating Toast Notifications */}
+      <Toast />
     </div>
   );
 }

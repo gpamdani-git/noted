@@ -95,6 +95,8 @@ export const getSqliteDb = async () => {
         picture TEXT,
         avatar TEXT,
         color TEXT,
+        password_hash TEXT,
+        password_salt TEXT,
         created_at INTEGER,
         updated_at INTEGER
       );
@@ -156,6 +158,8 @@ export const getSqliteDb = async () => {
       }
     };
     migrate('ALTER TABLE pages ADD COLUMN is_archived INTEGER DEFAULT 0');
+    migrate('ALTER TABLE users ADD COLUMN password_hash TEXT');
+    migrate('ALTER TABLE users ADD COLUMN password_salt TEXT');
 
     const db = drizzle(sqlite, { schema: sqliteSchema });
     sqliteDbInstance = { db, sqlite, schema: sqliteSchema, path: dbPath };
@@ -179,6 +183,8 @@ export const ensureSchema = async (client) => {
       picture TEXT,
       avatar TEXT,
       color TEXT,
+      password_hash TEXT,
+      password_salt TEXT,
       created_at BIGINT,
       updated_at BIGINT
     );
@@ -248,4 +254,112 @@ export const ensureSchema = async (client) => {
 
   // Migrations for databases that were created before these columns existed
   await client.query('ALTER TABLE pages ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE');
+  await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT');
+  await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_salt TEXT');
+};
+
+/**
+ * Finds user record by email from PostgreSQL or SQLite.
+ */
+export const findUserByEmail = async (email) => {
+  if (!email || typeof email !== 'string') return null;
+  const cleanEmail = email.trim().toLowerCase();
+
+  const p = getPool();
+  if (p) {
+    try {
+      const res = await p.query(
+        `SELECT id, email, name, picture, avatar, color,
+                password_hash AS "passwordHash", password_salt AS "passwordSalt"
+         FROM users
+         WHERE LOWER(email) = LOWER($1)
+         LIMIT 1`,
+        [cleanEmail]
+      );
+      return res.rows[0] || null;
+    } catch (err) {
+      console.warn('[db:findUserByEmail] Postgres query error:', err.message);
+    }
+  }
+
+  const sqliteInst = await getSqliteDb();
+  if (sqliteInst) {
+    try {
+      const row = sqliteInst.sqlite.prepare(
+        `SELECT id, email, name, picture, avatar, color,
+                password_hash AS passwordHash, password_salt AS passwordSalt
+         FROM users
+         WHERE LOWER(email) = LOWER(?)
+         LIMIT 1`
+      ).get(cleanEmail);
+      return row || null;
+    } catch (err) {
+      console.warn('[db:findUserByEmail] SQLite query error:', err.message);
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Upserts a user in PostgreSQL or SQLite.
+ */
+export const saveUser = async (user) => {
+  if (!user || !user.email) return null;
+  const cleanEmail = user.email.trim().toLowerCase();
+  const userId = user.id || `email_${cleanEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
+  const name = user.name || cleanEmail.split('@')[0];
+  const picture = user.picture || null;
+  const avatar = user.avatar || name.charAt(0).toUpperCase();
+  const color = user.color || '#2383e2';
+  const passwordHash = user.passwordHash || null;
+  const passwordSalt = user.passwordSalt || null;
+  const now = Date.now();
+
+  const p = getPool();
+  if (p) {
+    try {
+      await p.query(
+        `INSERT INTO users (id, email, name, picture, avatar, color, password_hash, password_salt, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT (id) DO UPDATE SET
+           email = EXCLUDED.email,
+           name = EXCLUDED.name,
+           picture = COALESCE(EXCLUDED.picture, users.picture),
+           avatar = EXCLUDED.avatar,
+           color = EXCLUDED.color,
+           password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
+           password_salt = COALESCE(EXCLUDED.password_salt, users.password_salt),
+           updated_at = EXCLUDED.updated_at`,
+        [userId, cleanEmail, name, picture, avatar, color, passwordHash, passwordSalt, now, now]
+      );
+      return { id: userId, email: cleanEmail, name, picture, avatar, color };
+    } catch (err) {
+      console.warn('[db:saveUser] Postgres insert error:', err.message);
+    }
+  }
+
+  const sqliteInst = await getSqliteDb();
+  if (sqliteInst) {
+    try {
+      sqliteInst.sqlite.prepare(
+        `INSERT INTO users (id, email, name, picture, avatar, color, password_hash, password_salt, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           email = excluded.email,
+           name = excluded.name,
+           picture = COALESCE(excluded.picture, users.picture),
+           avatar = excluded.avatar,
+           color = excluded.color,
+           password_hash = COALESCE(excluded.password_hash, users.password_hash),
+           password_salt = COALESCE(excluded.password_salt, users.password_salt),
+           updated_at = excluded.updated_at`
+      ).run(userId, cleanEmail, name, picture, avatar, color, passwordHash, passwordSalt, now, now);
+      return { id: userId, email: cleanEmail, name, picture, avatar, color };
+    } catch (err) {
+      console.warn('[db:saveUser] SQLite insert error:', err.message);
+    }
+  }
+
+  return { id: userId, email: cleanEmail, name, picture, avatar, color };
 };

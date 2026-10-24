@@ -1,14 +1,14 @@
 /* TopNav.css - Notion Sub-Breadcrumb Bar */
 
 .noted-sub-breadcrumb-bar {
-  height: 34px;
+  height: 44px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px 0 16px;
+  padding: 0 16px;
   background: var(--bg-primary, #ffffff);
-  border-bottom: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.05));
+  
   user-select: none;
   flex-shrink: 0;
   z-index: 90;
@@ -16,7 +16,7 @@
 
 [data-theme='dark'] .noted-sub-breadcrumb-bar {
   background: #191919;
-  border-bottom-color: rgba(255, 255, 255, 0.04);
+  
 }
 
 .breadcrumb-bar-left {
@@ -24,6 +24,43 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+}
+
+.breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 520px;
+}
+
+.breadcrumb-item-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  max-width: 160px;
+  transition: background 0.1s ease, color 0.1s ease;
+  user-select: none;
+}
+
+.breadcrumb-item-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary);
+}
+
+.breadcrumb-slash {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  user-select: none;
+  opacity: 0.7;
 }
 
 .breadcrumb-title-link {
@@ -36,6 +73,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 3px 6px;
+  border-radius: 4px;
 }
 
 .breadcrumb-page-icon {

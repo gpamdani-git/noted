@@ -19,7 +19,7 @@ export const VideoEmbedBlock = ({ block, onUpdateBlock, isLocked = false }) => {
     if (ytMatch && ytMatch[1]) {
       return {
         type: 'youtube',
-        embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`
+        embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0&enablejsapi=1`
       };
     }
 
@@ -125,7 +125,6 @@ export const VideoEmbedBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                 title="Video embed"
                 className="notion-video-element"
                 frameBorder="0"
-                referrerPolicy="strict-origin-when-cross-origin"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />

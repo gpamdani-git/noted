@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
+  AUTH_CONFIG,
+  normalizeEmail,
+  validateEmailInput,
+  validateVerificationInput,
+  createAuthSession,
+  isSessionTokenValid,
+  restoreAuthSession,
+  verifyLoginCredentials,
   getGoogleClientId,
   setGoogleClientId,
   parseJwt,
@@ -212,5 +220,69 @@ describe('Authentication & Notion Login Module', () => {
     logoutAllAccounts();
     expect(getSavedAccounts().length).toBe(0);
     expect(getAuthState().isLoggedIn).toBe(false);
+  });
+
+  it('normalizes and validates email inputs according to spec.md (FR-02)', () => {
+    expect(normalizeEmail('  Rina.Dev@Noted.IO  ')).toBe('rina.dev@noted.io');
+    expect(validateEmailInput('   ').error.code).toBe('EMPTY_EMAIL');
+    expect(validateEmailInput('a'.repeat(310) + '@example.com').error.code).toBe('EMAIL_TOO_LONG');
+    expect(validateEmailInput('user@domain').error.code).toBe('INVALID_EMAIL_FORMAT');
+
+    const validRes = validateEmailInput('  User@Example.COM ');
+    expect(validRes.valid).toBe(true);
+    expect(validRes.normalizedEmail).toBe('user@example.com');
+  });
+
+  it('validates verification code and password inputs according to spec.md (FR-05)', () => {
+    expect(validateVerificationInput({ verificationMethod: 'OTP_CODE', verificationCode: '123' }).error.code)
+      .toBe('EMPTY_VERIFICATION_CODE');
+    expect(validateVerificationInput({ verificationMethod: 'OTP_CODE', verificationCode: '123456' }).valid)
+      .toBe(true);
+    expect(validateVerificationInput({ verificationMethod: 'PASSWORD', password: '   ' }).error.code)
+      .toBe('EMPTY_PASSWORD');
+    expect(validateVerificationInput({ verificationMethod: 'PASSWORD', password: 'secret' }).valid)
+      .toBe(true);
+  });
+
+  it('creates, validates, and expires session tokens (FR-09, FR-10, FR-11)', async () => {
+    vi.spyOn(global, 'fetch').mockImplementation(async (url, options) => {
+      const body = options?.body ? JSON.parse(options.body) : {};
+      const user = {
+        id: `email_${body.email.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        email: body.email,
+        name: body.displayName || body.email.split('@')[0],
+        picture: null,
+        avatar: body.email[0].toUpperCase(),
+        color: '#2383E2',
+        isLoggedIn: true,
+        loginProvider: 'email',
+        loggedInAt: Date.now()
+      };
+      const session = createAuthSession(user, 'email');
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          session: session.token,
+          user
+        })
+      };
+    });
+
+    const { user, session } = await verifyLoginCredentials({
+      email: 'session@noted.io',
+      verificationMethod: 'OTP_CODE',
+      verificationCode: '654321',
+    });
+
+    expect(user.email).toBe('session@noted.io');
+    expect(session.expiresAt).toBe(session.issuedAt + AUTH_CONFIG.SESSION_TTL_MS);
+    expect(isSessionTokenValid(session.token, session.issuedAt + 1000)).toBe(true);
+    expect(isSessionTokenValid(session.token, session.expiresAt + 1)).toBe(false);
+
+    const expiredRestore = restoreAuthSession(session.expiresAt + 1000);
+    expect(expiredRestore.isAuthenticated).toBe(false);
+    expect(expiredRestore.status).toBe('IDLE');
   });
 });

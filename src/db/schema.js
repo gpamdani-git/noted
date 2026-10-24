@@ -11,6 +11,8 @@ export const users = pgTable('users', {
   picture: text('picture'),
   avatar: text('avatar'),
   color: text('color'),
+  passwordHash: text('password_hash'),
+  passwordSalt: text('password_salt'),
   createdAt: bigint('created_at', { mode: 'number' }),
   updatedAt: bigint('updated_at', { mode: 'number' })
 });

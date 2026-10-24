@@ -74,7 +74,7 @@
 
 .inline-ai-input::placeholder {
   color: var(--text-tertiary);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .inline-ai-submit-btn {

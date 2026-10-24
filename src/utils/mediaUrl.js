@@ -50,3 +50,50 @@ export const normalizeMediaUrl = (url) => {
 
   return cleanPath;
 };
+
+/**
+ * Compresses an image File or Blob to a JPEG/WebP data URL using an offscreen canvas.
+ * Reduces 5-15MB uncompressed retina screenshots down to ~100-300KB.
+ */
+export const compressImageFile = (file, maxWidth = 1600, quality = 0.8) => {
+  return new Promise((resolve) => {
+    if (!file || typeof window === 'undefined') {
+      resolve('');
+      return;
+    }
+    // If SVG or small gif, don't recompress
+    if (file.type === 'image/svg+xml' || file.type === 'image/gif' || file.size < 200 * 1024) {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const mime = file.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+      resolve(canvas.toDataURL(mime, quality));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    };
+    img.src = url;
+  });
+};

@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import fs from 'fs'
 import path from 'path'
+import { pathToFileURL } from 'url'
 
 // Roots that the dev server is allowed to read local media files from.
 // Extend with the NOTED_MEDIA_ROOTS env variable (comma separated absolute paths).
@@ -124,6 +125,8 @@ function localApiPlugin() {
                 ? apiRoute('auth.js')
                 : apiRoute('schema.js');
 
+          const routeUrl = `${pathToFileURL(route).href}?t=${Date.now()}`;
+
           if (req.method === 'POST') {
             let body = '';
             req.on('data', (chunk) => { body += chunk; });
@@ -134,7 +137,7 @@ function localApiPlugin() {
                 req.body = {};
               }
               try {
-                const { default: handler } = await import(/* @vite-ignore */ route);
+                const { default: handler } = await import(/* @vite-ignore */ routeUrl);
                 await handler(req, res);
               } catch (err) {
                 res.status(500).json({ error: err.message });
@@ -144,7 +147,7 @@ function localApiPlugin() {
           }
 
           try {
-            const { default: handler } = await import(/* @vite-ignore */ route);
+            const { default: handler } = await import(/* @vite-ignore */ routeUrl);
             await handler(req, res);
           } catch (err) {
             res.status(500).json({ error: err.message });

@@ -164,11 +164,66 @@ export const isSafeIdentifier = (value) =>
   typeof value === 'string' && SAFE_ID.test(value);
 
 export const isValidEmail = (value) =>
-  typeof value === 'string' && value.length <= 254 && EMAIL_RE.test(value);
+  typeof value === 'string' && value.length <= 320 && EMAIL_RE.test(value);
+
+// In-memory sliding window rate limiter
+const rateLimitMap = new Map();
+
+/**
+ * Checks rate limit for a key (IP or identifier or email).
+ * @param {string} key
+ * @param {{ limit?: number, windowMs?: number }} options
+ * @returns {{ allowed: boolean, remaining: number, retryAfterSeconds: number }}
+ */
+export const checkRateLimit = (key, { limit = 5, windowMs = 60000 } = {}) => {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key) || { count: 0, resetAt: now + windowMs };
+
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + windowMs;
+  }
+
+  if (entry.count >= limit) {
+    const retryAfterSeconds = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds,
+    };
+  }
+
+  entry.count += 1;
+  rateLimitMap.set(key, entry);
+
+  // Periodically clean up expired entries if map gets large
+  if (rateLimitMap.size > 10000) {
+    for (const [k, v] of rateLimitMap.entries()) {
+      if (now > v.resetAt) rateLimitMap.delete(k);
+    }
+  }
+
+  return {
+    allowed: true,
+    remaining: limit - entry.count,
+    retryAfterSeconds: 0,
+  };
+};
+
+/**
+ * Resolves client IP address from request headers.
+ */
+export const getClientIp = (req) => {
+  const forwarded = req.headers?.['x-forwarded-for'];
+  if (typeof forwarded === 'string') {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.headers?.['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1';
+};
 
 export const MAX_PAGES_PER_PUSH = 2000;
 export const MAX_TRASH_PER_PUSH = 2000;
-export const MAX_BLOCKS_BYTES = 1024 * 1024;
+export const MAX_BLOCKS_BYTES = 50 * 1024 * 1024; // 50 MB (allows rich media and large tables)
 
 /**
  * Validates and normalizes a sync push payload.
@@ -191,27 +246,34 @@ export const sanitizeSyncPayload = (body) => {
 
   const cleanPages = [];
   for (const page of pages) {
-    if (!page || !isSafeIdentifier(page.id)) {
-      return { ok: false, error: 'Invalid page identifier' };
-    }
+    if (!page || typeof page !== 'object') continue;
+    const rawId = typeof page.id === 'string' ? page.id.trim() : '';
+    if (!rawId) continue;
+    const safeId = isSafeIdentifier(rawId)
+      ? rawId
+      : rawId.replace(/[^A-Za-z0-9._:-]/g, '_').slice(0, 128);
+    if (!safeId) continue;
+
     let blocks = page.blocks;
     if (typeof blocks === 'string') {
       if (Buffer.byteLength(blocks, 'utf-8') > MAX_BLOCKS_BYTES) {
-        return { ok: false, error: 'Page payload too large' };
+        console.warn(`[api/sync] Page ${safeId} payload string exceeds ${MAX_BLOCKS_BYTES} bytes. Skipping to preserve workspace.`);
+        continue;
       }
       try {
         blocks = JSON.parse(blocks);
       } catch {
-        return { ok: false, error: 'Invalid page blocks payload' };
+        blocks = [];
       }
     }
     if (!Array.isArray(blocks)) blocks = [];
     const serialized = JSON.stringify(blocks);
     if (Buffer.byteLength(serialized, 'utf-8') > MAX_BLOCKS_BYTES) {
-      return { ok: false, error: 'Page payload too large' };
+      console.warn(`[api/sync] Page ${safeId} serialized blocks exceed ${MAX_BLOCKS_BYTES} bytes. Skipping to preserve workspace.`);
+      continue;
     }
     cleanPages.push({
-      id: page.id,
+      id: safeId,
       title: String(page.title || 'Untitled').slice(0, 512),
       icon: page.icon ? String(page.icon).slice(0, 64) : null,
       cover: page.cover ? String(page.cover).slice(0, 2048) : null,
@@ -230,9 +292,14 @@ export const sanitizeSyncPayload = (body) => {
 
   const cleanTrash = [];
   for (const item of trash) {
-    if (!item || !isSafeIdentifier(item.id)) {
-      return { ok: false, error: 'Invalid trash identifier' };
-    }
+    if (!item || typeof item !== 'object') continue;
+    const rawId = typeof item.id === 'string' ? item.id.trim() : '';
+    if (!rawId) continue;
+    const safeId = isSafeIdentifier(rawId)
+      ? rawId
+      : rawId.replace(/[^A-Za-z0-9._:-]/g, '_').slice(0, 128);
+    if (!safeId) continue;
+
     let blocks = item.blocks;
     if (typeof blocks === 'string') {
       try {
@@ -243,7 +310,7 @@ export const sanitizeSyncPayload = (body) => {
     }
     if (!Array.isArray(blocks)) blocks = [];
     cleanTrash.push({
-      id: item.id,
+      id: safeId,
       title: String(item.title || 'Deleted Page').slice(0, 512),
       icon: item.icon ? String(item.icon).slice(0, 64) : null,
       blocks,

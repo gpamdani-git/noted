@@ -8,8 +8,12 @@
 // - Safe external link delegation to default OS browser
 
 const { app, BrowserWindow, ipcMain, shell, dialog, Menu, session } = require('electron');
+const { createSecureHandler, validateSender } = require('./security/ipcValidation.cjs');
 const path = require('node:path');
 const fs = require('node:fs');
+
+// Helper to register IPC handler with strict sender and channel validation
+const handleSecure = (channel, handler) => ipcMain.handle(channel, createSecureHandler(handler, channel));
 
 // Ensure single instance lock (Notion REA behavior)
 //
@@ -115,13 +119,14 @@ function createMainWindow() {
     minWidth: 840,
     minHeight: 560,
     title: 'Noted',
+    icon: path.join(__dirname, '../public/icon.png'),
     backgroundColor: '#ffffff',
     transparent: false,
     show: false, // Wait until ready-to-show for smooth appearance
 
     // Frame styling matching Apple Liquid / Notion Desktop
     titleBarStyle: isMac ? 'hiddenInset' : (isWindows ? 'hidden' : 'default'),
-    trafficLightPosition: isMac ? { x: 18, y: 15 } : undefined,
+    trafficLightPosition: isMac ? { x: 12, y: 12 } : undefined,
     titleBarOverlay: isWindows
       ? {
           color: '#ffffff',
@@ -134,8 +139,10 @@ function createMainWindow() {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
-      spellcheck: true
+      sandbox: true,
+      spellcheck: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false
     }
   });
 
@@ -202,12 +209,12 @@ function createMainWindow() {
   });
 }
 
-// IPC Handlers for Renderer
-ipcMain.handle('window:minimize', () => {
+// IPC Handlers for Renderer (Secured with sender & channel validation)
+handleSecure('window:minimize', () => {
   if (mainWindow) mainWindow.minimize();
 });
 
-ipcMain.handle('window:maximize', () => {
+handleSecure('window:maximize', () => {
   if (!mainWindow) return;
   if (mainWindow.isMaximized()) {
     mainWindow.unmaximize();
@@ -216,22 +223,22 @@ ipcMain.handle('window:maximize', () => {
   }
 });
 
-ipcMain.handle('window:close', () => {
+handleSecure('window:close', () => {
   if (mainWindow) mainWindow.close();
 });
 
-ipcMain.handle('window:isMaximized', () => {
+handleSecure('window:isMaximized', () => {
   return mainWindow ? mainWindow.isMaximized() : false;
 });
 
-ipcMain.handle('window:is-fullscreen', () => {
+handleSecure('window:is-fullscreen', () => {
   return mainWindow ? mainWindow.isFullScreen() : false;
 });
 
 // Tells the renderer whether this app is registered as the handler of the
 // noted:// scheme. The renderer needs it before it offers the browser
 // hand-off, otherwise the browser opens the web page and nothing comes back.
-ipcMain.handle('app:is-protocol-registered', () => {
+handleSecure('app:is-protocol-registered', () => {
   try {
     return { registered: app.isDefaultProtocolClient('noted') };
   } catch {
@@ -239,7 +246,7 @@ ipcMain.handle('app:is-protocol-registered', () => {
   }
 });
 
-ipcMain.handle('app:get-info', () => {
+handleSecure('app:get-info', () => {
   return {
     version: app.getVersion(),
     name: app.getName(),
@@ -249,7 +256,7 @@ ipcMain.handle('app:get-info', () => {
   };
 });
 
-ipcMain.handle('shell:open-external', async (_, targetUrl) => {
+handleSecure('shell:open-external', async (_, targetUrl) => {
   if (typeof targetUrl === 'string' && (targetUrl.startsWith('http:') || targetUrl.startsWith('https:'))) {
     await shell.openExternal(targetUrl);
     return true;
@@ -257,17 +264,17 @@ ipcMain.handle('shell:open-external', async (_, targetUrl) => {
   return false;
 });
 
-ipcMain.handle('dialog:show-save-dialog', async (_, options) => {
+handleSecure('dialog:show-save-dialog', async (_, options) => {
   if (!mainWindow) return { canceled: true };
   return dialog.showSaveDialog(mainWindow, options);
 });
 
-ipcMain.handle('dialog:show-open-dialog', async (_, options) => {
+handleSecure('dialog:show-open-dialog', async (_, options) => {
   if (!mainWindow) return { canceled: true };
   return dialog.showOpenDialog(mainWindow, options);
 });
 
-ipcMain.handle('fs:write-file', async (_, { filePath, content, encoding = 'utf-8' }) => {
+handleSecure('fs:write-file', async (_, { filePath, content, encoding = 'utf-8' }) => {
   try {
     fs.writeFileSync(filePath, content, encoding);
     return { success: true };
@@ -276,7 +283,7 @@ ipcMain.handle('fs:write-file', async (_, { filePath, content, encoding = 'utf-8
   }
 });
 
-ipcMain.handle('fs:read-file', async (_, { filePath, encoding = 'utf-8' }) => {
+handleSecure('fs:read-file', async (_, { filePath, encoding = 'utf-8' }) => {
   try {
     const content = fs.readFileSync(filePath, encoding);
     return { success: true, content };
@@ -361,7 +368,7 @@ const getSessionIdentity = (token) => {
   return { identity };
 };
 
-ipcMain.handle('cloud:get-config', async () => {
+handleSecure('cloud:get-config', async () => {
   const databaseUrl = loadDatabaseUrl();
   return {
     configured: Boolean(databaseUrl),
@@ -380,7 +387,7 @@ ipcMain.handle('cloud:get-config', async () => {
 // sends an Origin of "null" and the server refuses the request. The main
 // process has no such restriction, so the cloud traffic of the desktop build
 // goes through here.
-ipcMain.handle('cloud:api-request', async (_, { path, method = 'GET', body = null, session, appUrl } = {}) => {
+handleSecure('cloud:api-request', async (_, { path, method = 'GET', body = null, session, appUrl } = {}) => {
   const target = String(path || '');
   if (!target.startsWith('/api/')) {
     return { ok: false, status: 400, error: 'Only the Noted server API can be called' };
@@ -423,7 +430,7 @@ ipcMain.handle('cloud:api-request', async (_, { path, method = 'GET', body = nul
   }
 });
 
-ipcMain.handle('cloud:check-server', async (_, { appUrl } = {}) => {
+handleSecure('cloud:check-server', async (_, { appUrl } = {}) => {
   const target = String(appUrl || '').replace(/\/$/, '');
   if (!/^https?:\/\//i.test(target)) {
     return { connected: false, configured: false, message: 'No server url is configured' };
@@ -446,7 +453,7 @@ ipcMain.handle('cloud:check-server', async (_, { appUrl } = {}) => {
   }
 });
 
-ipcMain.handle('cloud:set-config', async (_, { databaseUrl } = {}) => {
+handleSecure('cloud:set-config', async (_, { databaseUrl } = {}) => {
   try {
     if (typeof databaseUrl === 'string') {
       writeUserConfig({ databaseUrl: databaseUrl.trim() || null });
@@ -457,7 +464,7 @@ ipcMain.handle('cloud:set-config', async (_, { databaseUrl } = {}) => {
   }
 });
 
-ipcMain.handle('cloud:check-status', async () => {
+handleSecure('cloud:check-status', async () => {
   const connStr = loadDatabaseUrl();
   if (!connStr) {
     return {
@@ -546,7 +553,7 @@ const runNeonSql = async (query, params = []) => {
 };
 
 // IPC Handler: Pull latest workspace pages, trash, and settings from Neon Lakebase
-ipcMain.handle('cloud:sync-pull', async (_, { userId, email, session } = {}) => {
+handleSecure('cloud:sync-pull', async (_, { userId, email, session } = {}) => {
   const { identity, error } = getSessionIdentity(session);
   if (!identity) {
     return {
@@ -681,7 +688,7 @@ ipcMain.handle('cloud:sync-pull', async (_, { userId, email, session } = {}) => 
 });
 
 // IPC Handler: Push workspace mutations to Neon Lakebase
-ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
+handleSecure('cloud:sync-push', async (_, payload = {}) => {
   const { user, pages = [], trash = [], workspaceSettings = null, session } = payload;
 
   const { identity, error } = getSessionIdentity(session);
@@ -843,7 +850,7 @@ ipcMain.handle('cloud:sync-push', async (_, payload = {}) => {
 // AI channel so a new channel cannot silently bypass the allowlist.
 const { isAllowedAiUrl } = require('./ai-hosts.cjs');
 
-ipcMain.handle('ai:fetch', async (_, { url, options = {} }) => {
+handleSecure('ai:fetch', async (_, { url, options = {} }) => {
   try {
     const policy = isAllowedAiUrl(url);
     if (!policy.ok) {
@@ -885,7 +892,7 @@ ipcMain.handle('ai:fetch', async (_, { url, options = {} }) => {
 // renderer fetch) so the host allowlist above governs the request that
 // actually carries prompts and API keys. Chunks are pushed to the renderer
 // with `ai:stream-chunk` / `ai:stream-end` / `ai:stream-error` events.
-ipcMain.handle('ai:fetch-stream', async (event, { id, url, options = {} }) => {
+handleSecure('ai:fetch-stream', async (event, { id, url, options = {} }) => {
   const sender = event.sender;
   const fail = (message, status) => {
     try {
@@ -969,16 +976,59 @@ app.on('second-instance', (event, commandLine) => {
 
 // App Lifecycle
 app.whenReady().then(() => {
-  // Fix YouTube & Vimeo Error 153 in Electron: provide valid web referrer/origin for embedded iframes
+  // Fix YouTube & Vimeo playback in Electron desktop:
+  // 1. Remove Electron signature from User-Agent so YouTube bot detection does not block embeds
+  // 2. Inject valid Referer/Origin headers for YouTube, googlevideo CDN, and Vimeo
+  // 3. Strip X-Frame-Options and relax restrictive frame-ancestors in Content-Security-Policy
   if (session && session.defaultSession) {
-    session.defaultSession.webRequest.onBeforeSendHeaders(
-      { urls: ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*', '*://*.vimeo.com/*'] },
-      (details, callback) => {
-        details.requestHeaders['Referer'] = 'https://www.youtube.com/';
-        details.requestHeaders['Origin'] = 'https://www.youtube.com';
-        callback({ cancel: false, requestHeaders: details.requestHeaders });
+    const videoFilter = {
+      urls: [
+        '*://*.youtube.com/*',
+        '*://*.youtube-nocookie.com/*',
+        '*://*.googlevideo.com/*',
+        '*://*.vimeo.com/*',
+        '*://*.vimeocdn.com/*'
+      ]
+    };
+
+    session.defaultSession.webRequest.onBeforeSendHeaders(videoFilter, (details, callback) => {
+      const requestHeaders = { ...details.requestHeaders };
+      const url = details.url;
+
+      // Clean Electron from User-Agent so YouTube doesn't restrict playback
+      if (requestHeaders['User-Agent']) {
+        requestHeaders['User-Agent'] = requestHeaders['User-Agent'].replace(/Electron\/[0-9.]+\s*/gi, '');
       }
-    );
+
+      if (url.includes('youtube') || url.includes('googlevideo')) {
+        requestHeaders['Referer'] = 'https://www.youtube.com/';
+        requestHeaders['Origin'] = 'https://www.youtube.com';
+      } else if (url.includes('vimeo')) {
+        requestHeaders['Referer'] = 'https://player.vimeo.com/';
+        requestHeaders['Origin'] = 'https://player.vimeo.com';
+      }
+
+      callback({ cancel: false, requestHeaders });
+    });
+
+    session.defaultSession.webRequest.onHeadersReceived(videoFilter, (details, callback) => {
+      const responseHeaders = { ...details.responseHeaders };
+      delete responseHeaders['x-frame-options'];
+      delete responseHeaders['X-Frame-Options'];
+
+      if (responseHeaders['content-security-policy']) {
+        responseHeaders['content-security-policy'] = responseHeaders['content-security-policy'].map((csp) =>
+          csp.replace(/frame-ancestors[^;]+(;|$)/gi, '')
+        );
+      }
+      if (responseHeaders['Content-Security-Policy']) {
+        responseHeaders['Content-Security-Policy'] = responseHeaders['Content-Security-Policy'].map((csp) =>
+          csp.replace(/frame-ancestors[^;]+(;|$)/gi, '')
+        );
+      }
+
+      callback({ cancel: false, responseHeaders });
+    });
   }
 
   createMainWindow();

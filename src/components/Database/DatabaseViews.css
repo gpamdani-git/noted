@@ -1,0 +1,676 @@
+/* Notion-grade Database Views & Dialogs Styling (REA Notion Parity) */
+
+/* 1. Modal Dialog & Popover Overlays */
+.db-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: dbFadeIn 120ms ease-out;
+}
+
+@keyframes dbFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.db-modal-card {
+  width: 460px;
+  max-width: 92vw;
+  max-height: 85vh;
+  background: var(--bg-modal, #ffffff);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.12));
+  border-radius: var(--radius-lg, 10px);
+  box-shadow: var(--shadow-lg, 0 16px 36px rgba(15, 15, 15, 0.2));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dbScaleIn 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dbScaleIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.db-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+}
+
+.db-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, rgba(55, 53, 47, 1));
+}
+
+.db-modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, rgba(142, 139, 134, 1));
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.db-modal-close-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.08));
+  color: var(--text-primary, rgba(55, 53, 47, 1));
+}
+
+/* 2. Relation Manager Specifics */
+.relation-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.08));
+  background: var(--bg-secondary, #fbfbfa);
+}
+
+.relation-search-box svg {
+  color: var(--text-tertiary, rgba(173, 169, 163, 1));
+  flex-shrink: 0;
+}
+
+.relation-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-primary, #37352f);
+  outline: none;
+}
+
+.relation-search-input::placeholder {
+  color: var(--text-placeholder, rgba(55, 53, 47, 0.4));
+}
+
+.relation-db-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 160px;
+  max-height: 280px;
+}
+
+.relation-section-title {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary, #8e8b86);
+  padding: 6px 12px 2px;
+}
+
+.relation-create-new-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 6px);
+  background: transparent;
+  border: 1px dashed var(--border-color, rgba(55, 53, 47, 0.2));
+  color: var(--accent, #2383e2);
+  cursor: pointer;
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 500;
+  margin: 6px 4px 2px;
+  transition: all 0.12s ease;
+}
+
+.relation-create-new-btn:hover {
+  background: var(--accent-soft, rgba(35, 131, 226, 0.08));
+  border-color: var(--accent, #2383e2);
+}
+
+.relation-db-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 6px);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s ease;
+  width: 100%;
+}
+
+.relation-db-item:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+}
+
+.relation-db-item.selected {
+  background: var(--accent-soft, rgba(35, 131, 226, 0.09));
+  border-color: rgba(35, 131, 226, 0.35);
+}
+
+.relation-db-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.relation-db-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.relation-db-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #37352f);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.relation-db-page {
+  font-size: 11px;
+  color: var(--text-tertiary, #999);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.relation-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-secondary, #787774);
+  gap: 8px;
+}
+
+.relation-empty-icon {
+  font-size: 28px;
+  opacity: 0.6;
+}
+
+.relation-empty-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #37352f);
+}
+
+.relation-empty-desc {
+  font-size: 12px;
+  color: var(--text-tertiary, #999);
+  max-width: 260px;
+  line-height: 1.4;
+}
+
+.relation-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-color, rgba(55, 53, 47, 0.08));
+  background: var(--bg-secondary, #fbfbfa);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.relation-dual-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--text-primary, #37352f);
+  cursor: pointer;
+  user-select: none;
+}
+
+.relation-dual-toggle input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--accent, #2383e2);
+}
+
+.relation-action-btns {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.relation-btn-cancel {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.15));
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-secondary, #787774);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.relation-btn-cancel:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary, #37352f);
+}
+
+.relation-btn-create {
+  padding: 6px 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+  background: var(--accent, #2383e2);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.relation-btn-create:hover {
+  background: var(--accent-hover, #1b6fc2);
+}
+
+.relation-btn-create:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 3. Formula Editor Styling */
+.db-formula-modal {
+  width: 500px;
+  max-width: 92vw;
+}
+
+.db-formula-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.db-formula-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db-formula-input-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #787774);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.db-formula-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.16));
+  border-radius: var(--radius-md, 6px);
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #37352f);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.12s;
+}
+
+.db-formula-textarea:focus {
+  border-color: var(--accent, #2383e2);
+  box-shadow: 0 0 0 2px var(--accent-soft, rgba(35, 131, 226, 0.15));
+}
+
+.db-formula-props-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db-formula-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.db-formula-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--bg-secondary, #f7f7f5);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.12));
+  border-radius: var(--radius-sm, 4px);
+  font-size: 11.5px;
+  color: var(--text-primary, #37352f);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.db-formula-chip-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.08));
+  border-color: var(--accent, #2383e2);
+  color: var(--accent, #2383e2);
+}
+
+.db-formula-preview-card {
+  padding: 10px 14px;
+  background: var(--bg-secondary, #fbfbfa);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: var(--radius-md, 6px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.db-formula-preview-val {
+  font-weight: 600;
+  color: var(--text-primary, #37352f);
+}
+
+/* 4. Timeline (Gantt) View Styling */
+.db-timeline-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: var(--radius-md, 6px);
+  overflow: hidden;
+  background: var(--bg-primary, #ffffff);
+}
+
+.db-timeline-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  background: var(--bg-secondary, #fbfbfa);
+  font-size: 12.5px;
+}
+
+.db-timeline-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.db-timeline-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.12));
+  color: var(--text-secondary, #787774);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.12s;
+}
+
+.db-timeline-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary, #37352f);
+}
+
+.db-timeline-body {
+  display: flex;
+  min-height: 240px;
+  max-height: 500px;
+  overflow: auto;
+}
+
+.db-timeline-sidebar-col {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  background: var(--bg-primary, #ffffff);
+}
+
+.db-timeline-sidebar-header {
+  padding: 8px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #787774);
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  background: var(--bg-secondary, #fbfbfa);
+}
+
+.db-timeline-sidebar-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary, #37352f);
+  border-bottom: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.04));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.db-timeline-sidebar-item:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+}
+
+.db-timeline-canvas {
+  flex: 1;
+  min-width: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.db-timeline-days-header {
+  display: flex;
+  height: 33px;
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  background: var(--bg-secondary, #fbfbfa);
+}
+
+.db-timeline-day-header-cell {
+  flex: 1;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-secondary, #787774);
+  border-right: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.04));
+}
+
+.db-timeline-row-track {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.04));
+  position: relative;
+  padding: 0 4px;
+}
+
+.db-timeline-bar-pill {
+  position: absolute;
+  height: 22px;
+  background: var(--accent, #2383e2);
+  color: #ffffff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 11.5px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.db-timeline-bar-pill:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* 5. Calendar View Styling */
+.db-calendar-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  border-radius: var(--radius-md, 6px);
+  overflow: hidden;
+  background: var(--bg-primary, #ffffff);
+}
+
+.db-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  background: var(--bg-secondary, #fbfbfa);
+}
+
+.db-calendar-month-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #37352f);
+}
+
+.db-calendar-weekdays-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.09));
+  background: var(--bg-secondary, #fbfbfa);
+}
+
+.db-calendar-weekday-cell {
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #787774);
+  border-right: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.04));
+}
+
+.db-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(85px, auto);
+}
+
+.db-calendar-day-cell {
+  border-right: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.06));
+  border-bottom: 1px solid var(--border-subtle, rgba(55, 53, 47, 0.06));
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-primary, #ffffff);
+}
+
+.db-calendar-day-cell.other-month {
+  background: var(--bg-secondary, #fafaf9);
+  opacity: 0.55;
+}
+
+.db-calendar-day-cell.is-today {
+  background: var(--accent-soft, rgba(35, 131, 226, 0.04));
+}
+
+.db-calendar-day-num {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary, #787774);
+}
+
+.db-calendar-day-cell.is-today .db-calendar-day-num {
+  color: var(--accent, #2383e2);
+  font-weight: 700;
+}
+
+.db-calendar-card-pill {
+  padding: 3px 6px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--bg-secondary, #f1f1ef);
+  border: 1px solid var(--border-color, rgba(55, 53, 47, 0.08));
+  font-size: 11.5px;
+  color: var(--text-primary, #37352f);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.12s;
+}
+
+.db-calendar-card-pill:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.09));
+  border-color: var(--accent, #2383e2);
+}
+
+/* 6. Filter & Sort Bar Styling */
+.db-filter-sort-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-color, rgba(55, 53, 47, 0.08));
+  background: var(--bg-secondary, #fbfbfa);
+}
+
+.db-filter-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 12px;
+  color: var(--text-secondary, #787774);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.db-filter-pill-btn:hover {
+  background: var(--bg-hover, rgba(55, 53, 47, 0.06));
+  color: var(--text-primary, #37352f);
+}
+
+.db-filter-pill-btn.active {
+  background: var(--accent-soft, rgba(35, 131, 226, 0.1));
+  border-color: rgba(35, 131, 226, 0.25);
+  color: var(--accent, #2383e2);
+  font-weight: 500;
+}
+

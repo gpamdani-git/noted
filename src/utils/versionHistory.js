@@ -158,13 +158,33 @@ export const savePageSnapshot = (page, note = '', isManual = false) => {
   }
 
   const snapshot = createSnapshotObject(page, note, isManual);
-  const updatedList = [snapshot, ...list].slice(0, 40); // Cap at 40 snapshots
+  let updatedList = [snapshot, ...list].slice(0, 20); // Cap at 20 snapshots per page
   all[page.id] = updatedList;
 
   try {
     localStorage.setItem(VERSION_STORAGE_KEY, JSON.stringify(all));
   } catch (err) {
-    console.error('Failed to save snapshot to storage', err);
+    // Gracefully recover from localStorage QuotaExceededError by pruning globally
+    if (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      try {
+        const prunedAll = {};
+        for (const [pid, snaps] of Object.entries(all)) {
+          if (Array.isArray(snaps)) {
+            prunedAll[pid] = snaps.slice(0, 3); // Retain top 3 snapshots per page
+          }
+        }
+        prunedAll[page.id] = [snapshot];
+        localStorage.setItem(VERSION_STORAGE_KEY, JSON.stringify(prunedAll));
+      } catch (err2) {
+        // Last resort: retain only the current active page snapshot
+        try {
+          localStorage.removeItem(VERSION_STORAGE_KEY);
+          localStorage.setItem(VERSION_STORAGE_KEY, JSON.stringify({ [page.id]: [snapshot] }));
+        } catch {
+          // If page snapshot itself exceeds quota, silently skip saving to prevent crash
+        }
+      }
+    }
   }
 
   return snapshot;

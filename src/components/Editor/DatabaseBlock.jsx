@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Table as TableIcon,
+  Database,
   Kanban,
   LayoutGrid,
   Plus,
@@ -31,24 +33,33 @@ import {
   User,
   Circle,
   Rows3,
-  CalendarDays
+  CalendarDays,
+  Download,
+  Upload,
+  Calculator,
+  Files
 } from 'lucide-react';
 import './DatabaseBlock.css';
+import '../Database/DatabaseViews.css';
+import { PROPERTY_TYPES as ENHANCED_PROPERTY_TYPES } from '../../utils/database/propertyTypes';
+import { exportToCSV, exportToJSON, importFromCSV, downloadBlob } from '../../utils/database/importExport';
+import { formulaEngine } from '../../utils/database/formulaEngine';
+import { rollupCalculator } from '../../utils/database/rollupCalculator';
+import RelationManager from '../Database/RelationManager';
+import RollupConfig from '../Database/RollupConfig';
+import FormulaEditor from '../Database/FormulaEditor';
+import RelationCellPicker from '../Database/RelationCellPicker';
+import CalendarView from '../Database/CalendarView';
+import TimelineView from '../Database/TimelineView';
+import FilterSortBar from '../Database/FilterSortBar';
+import DatabaseViewTabs from '../Database/DatabaseViewTabs';
+import { loadStoredPages } from '../../utils/storage';
+import { getCurrentUser } from '../../utils/comments';
 
 // Rich Column Property Types Specification
-export const PROPERTY_TYPES = [
-  { id: 'text', label: 'Text', icon: Type, description: 'Plain text notes and descriptions' },
-  { id: 'status', label: 'Status', icon: CheckCircle2, description: 'Track progress (Not Started, In Progress, Done)' },
-  { id: 'multi_select', label: 'Multi-select', icon: Tag, description: 'Multiple tags and categories' },
-  { id: 'date', label: 'Date', icon: Calendar, description: 'Dates, deadlines, and reminders' },
-  { id: 'number', label: 'Number', icon: Hash, description: 'Numeric values with progress bar' },
-  { id: 'checkbox', label: 'Checkbox', icon: CheckSquare, description: 'Simple boolean toggle' },
-  { id: 'url', label: 'URL', icon: LinkIcon, description: 'Clickable links and websites' },
-  { id: 'select', label: 'Select', icon: Circle, description: 'One value out of a list' },
-  { id: 'email', label: 'Email', icon: Mail, description: 'An email address with a mail link' },
-  { id: 'phone', label: 'Phone', icon: Phone, description: 'A phone number with a dial link' },
-  { id: 'people', label: 'People', icon: User, description: 'One or more people' }
-];
+export const PROPERTY_TYPES = ENHANCED_PROPERTY_TYPES;
+
+
 
 // Status presets with authentic Notion colors from screenshot
 export const STATUS_OPTIONS = [
@@ -160,7 +171,15 @@ const DateCell = ({ value, onChange, isLocked }) => {
   );
 };
 
-export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
+export const DatabaseBlock = ({
+  block,
+  onUpdateBlock,
+  isLocked = false,
+  allPages = [],
+  currentPage = null,
+  allBlocks = [],
+  onAddBlockBelow = null
+}) => {
   const viewType = block.viewType || 'table'; // 'table' | 'board' | 'gallery'
   const headers = block.headers || ['Name', 'Status', 'Tag'];
   const rows = block.rows || [];
@@ -190,9 +209,87 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   const defaultGroupIdx = statusColIdx !== -1 ? statusColIdx : Math.min(headers.length - 1, 1);
   const groupByIndex = block.groupByCol !== undefined ? block.groupByCol : defaultGroupIdx;
 
+  const dateColIdx = headers.findIndex((_, idx) => getColType(idx) === 'date');
+
+  const workspaceDatabases = useMemo(() => {
+    try {
+      const list = [];
+      // 1. Always include current database itself for self-relations
+      list.push({
+        id: block.id,
+        name: block.databaseTitle || block.title || 'This database',
+        pageTitle: currentPage?.title || 'Current page',
+        pageIcon: currentPage?.icon || '📊',
+        headers: headers,
+        columnTypes: headers.map((_, i) => getColType(i)),
+        rows: rows,
+        isSelf: true
+      });
+
+      // 2. Scan other table blocks on the current page
+      (allBlocks || []).forEach(b => {
+        if (b.type === 'table' && b.id !== block.id) {
+          list.push({
+            id: b.id,
+            name: b.databaseTitle || b.title || 'Table on this page',
+            pageTitle: currentPage?.title || 'Current page',
+            pageIcon: currentPage?.icon || '📊',
+            headers: b.tableHeaders || b.headers || ['Name'],
+            columnTypes: b.columnTypes || [],
+            rows: b.rows || []
+          });
+        }
+      });
+
+      // 3. Scan all other pages across the workspace
+      const pagesToScan = (allPages && allPages.length > 0)
+        ? allPages
+        : (loadStoredPages(getCurrentUser ? getCurrentUser() : null) || []);
+
+      pagesToScan.forEach(p => {
+        if (currentPage && p.id === currentPage.id) return;
+        const bList = Array.isArray(p.blocks) ? p.blocks : [];
+        bList.forEach(b => {
+          if (b.type === 'table' && b.id !== block.id && !list.some(item => item.id === b.id)) {
+            list.push({
+              id: b.id,
+              name: b.databaseTitle || b.title || `Database in ${p.title || 'Untitled'}`,
+              pageTitle: p.title || 'Untitled',
+              pageIcon: p.icon || '📄',
+              headers: b.tableHeaders || b.headers || ['Name'],
+              columnTypes: b.columnTypes || [],
+              rows: b.rows || []
+            });
+          }
+        });
+      });
+
+      return list;
+    } catch {
+      return [{
+        id: block.id,
+        name: block.databaseTitle || 'This database',
+        pageTitle: currentPage?.title || 'Current page',
+        pageIcon: '📊',
+        headers: headers,
+        columnTypes: headers.map((_, i) => getColType(i)),
+        rows: rows,
+        isSelf: true
+      }];
+    }
+  }, [allPages, allBlocks, block.id, block.databaseTitle, headers, rows, currentPage]);
+
   // Local interactive UI state
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [showGroupSelector, setShowGroupSelector] = useState(false);
+  const [showRelationManager, setShowRelationManager] = useState(false);
+  const [activeRelationCol, setActiveRelationCol] = useState(null);
+  const [showRollupConfig, setShowRollupConfig] = useState(false);
+  const [activeRollupCol, setActiveRollupCol] = useState(null);
+  const [showFormulaEditor, setShowFormulaEditor] = useState(false);
+  const [activeFormulaCol, setActiveFormulaCol] = useState(null);
+  const [activeCellPicker, setActiveCellPicker] = useState(null); // { rIdx, cIdx }
+  const csvFileInputRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   // { colIdx: number, operator: string, value: string }
   const [filterConfig, setFilterConfig] = useState(block.filterConfig || null);
@@ -201,6 +298,7 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [showSortPopover, setShowSortPopover] = useState(false);
   const [activeColMenu, setActiveColMenu] = useState(null); // colIdx
+  const [colMenuPos, setColMenuPos] = useState(null); // { top, left }
   const [activeStatusCell, setActiveStatusCell] = useState(null); // { rIdx: number, cIdx: number }
   const [activeSelectCell, setActiveSelectCell] = useState(null); // { rIdx: number, cIdx: number }
 
@@ -221,6 +319,12 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   // Modern click-outside dismissal: Avoids full-screen click blocking overlays!
   useEffect(() => {
     const handleOutsideClick = (e) => {
+      // Do not dismiss if clicking inside a portal popover (column menu or relation picker)
+      if (e?.target && typeof e.target.closest === 'function') {
+        if (e.target.closest('.db-col-menu-popover') || e.target.closest('.db-modal-card')) {
+          return;
+        }
+      }
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setShowFilterPopover(false);
         setShowSortPopover(false);
@@ -247,6 +351,22 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  // Dismiss floating column menu on outer scroll only (preserve inner popover scrolling)
+  useEffect(() => {
+    if (activeColMenu === null) return;
+    const handleScroll = (e) => {
+      // Do not dismiss when scrolling inside the property options list or popover
+      if (e?.target && typeof e.target.closest === 'function') {
+        if (e.target.closest('.db-col-menu-popover')) {
+          return;
+        }
+      }
+      setActiveColMenu(null);
+    };
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, [activeColMenu]);
 
   const setViewType = (type) => {
     onUpdateBlock(block.id, { viewType: type });
@@ -279,6 +399,16 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
     currentTypes[cIdx] = newType;
     onUpdateBlock(block.id, { columnTypes: currentTypes });
     setActiveColMenu(null);
+    if (newType === 'relation') {
+      setActiveRelationCol(cIdx);
+      setShowRelationManager(true);
+    } else if (newType === 'rollup') {
+      setActiveRollupCol(cIdx);
+      setShowRollupConfig(true);
+    } else if (newType === 'formula') {
+      setActiveFormulaCol(cIdx);
+      setShowFormulaEditor(true);
+    }
   };
 
   // REA NOTION BEHAVIOR:
@@ -520,6 +650,7 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
   // --- Rich Cell Content Renderer ---
   const renderCellContent = (originalIndex, cIdx, cellValue) => {
     const colType = getColType(cIdx);
+    const currentRow = rows[originalIndex] || [];
     const isTitle = cIdx === 0;
 
     if (isTitle) {
@@ -755,7 +886,7 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                 className="db-cell-input"
                 value=""
                 placeholder="Empty"
-                readOnly={isLocked}
+                readOnly
                 disabled={isLocked}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -891,6 +1022,266 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
         );
       }
 
+      case 'formula': {
+        const formulaExpr = block.columnConfigs?.[cIdx]?.formula || (String(cellValue || '').startsWith('=') ? String(cellValue).slice(1) : cellValue);
+        let evaluated = null;
+        if (formulaExpr) {
+          const currentRow = rows[originalIndex] || [];
+          const rowData = {};
+          headers.forEach((h, hIdx) => {
+            rowData[h] = currentRow[hIdx];
+          });
+          const properties = headers.map((h) => ({ name: h }));
+          evaluated = formulaEngine.evaluate(formulaExpr, rowData, properties);
+        }
+        return (
+          <div
+            className="db-cell-formula-wrap flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/60 rounded"
+            onClick={() => {
+              if (!isLocked) {
+                setActiveFormulaCol(cIdx);
+                setShowFormulaEditor(true);
+              }
+            }}
+            title="Click to edit formula"
+          >
+            <span className="font-mono text-xs text-gray-700 dark:text-gray-200 truncate">
+              {evaluated !== null && evaluated !== undefined ? String(evaluated) : (formulaExpr ? '#ERROR' : 'fx Set formula')}
+            </span>
+            <Calculator size={11} className="text-gray-400 ml-1 shrink-0" />
+          </div>
+        );
+      }
+
+      case 'relation': {
+        const relationCfg = block.columnConfigs?.[cIdx]?.relation;
+        const targetDb = workspaceDatabases.find(d => d.id === relationCfg?.targetDatabaseId);
+
+        let linkedItems = [];
+        try {
+          if (Array.isArray(cellValue)) {
+            linkedItems = cellValue;
+          } else if (cellValue && typeof cellValue === 'string') {
+            linkedItems = cellValue.startsWith('[') ? JSON.parse(cellValue) : [cellValue];
+          }
+        } catch {
+          if (cellValue) linkedItems = [String(cellValue)];
+        }
+        if (!Array.isArray(linkedItems)) linkedItems = [];
+
+        const isPickerOpen = activeCellPicker?.rIdx === originalIndex && activeCellPicker?.cIdx === cIdx;
+
+        return (
+          <div
+            className="db-cell-relation-wrap"
+            style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', minHeight: 28, padding: '2px 4px' }}
+          >
+            {linkedItems.map((item, itemIdx) => (
+              <span
+                key={itemIdx}
+                className="relation-chip-pill"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  background: 'var(--bg-secondary, #f1f1ef)',
+                  border: '1px solid var(--border-color, rgba(55,53,47,0.08))',
+                  fontSize: 11.5,
+                  color: 'var(--text-primary, #37352f)'
+                }}
+              >
+                <LinkIcon size={10} color="var(--accent, #2383e2)" />
+                <span style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item}</span>
+                {!isLocked && (
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', color: 'var(--text-tertiary)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const updated = linkedItems.filter((_, idx) => idx !== itemIdx);
+                      handleTableCellChange(originalIndex, cIdx, JSON.stringify(updated));
+                    }}
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </span>
+            ))}
+
+            {!isLocked && (
+              <button
+                type="button"
+                className="db-relation-add-btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--accent, #2383e2)',
+                  fontSize: 11.5,
+                  cursor: 'pointer'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!relationCfg?.targetDatabaseId) {
+                    setActiveRelationCol(cIdx);
+                    setShowRelationManager(true);
+                  } else {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setActiveCellPicker(isPickerOpen ? null : { rIdx: originalIndex, cIdx, triggerRect: rect });
+                  }
+                }}
+                title={relationCfg?.targetDatabaseId ? "Add linked item" : "Configure relation"}
+              >
+                <Plus size={11} />
+                {linkedItems.length === 0 && <span>Link item</span>}
+              </button>
+            )}
+
+            {isPickerOpen && targetDb && (
+              <RelationCellPicker
+                targetDatabase={targetDb}
+                selectedItems={linkedItems}
+                triggerRect={activeCellPicker?.triggerRect}
+                onToggleItem={(itemTitle) => {
+                  const exists = linkedItems.includes(itemTitle);
+                  const updated = exists
+                    ? linkedItems.filter(t => t !== itemTitle)
+                    : [...linkedItems, itemTitle];
+                  handleTableCellChange(originalIndex, cIdx, JSON.stringify(updated));
+                }}
+                onClose={() => setActiveCellPicker(null)}
+              />
+            )}
+          </div>
+        );
+      }
+
+      case 'rollup': {
+        const rollupCfg = block.columnConfigs?.[cIdx] || {};
+        let calculatedValue = null;
+
+        if (rollupCfg.relationId && rollupCfg.targetProperty && rollupCfg.functionType) {
+          const relColIdx = headers.findIndex(h => h === rollupCfg.relationId);
+          if (relColIdx >= 0) {
+            const relConfig = block.columnConfigs?.[relColIdx]?.relation;
+            const targetDb = workspaceDatabases.find(d => d.id === relConfig?.targetDatabaseId);
+            if (targetDb) {
+              const cellRaw = currentRow[relColIdx];
+              let linkedTitles = [];
+              try {
+                if (Array.isArray(cellRaw)) {
+                  linkedTitles = cellRaw;
+                } else if (cellRaw && typeof cellRaw === 'string') {
+                  linkedTitles = cellRaw.startsWith('[') ? JSON.parse(cellRaw) : [cellRaw];
+                }
+              } catch {
+                if (cellRaw) linkedTitles = [String(cellRaw)];
+              }
+              if (!Array.isArray(linkedTitles) && cellRaw) linkedTitles = [String(cellRaw)];
+
+              const targetPropIdx = targetDb.headers.findIndex(h => h === rollupCfg.targetProperty);
+              const relatedPages = targetDb.rows
+                .filter(tr => linkedTitles.includes(tr[0]))
+                .map(tr => ({
+                  properties: {
+                    [rollupCfg.targetProperty]: tr[targetPropIdx] !== undefined ? tr[targetPropIdx] : null
+                  }
+                }));
+
+              if (relatedPages.length > 0) {
+                calculatedValue = rollupCalculator.calculate(
+                  relatedPages,
+                  { name: rollupCfg.targetProperty },
+                  rollupCfg.functionType
+                );
+              } else if (rollupCfg.functionType === 'count_all') {
+                calculatedValue = 0;
+              }
+            }
+          }
+        }
+
+        return (
+          <div
+            className="db-cell-rollup-wrap"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', cursor: 'pointer' }}
+            onClick={() => {
+              if (!isLocked) {
+                setActiveRollupCol(cIdx);
+                setShowRollupConfig(true);
+              }
+            }}
+            title="Click to configure rollup"
+          >
+            <span style={{ fontSize: 12, color: calculatedValue !== null ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
+              {calculatedValue !== null
+                ? String(calculatedValue)
+                : (rollupCfg.functionType ? '0' : 'Configure rollup')}
+            </span>
+            <Calculator size={11} color="var(--text-tertiary)" />
+          </div>
+        );
+      }
+
+      case 'created_time':
+        return (
+          <div className="text-xs text-gray-500 px-2 py-1 select-none">
+            {block.createdAt ? new Date(block.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}
+          </div>
+        );
+
+      case 'created_by':
+        return (
+          <div className="text-xs text-gray-600 dark:text-gray-300 px-2 py-1 select-none flex items-center gap-1">
+            <span className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px]">U</span>
+            <span>User</span>
+          </div>
+        );
+
+      case 'last_edited_time':
+        return (
+          <div className="text-xs text-gray-500 px-2 py-1 select-none">
+            {block.updatedAt ? new Date(block.updatedAt).toLocaleDateString() : new Date().toLocaleDateString()}
+          </div>
+        );
+
+      case 'last_edited_by':
+        return (
+          <div className="text-xs text-gray-600 dark:text-gray-300 px-2 py-1 select-none flex items-center gap-1">
+            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">U</span>
+            <span>User</span>
+          </div>
+        );
+
+      case 'id':
+        return (
+          <div className="text-xs font-mono text-gray-400 px-2 py-1 select-none">
+            #{originalIndex + 1}
+          </div>
+        );
+
+      case 'files':
+        return (
+          <div className="db-cell-files-wrap flex items-center gap-1 px-2 py-1 text-xs text-gray-500">
+            <Files size={12} className="text-gray-400 shrink-0" />
+            <input
+              type="text"
+              className="db-cell-input text-xs"
+              placeholder="Attach link or file..."
+              value={cellValue || ''}
+              readOnly={isLocked}
+              disabled={isLocked}
+              onChange={(e) => handleTableCellChange(originalIndex, cIdx, e.target.value)}
+            />
+          </div>
+        );
+
       case 'text':
       default:
         return (
@@ -951,6 +1342,14 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
           >
             <CalendarDays size={13} />
             <span>Calendar</span>
+          </button>
+          <button
+            className={`db-tab-btn ${viewType === 'timeline' ? 'active' : ''}`}
+            onClick={() => setViewType('timeline')}
+            title="Gantt and deadlines (Timeline view)"
+          >
+            <Clock size={13} />
+            <span>Timeline</span>
           </button>
         </div>
 
@@ -1251,6 +1650,59 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
             </div>
           )}
 
+          {/* Import / Export Actions */}
+          <div className="db-import-export-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <input
+              type="file"
+              ref={csvFileInputRef}
+              accept=".csv"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  const text = event.target?.result;
+                  if (typeof text === 'string') {
+                    const { headers: importedHeaders, rows: importedRows } = importFromCSV(text);
+                    if (importedHeaders && importedHeaders.length > 0) {
+                      onUpdateBlock(block.id, {
+                        headers: importedHeaders,
+                        rows: importedRows,
+                        columnTypes: importedHeaders.map((_, i) => block.columnTypes?.[i] || 'text')
+                      });
+                    }
+                  }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              className="db-action-btn"
+              title="Export as CSV"
+              onClick={() => {
+                const blob = exportToCSV(headers, rows);
+                downloadBlob(blob, `${(block.title || 'database').replace(/\s+/g, '_')}.csv`);
+              }}
+            >
+              <Download size={13} />
+              <span>Export</span>
+            </button>
+            {!isLocked && (
+              <button
+                type="button"
+                className="db-action-btn"
+                title="Import CSV into table"
+                onClick={() => csvFileInputRef.current?.click()}
+              >
+                <Upload size={13} />
+                <span>Import</span>
+              </button>
+            )}
+          </div>
+
           {/* New Item primary action */}
           {!isLocked && (
             <button
@@ -1299,6 +1751,14 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                               className={`db-th-menu-trigger ${isMenuOpen ? 'active' : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const popoverWidth = 260;
+                                const popoverHeight = 380;
+                                const left = Math.max(12, Math.min(rect.left, window.innerWidth - popoverWidth - 12));
+                                const top = (rect.bottom + popoverHeight > window.innerHeight)
+                                  ? Math.max(10, rect.top - popoverHeight)
+                                  : rect.bottom + 4;
+                                setColMenuPos({ top, left });
                                 setActiveColMenu(isMenuOpen ? null : cIdx);
                                 setShowFilterPopover(false);
                                 setShowSortPopover(false);
@@ -1310,11 +1770,20 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                           )}
                         </div>
 
-                        {/* Column Configuration Popover */}
-                        {isMenuOpen && !isLocked && (
+                        {/* Column Configuration Popover rendered via Portal to avoid CSS transform clipping */}
+                        {isMenuOpen && !isLocked && colMenuPos && typeof document !== 'undefined' && createPortal(
                           <div
                             className="db-col-menu-popover animate-popover"
+                            style={{
+                              position: 'fixed',
+                              top: colMenuPos.top,
+                              left: colMenuPos.left,
+                              zIndex: 1300,
+                              maxHeight: '80vh',
+                              overflowY: 'auto'
+                            }}
                             onClick={(e) => e.stopPropagation()}
+                            onWheel={(e) => e.stopPropagation()}
                           >
                             <div className="db-col-menu-section">
                               <div className="db-popover-title">Property Name</div>
@@ -1390,7 +1859,8 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
                                 </button>
                               </div>
                             )}
-                          </div>
+                          </div>,
+                          document.body
                         )}
                       </th>
                     );
@@ -1910,6 +2380,19 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
         </div>
       )}
 
+      {/* 6. TIMELINE VIEW */}
+      {viewType === 'timeline' && (
+        <TimelineView
+          rows={processedRows.map(r => r.row)}
+          headers={headers}
+          startDateIndex={dateColIdx >= 0 ? dateColIdx : undefined}
+          onRowClick={(idx) => {
+            const orig = processedRows[idx]?.originalIndex ?? idx;
+            setSelectedRowIndex(orig);
+          }}
+        />
+      )}
+
       {/* Notion-style Page Peek Modal for Card Details */}
       {selectedRowIndex !== null && rows[selectedRowIndex] && (
         <div
@@ -2171,6 +2654,158 @@ export const DatabaseBlock = ({ block, onUpdateBlock, isLocked = false }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Relation Manager Modal */}
+      {showRelationManager && (
+        <RelationManager
+          currentDatabaseId={block.id}
+          currentDatabaseName={block.databaseTitle || block.title || 'This database'}
+          databases={workspaceDatabases}
+          onCreateNewDatabase={onAddBlockBelow ? () => {
+            const newDbId = `table_${Date.now()}`;
+            const newDb = {
+              id: newDbId,
+              type: 'table',
+              databaseTitle: 'Related Tasks',
+              headers: ['Task', 'Status', 'Assignee'],
+              columnTypes: ['text', 'status', 'people'],
+              rows: [
+                ['Task 1', 'Not started', ''],
+                ['Task 2', 'In progress', ''],
+                ['Task 3', 'Done', '']
+              ]
+            };
+            onAddBlockBelow(block.id, newDb);
+            return {
+              id: newDbId,
+              name: newDb.databaseTitle,
+              pageTitle: currentPage?.title || 'Current page',
+              pageIcon: '📊',
+              headers: newDb.headers,
+              columnTypes: newDb.columnTypes,
+              rows: newDb.rows
+            };
+          } : null}
+          onAddRelation={(rel) => {
+            const cIdx = activeRelationCol !== null ? activeRelationCol : headers.length;
+            const newHeaders = [...headers];
+            const currentTypes = headers.map((_, idx) => getColType(idx));
+            const newTypes = [...currentTypes];
+            const newConfigs = { ...(block.columnConfigs || {}) };
+
+            if (activeRelationCol !== null) {
+              newHeaders[cIdx] = rel.name || `Related to ${rel.targetDatabaseName || 'Database'}`;
+              newTypes[cIdx] = 'relation';
+              newConfigs[cIdx] = { ...(newConfigs[cIdx] || {}), relation: rel };
+            } else {
+              const newColName = rel.name || `Related to ${rel.targetDatabaseName || 'Database'}`;
+              newHeaders.push(newColName);
+              newTypes.push('relation');
+              newConfigs[cIdx] = { relation: rel };
+            }
+
+            let updatedRows = activeRelationCol !== null ? rows : rows.map((r) => [...r, '']);
+
+            // Dual relation support for self-database:
+            // Automatically append symmetric column (e.g. Sub-items)
+            if (rel.isSelf && rel.type === 'dual' && rel.symmetricName) {
+              const symIdx = newHeaders.length;
+              newHeaders.push(rel.symmetricName);
+              newTypes.push('relation');
+              newConfigs[symIdx] = {
+                relation: {
+                  targetDatabaseId: block.id,
+                  targetDatabaseName: block.databaseTitle || 'This database',
+                  type: 'dual',
+                  isSelf: true,
+                  name: rel.symmetricName
+                }
+              };
+              updatedRows = updatedRows.map((r) => [...r, '']);
+            }
+
+            onUpdateBlock(block.id, {
+              headers: newHeaders,
+              columnTypes: newTypes,
+              columnConfigs: newConfigs,
+              rows: updatedRows
+            });
+            setShowRelationManager(false);
+          }}
+          onClose={() => setShowRelationManager(false)}
+        />
+      )}
+
+      {/* Rollup Configuration Modal */}
+      {showRollupConfig && (() => {
+        const activeRollupRelationCol = headers.findIndex(
+          h => h === block.columnConfigs?.[activeRollupCol]?.relationId
+        );
+        const activeRollupTargetDbId = activeRollupRelationCol >= 0
+          ? block.columnConfigs?.[activeRollupRelationCol]?.relation?.targetDatabaseId
+          : null;
+        const activeRollupTargetDb = workspaceDatabases.find(d => d.id === activeRollupTargetDbId);
+        const relatedPropertiesForRollup = activeRollupTargetDb
+          ? activeRollupTargetDb.headers.map((h, i) => ({
+              name: h,
+              type: activeRollupTargetDb.columnTypes?.[i] || 'text'
+            }))
+          : null;
+
+        return (
+          <div className="db-modal-backdrop" onClick={() => setShowRollupConfig(false)}>
+            <div className="db-modal-card" style={{ width: 480 }} onClick={(e) => e.stopPropagation()}>
+              <div className="db-modal-header">
+                <div className="db-modal-title">
+                  <Database size={16} />
+                  <span>Configure Rollup ({headers[activeRollupCol]})</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRollupConfig(false)}
+                  className="db-modal-close-btn"
+                  title="Close"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+              <div style={{ padding: '16px 18px', maxHeight: '75vh', overflowY: 'auto' }}>
+                <RollupConfig
+                  columnConfig={block.columnConfigs?.[activeRollupCol] || {}}
+                  headers={headers}
+                  columnTypes={headers.map((_, i) => getColType(i))}
+                  relatedProperties={relatedPropertiesForRollup}
+                  onChange={(cfg) => {
+                    if (activeRollupCol !== null) {
+                      const newConfigs = { ...(block.columnConfigs || {}) };
+                      newConfigs[activeRollupCol] = cfg;
+                      onUpdateBlock(block.id, { columnConfigs: newConfigs });
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Formula Editor Modal */}
+      {showFormulaEditor && (
+        <FormulaEditor
+          columnName={headers[activeFormulaCol]}
+          initialFormula={block.columnConfigs?.[activeFormulaCol]?.formula || ''}
+          headers={headers}
+          firstRow={rows[0] || []}
+          onSave={(formula) => {
+            if (activeFormulaCol !== null) {
+              const newConfigs = { ...(block.columnConfigs || {}) };
+              newConfigs[activeFormulaCol] = { ...(newConfigs[activeFormulaCol] || {}), formula };
+              onUpdateBlock(block.id, { columnConfigs: newConfigs });
+            }
+          }}
+          onClose={() => setShowFormulaEditor(false)}
+        />
       )}
     </div>
   );

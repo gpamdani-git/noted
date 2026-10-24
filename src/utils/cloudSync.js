@@ -256,8 +256,18 @@ export const notedServerRequest = async (path, { method = 'GET', body = null, se
   if (res.ok && isJson) {
     return res.json();
   }
+  let errData = null;
+  if (isJson) {
+    try {
+      errData = await res.json();
+    } catch {
+      // ignore JSON parse failure on error body
+    }
+  }
   if (res.status === 401) {
     console.warn('[cloudSync] Session rejected by server - sign in again to restore cloud sync.');
+  } else if (!res.ok) {
+    console.warn(`[cloudSync] Server rejected request (${res.status}):`, errData?.error || res.statusText);
   }
   return null;
 };

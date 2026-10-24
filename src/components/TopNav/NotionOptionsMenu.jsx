@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  LogIn
+  LogIn,
+  Globe
 } from 'lucide-react';
 import './NotionOptionsMenu.css';
 
@@ -37,7 +38,8 @@ export const NotionOptionsMenu = ({
   theme,
   onToggleTheme,
   currentUser,
-  onOpenLogin
+  onOpenLogin,
+  onOpenWebsite
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
@@ -153,6 +155,20 @@ export const NotionOptionsMenu = ({
         onClose();
       }
     },
+    ...(onOpenWebsite
+      ? [
+          {
+            id: 'open-website',
+            label: 'Visit Noted Website',
+            icon: Globe,
+            section: 'data',
+            onClick: () => {
+              onClose();
+              onOpenWebsite();
+            }
+          }
+        ]
+      : []),
     {
       id: 'export',
       label: 'Export Markdown',

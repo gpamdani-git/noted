@@ -11,6 +11,8 @@ export const users = sqliteTable('users', {
   picture: text('picture'),
   avatar: text('avatar'),
   color: text('color'),
+  passwordHash: text('password_hash'),
+  passwordSalt: text('password_salt'),
   createdAt: integer('created_at'),
   updatedAt: integer('updated_at')
 });

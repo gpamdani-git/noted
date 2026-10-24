@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Lock,
   Share2,
@@ -25,10 +25,13 @@ import { DiscussionsPopover } from '../Navigation/DiscussionsPopover';
 import { getUnresolvedCount } from '../../utils/comments';
 import { downloadMarkdownFile, pageToMarkdown } from '../../utils/markdown';
 import { buildShareablePageUrl } from '../../utils/pageUrl';
+import PresenceIndicator from '../Collaboration/PresenceIndicator';
 import './TopNav.css';
 
 export const TopNav = ({
   page,
+  pages = [],
+  onSelectPage,
   isSidebarCollapsed,
   onToggleSidebar,
   onOpenAI,
@@ -47,7 +50,9 @@ export const TopNav = ({
   lastSyncedAt = null,
   onTriggerCloudSync,
   currentUser,
-  onOpenLogin
+  onOpenLogin,
+  collaborators = [],
+  onOpenWebsite
 }) => {
   const [showPrivacyMenu, setShowPrivacyMenu] = useState(false);
   const [privacySetting, setPrivacySetting] = useState('Private');
@@ -123,6 +128,24 @@ export const TopNav = ({
     setTimeout(() => setCopiedMarkdown(false), 2000);
   };
 
+  const ancestors = useMemo(() => {
+    if (!pages || !page) return [];
+    const trail = [];
+    let current = page;
+    let guard = 0;
+    while (current && current.parentId && guard < 50) {
+      guard++;
+      const parent = pages.find((p) => p.id === current.parentId);
+      if (parent) {
+        trail.unshift(parent);
+        current = parent;
+      } else {
+        break;
+      }
+    }
+    return trail;
+  }, [pages, page]);
+
   if (!page) return null;
 
   return (
@@ -138,9 +161,25 @@ export const TopNav = ({
             <PanelLeft size={16} />
           </button>
         )}
-        <div className="breadcrumb-title-link">
-          <span className="breadcrumb-page-icon">{page.icon || '📄'}</span>
-          <span className="breadcrumb-page-title">{page.title || 'Untitled'}</span>
+        <div className="breadcrumb-trail">
+          {ancestors.map((anc) => (
+            <React.Fragment key={anc.id}>
+              <button
+                type="button"
+                className="breadcrumb-item-btn"
+                onClick={() => onSelectPage && onSelectPage(anc.id)}
+                title={anc.title || 'Untitled'}
+              >
+                <span className="breadcrumb-page-icon">{anc.icon || '📄'}</span>
+                <span className="breadcrumb-page-title">{anc.title || 'Untitled'}</span>
+              </button>
+              <span className="breadcrumb-slash">/</span>
+            </React.Fragment>
+          ))}
+          <div className="breadcrumb-title-link active-page">
+            <span className="breadcrumb-page-icon">{page.icon || '📄'}</span>
+            <span className="breadcrumb-page-title">{page.title || 'Untitled'}</span>
+          </div>
         </div>
 
         {/* Notion-style "🔒 Private ˅" Selector */}
@@ -308,6 +347,11 @@ export const TopNav = ({
           {copiedPageLink ? <Check size={13} className="text-green" /> : <Link2 size={13} />}
         </button>
 
+        {/* Real-time Collaboration Presence Indicator */}
+        {collaborators && collaborators.length > 0 && (
+          <PresenceIndicator users={collaborators} />
+        )}
+
         {/* Notion PostgreSQL Cloud Sync Status Indicator */}
         <button
           className={`tab-toolbar-btn cloud-sync-btn ${cloudSyncStatus}`}
@@ -332,6 +376,17 @@ export const TopNav = ({
             <Cloud size={14} className="text-muted" />
           )}
         </button>
+
+        {/* Visit Noted Website Button */}
+        {onOpenWebsite && (
+          <button
+            className="tab-toolbar-btn website-btn"
+            onClick={onOpenWebsite}
+            title="Kunjungi Website Noted"
+          >
+            <Globe size={13} />
+          </button>
+        )}
 
         {/* Favorite Star Button */}
         <button
@@ -372,6 +427,7 @@ export const TopNav = ({
               onToggleTheme={onToggleTheme}
               currentUser={currentUser}
               onOpenLogin={onOpenLogin}
+              onOpenWebsite={onOpenWebsite}
             />
           )}
         </div>

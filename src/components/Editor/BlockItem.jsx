@@ -36,7 +36,7 @@ import {
   getSelectionOffsets,
   setSelectionOffsets
 } from '../../utils/formattingUtils';
-import { normalizeMediaUrl } from '../../utils/mediaUrl';
+import { normalizeMediaUrl, compressImageFile } from '../../utils/mediaUrl';
 import { TableOfContentsBlock } from './TableOfContentsBlock';
 import { WebBookmarkBlock } from './WebBookmarkBlock';
 import { VideoEmbedBlock } from './VideoEmbedBlock';
@@ -937,9 +937,8 @@ export const BlockItem = ({
           const file = items[i].getAsFile();
           if (file) {
             e.preventDefault();
-            const reader = new FileReader();
-            reader.onload = (loadEvent) => {
-              const base64Url = loadEvent.target.result;
+            compressImageFile(file).then((base64Url) => {
+              if (!base64Url) return;
               const newImageBlock = {
                 id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
                 type: 'image',
@@ -952,8 +951,7 @@ export const BlockItem = ({
               } else {
                 onUpdateBlock(block.id, newImageBlock);
               }
-            };
-            reader.readAsDataURL(file);
+            });
             return;
           }
         }
@@ -2050,7 +2048,15 @@ export const BlockItem = ({
 
         {/* Database (Table, Kanban Board, Gallery Views) */}
         {block.type === 'table' && (
-          <DatabaseBlock block={block} onUpdateBlock={onUpdateBlock} isLocked={isLocked} />
+          <DatabaseBlock
+            block={block}
+            onUpdateBlock={onUpdateBlock}
+            isLocked={isLocked}
+            allPages={allPages}
+            currentPage={currentPage}
+            allBlocks={allBlocks}
+            onAddBlockBelow={onAddBlockBelow}
+          />
         )}
 
         {/* Multi-Column Layout (2 or 3 Columns) */}
@@ -2132,15 +2138,14 @@ export const BlockItem = ({
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (le) => {
+                            compressImageFile(file).then((base64Url) => {
+                              if (!base64Url) return;
                               onUpdateBlock(block.id, {
-                                url: le.target.result,
+                                url: base64Url,
                                 caption: block.caption || file.name
                               });
                               setImageLoadError(false);
-                            };
-                            reader.readAsDataURL(file);
+                            });
                           }
                         }}
                       />

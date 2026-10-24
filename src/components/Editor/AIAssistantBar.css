@@ -69,7 +69,7 @@
 
 .ai-text-input::placeholder {
   color: var(--text-tertiary);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .ai-send-btn {

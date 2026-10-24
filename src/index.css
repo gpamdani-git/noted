@@ -1,16 +1,31 @@
 /* Notion-inspired Design System for noted */
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
+@import './components/Database/DatabaseViews.css';
+
+/* Ensure 400 (normal) uses solid Medium weight so text is never razor-thin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
 :root {
-  --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
-  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif;
+  --font-serif: 'Lyon-Text', Georgia, ui-serif, serif;
+  --font-mono: 'iawriter-mono', Nitti, Menlo, Monaco, Consolas, monospace;
 
   /* Light Theme Colors (Default) */
   --bg-primary: #ffffff;
   --bg-secondary: #fbfbfa;
-  --bg-sidebar: #f7f6f3;
+  --bg-sidebar: rgba(249, 248, 247, 1);
   --bg-hover: rgba(55, 53, 47, 0.06);
-  --bg-active: rgba(55, 53, 47, 0.1);
-  --bg-code: #f2f1ee;
+  --bg-active: rgba(55, 53, 47, 0.16);
+  --bg-code: rgb(247, 246, 243);
   --bg-card: #ffffff;
   --bg-modal: #ffffff;
   --bg-popover: #ffffff;
@@ -21,40 +36,41 @@
 
   /* Notion Desktop Canonical Color Tokens (from @notionhq/shared-styles REA) */
   --text-primary: rgba(55, 53, 47, 1);
-  --text-secondary: rgba(142, 139, 134, 1);
-  --text-tertiary: rgba(173, 169, 163, 1);
-  --text-placeholder: rgba(55, 53, 47, 0.35);
+  --text-secondary: rgba(55, 53, 47, 0.65);
+  --text-tertiary: rgba(55, 53, 47, 0.45);
+  --text-placeholder: rgba(55, 53, 47, 0.25);
 
   --accent: #2383e2;
   --accent-soft: rgba(35, 131, 226, 0.08);
-  --accent-hover: #1b6fc2;
+  --accent-hover: #0077d4;
+  --accent-active: #006bc7;
 
   /* Tag & Callout Palette */
   --color-gray: #787774;
   --color-gray-bg: rgba(227, 226, 224, 0.5);
   --color-brown: #9f6b53;
-  --color-brown-bg: rgba(238, 224, 218, 0.5);
+  --color-brown-bg: rgba(238, 224, 218, 0.6);
   --color-orange: #d9730d;
-  --color-orange-bg: rgba(250, 222, 201, 0.5);
+  --color-orange-bg: rgba(250, 222, 201, 0.6);
   --color-yellow: #cb912f;
-  --color-yellow-bg: rgba(253, 236, 200, 0.5);
+  --color-yellow-bg: rgba(253, 236, 200, 0.6);
   --color-green: #448361;
-  --color-green-bg: rgba(219, 237, 219, 0.5);
+  --color-green-bg: rgba(219, 237, 219, 0.6);
   --color-blue: #337ea9;
-  --color-blue-bg: rgba(211, 229, 239, 0.5);
+  --color-blue-bg: rgba(211, 229, 239, 0.6);
   --color-purple: #9065b0;
-  --color-purple-bg: rgba(232, 222, 238, 0.5);
+  --color-purple-bg: rgba(232, 222, 246, 0.6);
   --color-pink: #c14c8a;
-  --color-pink-bg: rgba(244, 223, 235, 0.5);
+  --color-pink-bg: rgba(247, 223, 235, 0.6);
   --color-red: #d44c47;
-  --color-red-bg: rgba(251, 228, 228, 0.5);
+  --color-red-bg: rgba(255, 226, 221, 0.6);
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 16px rgba(15, 15, 15, 0.08), 0 2px 4px rgba(15, 15, 15, 0.04);
-  --shadow-lg: 0 16px 36px rgba(15, 15, 15, 0.14), 0 4px 12px rgba(15, 15, 15, 0.06);
-  --shadow-popover: 0 10px 38px -10px rgba(22, 23, 24, 0.25), 0 10px 20px -15px rgba(22, 23, 24, 0.15);
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 15, 15, 0.08);
+  --shadow-lg: 0 16px 36px rgba(15, 15, 15, 0.16);
+  --shadow-popover: 0px 8px 12px 0px rgba(25, 25, 25, 0.029), 0px 2px 6px 0px rgba(25, 25, 25, 0.029), 0px 0px 0px 1px rgba(42, 28, 0, 0.07);
 
-  --sidebar-width: 250px;
+  --sidebar-width: 260px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
@@ -65,13 +81,13 @@
 [data-theme="dark"] {
   --bg-primary: rgba(25, 25, 25, 1);
   --bg-secondary: rgba(32, 32, 32, 1);
-  --bg-sidebar: rgba(28, 28, 28, 1);
+  --bg-sidebar: rgba(32, 32, 32, 1);
   --bg-hover: rgba(255, 255, 255, 0.055);
   --bg-active: rgba(255, 255, 255, 0.08);
   --bg-code: rgba(37, 37, 37, 1);
   --bg-card: rgba(32, 32, 32, 1);
-  --bg-modal: rgba(37, 37, 37, 1);
-  --bg-popover: rgba(37, 37, 37, 1);
+  --bg-modal: rgba(32, 32, 32, 1);
+  --bg-popover: rgba(32, 32, 32, 1);
 
   --border-color: rgba(255, 255, 255, 0.07);
   --border-subtle: rgba(255, 255, 255, 0.035);
@@ -85,6 +101,8 @@
   --accent: #388bfd;
   --accent-soft: rgba(56, 139, 253, 0.12);
   --accent-hover: #58a6ff;
+
+  --shadow-popover: 0px 0px 0px 1px rgba(56, 56, 54, 1), 0px 4px 12px -2px rgba(25, 25, 25, 0.079);
 
   --color-gray: #979593;
   --color-gray-bg: rgba(90, 90, 90, 0.3);
@@ -117,19 +135,23 @@
   padding: 0;
 }
 
-html, body, #root {
-  height: 100%;
+html, body {
   width: 100%;
-  overflow: hidden;
+  min-height: 100%;
   font-family: var(--font-sans);
   font-size: 14px;
-  font-weight: 450;
+  font-weight: 500;
   line-height: 1.55;
   color: var(--text-primary);
   background-color: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+#root {
+  width: 100%;
+  min-height: 100%;
 }
 
 /* Custom Notion Scrollbars */
@@ -188,4 +210,43 @@ input, textarea {
 
 .animate-popover {
   animation: popoverIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Open Source Global Badges & Navbar GitHub Pill */
+.noted-nav-github-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.noted-nav-github-pill:hover {
+  background: var(--bg-active);
+  transform: translateY(-1px);
+  color: var(--text-primary);
+}
+
+.noted-nav-github-pill .github-star-icon {
+  color: #F59E0B;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.theme-dark .noted-nav-github-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+}
+
+.theme-dark .noted-nav-github-pill:hover {
+  background: rgba(255, 255, 255, 0.14);
 }

@@ -38,6 +38,7 @@ export const PageHeader = ({
   page,
   onUpdatePage,
   fullWidth,
+  hasMarginComments = false,
   backlinks = [],
   onNavigatePage,
   onOpenCommentsDrawer
@@ -200,7 +201,7 @@ export const PageHeader = ({
       )}
 
       {/* Main Header Content */}
-      <div className={`page-header-content ${widthClass} ${page.cover ? 'has-cover' : ''}`}>
+      <div className={`page-header-content ${widthClass} ${hasMarginComments ? 'has-margin-comments' : ''} ${page.cover ? 'has-cover' : ''}`}>
         {/* Page Icon (Emoji) */}
         {page.icon ? (
           <div className="page-icon-wrapper">
