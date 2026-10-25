@@ -1,7 +1,7 @@
 # Graph Report - noted  (2026-10-25)
 
 ## Corpus Check
-- 279 files · ~3,554,497 words
+- 279 files · ~3,554,444 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 67 file(s) not represented in the graph (top: .css 41, .xml 10, (none) 4)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cf1a9d6b`
+- Built from commit: `49dabee5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -795,7 +795,7 @@ Nodes (6): Choose CLI or MCP, Inspect Neon Cache Behavior Per Query, Interpret R
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `search()` connect `search` to `Production hardening for Neon Functions`, `DesignSystemGenerator`, `BM25`, `detect_domain`, `_normalize`, `TestDiagnosticsContracts`, `_row_identities`, `test_core_data_quality.py`, `_search_csv_detailed`, `design_system.py`?**
-  _High betweenness centrality (0.220) - this node is a cross-community bridge._
+  _High betweenness centrality (0.217) - this node is a cross-community bridge._
 - **Are the 7 inferred relationships involving `App()` (e.g. with `.connect()` and `.destroy()`) actually correct?**
   _`App()` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@capacitor/android`, `@capacitor/cli`, `@capacitor/core` to the rest of the system?**
@@ -803,7 +803,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `2. Token Desain Eksak (Light Mode & Dark Mode)` be split into smaller, more focused modules?**
   _Cohesion score 0.05714285714285714 - nodes in this community are weakly interconnected._
 - **Why does `Production hardening for Neon Functions` connect `Production hardening for Neon Functions` to `neon-functions/SKILL.md`?**
-  _High betweenness centrality (0.218) - this node is a cross-community bridge._
+  _High betweenness centrality (0.215) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `DesignSystemGenerator` (e.g. with `TestReasoningMatch` and `TestReasoningContract`) actually correct?**
   _`DesignSystemGenerator` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **Should `DesignSystemGenerator` be split into smaller, more focused modules?**

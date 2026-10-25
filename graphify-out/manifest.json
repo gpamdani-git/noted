@@ -330,8 +330,8 @@
     "semantic_hash": "bbc05c5a6b80c03695c40da2c93f7dbb"
   },
   "src/components/Editor/VideoEmbedBlock.jsx": {
-    "mtime": 1792867181.2961094,
-    "seen": 1792867356.7036002,
+    "mtime": 1792890783.2364411,
+    "seen": 1792891417.05382,
     "ast_hash": "86fb9219a4300deab8aad5c7846a6079",
     "semantic_hash": ""
   },
@@ -1056,8 +1056,8 @@
     "semantic_hash": ""
   },
   "src/components/Auth/NotionLoginModal.jsx": {
-    "mtime": 1792866967.4664474,
-    "seen": 1792867356.702765,
+    "mtime": 1792890783.142273,
+    "seen": 1792891417.052974,
     "ast_hash": "1b04d05ded7fe2ef2d3c1179866ea77e",
     "semantic_hash": ""
   },
@@ -2196,9 +2196,9 @@
     "semantic_hash": ""
   },
   "src/components/Landing/NotionLandingPage.jsx": {
-    "mtime": 1792867029.8878365,
-    "seen": 1792867356.703732,
-    "ast_hash": "8cd30d689b6d5af28e53b36b804ac22d",
+    "mtime": 1792891325.6029742,
+    "seen": 1792891417.0539541,
+    "ast_hash": "2b835aa5cef79094bb1c8b7f92658045",
     "semantic_hash": ""
   },
   "src/test/landingPage.test.jsx": {
@@ -2238,8 +2238,8 @@
     "semantic_hash": ""
   },
   "src/components/Download/NotionDownloadPage.jsx": {
-    "mtime": 1792867109.6796105,
-    "seen": 1792867356.703191,
+    "mtime": 1792890783.2103145,
+    "seen": 1792891417.053406,
     "ast_hash": "800843c7e02edcc94478151a6a3d3902",
     "semantic_hash": ""
   },
@@ -2256,8 +2256,8 @@
     "semantic_hash": ""
   },
   "src/components/Docs/NotedDocsPage.jsx": {
-    "mtime": 1792866981.1971512,
-    "seen": 1792867356.703163,
+    "mtime": 1792890783.176226,
+    "seen": 1792891417.053379,
     "ast_hash": "ca4205564ce8a2ed917aad031ebf3985",
     "semantic_hash": ""
   },
@@ -2280,8 +2280,8 @@
     "semantic_hash": ""
   },
   "src/components/common/NotedFooter.jsx": {
-    "mtime": 1792867071.2795932,
-    "seen": 1792867356.7040472,
+    "mtime": 1792890783.3488624,
+    "seen": 1792891417.05427,
     "ast_hash": "bc64171e6b112a7d53264e3afc940f5a",
     "semantic_hash": ""
   },
@@ -2322,9 +2322,9 @@
     "semantic_hash": ""
   },
   "src/components/Landing/NotedIllustrations.jsx": {
-    "mtime": 1792866776.3241615,
-    "seen": 1792867356.703731,
-    "ast_hash": "3374768e68020e001064d1c623db9777",
+    "mtime": 1792891293.0170822,
+    "seen": 1792891417.053953,
+    "ast_hash": "b20e0c53b95e65094061d1142fcd840e",
     "semantic_hash": ""
   },
   "public/noted-brand-logo.png": {

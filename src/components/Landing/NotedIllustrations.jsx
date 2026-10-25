@@ -62,8 +62,8 @@ export function NotedHero3DCanvas({ activeStage = 0, theme = 'dark', tilt = { x:
 
     // 3D Octahedron vertices for AI Node
     const octaVerts = [
-      [0, -1.3, 0], [1.1, 0, 0], [0, 0, 1.1],
-      [-1.1, 0, 0], [0, 0, -1.1], [0, 1.3, 0]
+      [0, -1.25, 0], [1.05, 0, 0], [0, 0, 1.05],
+      [-1.05, 0, 0], [0, 0, -1.05], [0, 1.25, 0]
     ];
     const octaEdges = [
       [0, 1], [0, 2], [0, 3], [0, 4],
@@ -78,107 +78,110 @@ export function NotedHero3DCanvas({ activeStage = 0, theme = 'dark', tilt = { x:
       '#06B6D4'  // 3: Cloud Sync (Cyan)
     ];
 
+    // 4 horizontally aligned node X positions matching the 4 workflow columns
+    const nodeXs = [-275, -92, 92, 275];
+
     const render = () => {
-      time += 0.018;
+      time += 0.016;
       const width = canvas.width;
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
 
       const isDark = theme === 'dark';
-      const activeColor = stageColors[activeStage % stageColors.length];
+      const activeIdx = activeStage % 4;
+      const activeColor = stageColors[activeIdx];
+      const rotX = 0.28 + tilt.y * 0.08;
+      const rotY = tilt.x * 0.08;
 
-      // Subtle 3D perspective grid lines at base
-      const rotX = 0.35 + tilt.y * 0.18;
-      const rotY = Math.sin(time * 0.35) * 0.22 + tilt.x * 0.22;
+      const nodeCenters = nodeXs.map((nx) => project3D(nx, 0, 0, rotX, rotY, width, height, 600));
 
-      // Draw 3D orbital connection arcs between Left (Local Vault), Center (Workspace/AI), Right (Neon Cloud)
-      const leftCenter = { x: -240, y: -15, z: -20 };
-      const midCenter = { x: 0, y: -65, z: -40 };
-      const rightCenter = { x: 240, y: -15, z: -20 };
-
-      const pLeft = project3D(leftCenter.x, leftCenter.y, leftCenter.z, rotX, rotY, width, height);
-      const pMid = project3D(midCenter.x, midCenter.y, midCenter.z, rotX, rotY, width, height);
-      const pRight = project3D(rightCenter.x, rightCenter.y, rightCenter.z, rotX, rotY, width, height);
-
-      // Draw glowing orbital bezier path
+      // Subtle connecting line between the 4 nodes
       ctx.save();
       ctx.beginPath();
-      ctx.moveTo(pLeft.x, pLeft.y);
-      ctx.quadraticCurveTo(pMid.x, pMid.y - 35, pRight.x, pRight.y);
-      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(55, 53, 47, 0.10)';
+      ctx.moveTo(nodeCenters[0].x, nodeCenters[0].y);
+      ctx.lineTo(nodeCenters[3].x, nodeCenters[3].y);
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(55, 53, 47, 0.09)';
       ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 5]);
+      ctx.setLineDash([4, 6]);
       ctx.stroke();
       ctx.restore();
 
-      // Animated data packets along the 3D orbital path
-      for (let i = 0; i < 6; i++) {
-        const tVal = ((time * 0.45 + i / 6) % 1);
-        const invT = 1 - tVal;
-        const px = invT * invT * pLeft.x + 2 * invT * tVal * pMid.x + tVal * tVal * pRight.x;
-        const py = invT * invT * pLeft.y + 2 * invT * tVal * (pMid.y - 35) + tVal * tVal * pRight.y;
+      // Single calm flowing pulse along the line
+      const pulseT = (time * 0.32) % 1;
+      const pulseX = nodeCenters[0].x + (nodeCenters[3].x - nodeCenters[0].x) * pulseT;
+      const pulseY = nodeCenters[0].y;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pulseX, pulseY, 3, 0, Math.PI * 2);
+      ctx.fillStyle = activeColor;
+      ctx.shadowColor = activeColor;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.restore();
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(px, py, 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = activeColor;
-        ctx.shadowColor = activeColor;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.restore();
-      }
+      // Active node soft radial halo
+      const activeCenter = nodeCenters[activeIdx];
+      ctx.save();
+      const grad = ctx.createRadialGradient(
+        activeCenter.x, activeCenter.y, 2,
+        activeCenter.x, activeCenter.y, 34
+      );
+      grad.addColorStop(0, `${activeColor}28`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(activeCenter.x, activeCenter.y, 34, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
 
-      // 1. Draw Left 3D Rotating Isometric Cube (Local Vault)
-      const cubeScale = 24;
-      const projectedCube = cubeVerts.map(([vx, vy, vz]) => {
-        // Local spin
-        const c = Math.cos(time * 0.9);
-        const s = Math.sin(time * 0.9);
-        const rx = vx * c - vz * s;
-        const rz = vz * c + vx * s;
+      const spin = time * 0.7;
+      const cosS = Math.cos(spin);
+      const sinS = Math.sin(spin);
+      const mutedStroke = isDark ? 'rgba(255, 255, 255, 0.24)' : 'rgba(55, 53, 47, 0.26)';
+
+      // Node 0: 3D Document Block Sheet
+      ctx.save();
+      ctx.strokeStyle = activeIdx === 0 ? stageColors[0] : mutedStroke;
+      ctx.lineWidth = activeIdx === 0 ? 1.8 : 1.15;
+      const sheetScale = activeIdx === 0 ? 15 : 13;
+      const sheetVerts = [
+        [-0.9, -1.15, 0], [0.9, -1.15, 0], [0.9, 1.15, 0], [-0.9, 1.15, 0],
+        [-0.5, -0.45, 0.1], [0.5, -0.45, 0.1],
+        [-0.5, 0.1, 0.1], [0.5, 0.1, 0.1],
+        [-0.5, 0.65, 0.1], [0.2, 0.65, 0.1]
+      ].map(([vx, vy, vz]) => {
+        const c = Math.cos(Math.sin(time * 0.9) * 0.35);
+        const s = Math.sin(Math.sin(time * 0.9) * 0.35);
         return project3D(
-          leftCenter.x + rx * cubeScale,
-          leftCenter.y + vy * cubeScale,
-          leftCenter.z + rz * cubeScale,
-          rotX,
-          rotY,
-          width,
-          height
+          nodeXs[0] + (vx * c - vz * s) * sheetScale,
+          vy * sheetScale,
+          (vz * c + vx * s) * sheetScale,
+          rotX, rotY, width, height, 600
         );
       });
-
-      ctx.save();
-      ctx.strokeStyle = activeStage === 2 ? '#10B981' : isDark ? 'rgba(56, 189, 248, 0.45)' : 'rgba(35, 131, 226, 0.45)';
-      ctx.lineWidth = activeStage === 2 ? 2 : 1.2;
-      cubeEdges.forEach(([a, b]) => {
+      [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [6, 7], [8, 9]].forEach(([a, b]) => {
         ctx.beginPath();
-        ctx.moveTo(projectedCube[a].x, projectedCube[a].y);
-        ctx.lineTo(projectedCube[b].x, projectedCube[b].y);
+        ctx.moveTo(sheetVerts[a].x, sheetVerts[a].y);
+        ctx.lineTo(sheetVerts[b].x, sheetVerts[b].y);
         ctx.stroke();
       });
       ctx.restore();
 
-      // 2. Draw Center-Top 3D AI Octahedron Crystal
-      const octaScale = 22;
+      // Node 1: 3D AI Octahedron Crystal
+      ctx.save();
+      ctx.strokeStyle = activeIdx === 1 ? stageColors[1] : mutedStroke;
+      ctx.lineWidth = activeIdx === 1 ? 1.8 : 1.15;
+      const octaScale = activeIdx === 1 ? 15 : 13;
       const projectedOcta = octaVerts.map(([vx, vy, vz]) => {
-        const c = Math.cos(-time * 1.1);
-        const s = Math.sin(-time * 1.1);
-        const rx = vx * c - vz * s;
-        const rz = vz * c + vx * s;
+        const rx = vx * cosS - vz * sinS;
+        const rz = vz * cosS + vx * sinS;
         return project3D(
-          midCenter.x + rx * octaScale,
-          midCenter.y + vy * octaScale,
-          midCenter.z + rz * octaScale,
-          rotX,
-          rotY,
-          width,
-          height
+          nodeXs[1] + rx * octaScale,
+          vy * octaScale,
+          rz * octaScale,
+          rotX, rotY, width, height, 600
         );
       });
-
-      ctx.save();
-      ctx.strokeStyle = activeStage === 1 ? '#A855F7' : isDark ? 'rgba(168, 85, 247, 0.4)' : 'rgba(144, 101, 176, 0.4)';
-      ctx.lineWidth = activeStage === 1 ? 2 : 1.2;
       octaEdges.forEach(([a, b]) => {
         ctx.beginPath();
         ctx.moveTo(projectedOcta[a].x, projectedOcta[a].y);
@@ -187,18 +190,42 @@ export function NotedHero3DCanvas({ activeStage = 0, theme = 'dark', tilt = { x:
       });
       ctx.restore();
 
-      // 3. Draw Right 3D Neon Cloud Rings (3 stacked 3D rings)
+      // Node 2: 3D Isometric Vault Cube
       ctx.save();
-      ctx.strokeStyle = activeStage === 3 ? '#06B6D4' : isDark ? 'rgba(6, 182, 212, 0.45)' : 'rgba(15, 123, 108, 0.45)';
-      ctx.lineWidth = activeStage === 3 ? 2 : 1.2;
-      [-14, 0, 14].forEach((layerY, idx) => {
+      ctx.strokeStyle = activeIdx === 2 ? stageColors[2] : mutedStroke;
+      ctx.lineWidth = activeIdx === 2 ? 1.8 : 1.15;
+      const cubeScale = activeIdx === 2 ? 14 : 12;
+      const projectedCube = cubeVerts.map(([vx, vy, vz]) => {
+        const rx = vx * cosS - vz * sinS;
+        const rz = vz * cosS + vx * sinS;
+        return project3D(
+          nodeXs[2] + rx * cubeScale,
+          vy * cubeScale,
+          rz * cubeScale,
+          rotX, rotY, width, height, 600
+        );
+      });
+      cubeEdges.forEach(([a, b]) => {
+        ctx.beginPath();
+        ctx.moveTo(projectedCube[a].x, projectedCube[a].y);
+        ctx.lineTo(projectedCube[b].x, projectedCube[b].y);
+        ctx.stroke();
+      });
+      ctx.restore();
+
+      // Node 3: 3D Cloud Rings
+      ctx.save();
+      ctx.strokeStyle = activeIdx === 3 ? stageColors[3] : mutedStroke;
+      ctx.lineWidth = activeIdx === 3 ? 1.8 : 1.15;
+      const ringRadius = activeIdx === 3 ? 16 : 14;
+      [-7, 0, 7].forEach((layerY, idx) => {
         ctx.beginPath();
         const segments = 20;
         for (let s = 0; s <= segments; s++) {
-          const angle = (s / segments) * Math.PI * 2 + time * 0.6 * (idx % 2 === 0 ? 1 : -1);
-          const rx = Math.cos(angle) * 26;
-          const rz = Math.sin(angle) * 26;
-          const pt = project3D(rightCenter.x + rx, rightCenter.y + layerY, rightCenter.z + rz, rotX, rotY, width, height);
+          const angle = (s / segments) * Math.PI * 2 + time * 0.5 * (idx % 2 === 0 ? 1 : -1);
+          const rx = Math.cos(angle) * ringRadius;
+          const rz = Math.sin(angle) * ringRadius;
+          const pt = project3D(nodeXs[3] + rx, layerY, rz, rotX, rotY, width, height, 600);
           if (s === 0) ctx.moveTo(pt.x, pt.y);
           else ctx.lineTo(pt.x, pt.y);
         }
@@ -219,8 +246,8 @@ export function NotedHero3DCanvas({ activeStage = 0, theme = 'dark', tilt = { x:
     <canvas
       ref={canvasRef}
       data-testid="hero-3d-canvas"
-      width={760}
-      height={260}
+      width={840}
+      height={92}
       className="noted-hero-3d-canvas"
       aria-hidden="true"
     />

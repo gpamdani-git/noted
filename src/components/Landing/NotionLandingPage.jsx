@@ -459,6 +459,9 @@ export function NotionLandingPage({
                 <span className="loop-live-dot" />
                 {t.heroFlow?.engineBadge}
               </span>
+              <span className="hero-loop-live-snippet">
+                {t.heroFlow?.stages?.[activeHeroStage]?.liveSnippet}
+              </span>
             </div>
 
             {/* 3D Orbital Canvas */}
@@ -476,11 +479,10 @@ export function NotionLandingPage({
                     className={`hero-loop-stage-card ${isActive ? 'active' : ''}`}
                     onClick={() => setActiveHeroStage(idx)}
                   >
-                    <div className="stage-card-top">
+                    <div className="stage-card-head">
                       <span className="stage-step-pill">{stage.step}</span>
-                      <span className="stage-metric-pill">{stage.metric}</span>
+                      <strong className="stage-card-title">{stage.title}</strong>
                     </div>
-                    <strong className="stage-card-title">{stage.title}</strong>
                     <p className="stage-card-desc">{stage.desc}</p>
                     <div className="stage-progress-track">
                       <div className={`stage-progress-fill ${isActive ? 'animating' : ''}`} />
@@ -491,31 +493,8 @@ export function NotionLandingPage({
             </div>
           </div>
 
-          {/* 3D Spatial Perspective Window (Browser Illustration) */}
-          <div
-            className="noted-3d-perspective-rig"
-            style={{
-              transform: `perspective(1200px) rotateX(${(-heroTilt.y * 4).toFixed(2)}deg) rotateY(${(heroTilt.x * 5).toFixed(2)}deg)`
-            }}
-          >
-            {/* Left Floating 3D Layer: Local Vault Cube */}
-            <div className={`noted-3d-floating-card float-left ${activeHeroStage === 2 ? 'stage-active' : ''}`}>
-              <PlatformCardIllustration type="vault" />
-              <div className="float-card-meta">
-                <strong>SQLite + IndexedDB</strong>
-                <span>0ms Local Vault</span>
-              </div>
-            </div>
-
-            {/* Right Floating 3D Layer: Neon Cloud Sync */}
-            <div className={`noted-3d-floating-card float-right ${activeHeroStage === 3 ? 'stage-active' : ''}`}>
-              <PhilosophyIllustration iconType="cloud" />
-              <div className="float-card-meta">
-                <strong>Neon PostgreSQL</strong>
-                <span>Real-time Cloud Sync</span>
-              </div>
-            </div>
-
+          {/* App Preview Window (Browser Illustration) */}
+          <div className="noted-3d-perspective-rig">
             <div className="noted-mockup-window">
               {/* Window Titlebar */}
               <div className="noted-mockup-titlebar">
@@ -575,26 +554,11 @@ export function NotionLandingPage({
 
                 {/* Mockup Editor Canvas */}
                 <div className="noted-mockup-editor">
-                  <div className="mockup-page-cover">
-                    <div className="cover-live-telemetry">
-                      <span className="telemetry-step-badge">
-                        STAGE {t.heroFlow?.stages?.[activeHeroStage]?.step || '01'}
-                      </span>
-                      <span className="telemetry-live-text">
-                        {t.heroFlow?.stages?.[activeHeroStage]?.liveSnippet}
-                      </span>
-                    </div>
-                  </div>
                   <div className="mockup-page-header">
                     <span className="mockup-page-icon">
                       <ProductMenuIllustration type="docs" />
                     </span>
                     <h2 className="mockup-page-heading">{t.mockup.tabTitle}</h2>
-                    <div className="mockup-meta-tags">
-                      <span className="mockup-tag tag-blue">{t.mockup.tagVault}</span>
-                      <span className="mockup-tag tag-green">{t.mockup.tagSync}</span>
-                      <span className="mockup-tag tag-purple">{t.mockup.tagFormat}</span>
-                    </div>
                   </div>
 
                   {/* Callout Block */}
