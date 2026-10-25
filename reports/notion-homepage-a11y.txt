@@ -1,0 +1,207 @@
+- document:
+  - navigation "Main":
+    - link "Notion – Home":
+      - /url: /product
+      - img
+    - button "Product":
+      - text: Product
+      - img
+    - button "Resources":
+      - text: Resources
+      - img
+    - link "Pricing":
+      - /url: /pricing
+    - link "Request a demo":
+      - /url: /contact-sales
+    - link "Log in":
+      - /url: /login?from=marketing&pathname=%2F&tid=32bfe65d90944bb688779ef3fe245bcb
+    - link "Get Notion free":
+      - /url: /signup?from=marketing&pathname=%2F&tid=32bfe65d90944bb688779ef3fe245bcb
+  - main:
+    - heading "Where teams and agents Think together." [level=1]
+    - paragraph: Capture context, find answers, and automate tasks with AI built for your team.
+    - link "Get Notion free":
+      - /url: /signup?from=marketing&pathname=%2F&tid=32bfe65d90944bb688779ef3fe245bcb
+    - link "Request a demo":
+      - /url: /contact-sales
+    - paragraph: The most ambitious companies run on Notion.
+    - link "OpenAI":
+      - /url: /customers/openai
+    - img "A24"
+    - link "Figma":
+      - /url: /customers/figma
+    - img "Federal Express"
+    - link "Ramp":
+      - /url: /customers/ramp
+    - link "Cursor":
+      - /url: /customers/cursor
+    - img "Substack"
+    - img "Nvidia"
+    - link "Toyota":
+      - /url: /customers/toyota
+    - link "Clay":
+      - /url: /customers/clay
+    - img "Automobili Lamborghini"
+    - img "David Zwirner, Inc."
+    - link "Vercel":
+      - /url: /customers/vercel
+    - link "Faire":
+      - /url: /customers/faire
+    - img "Lovable"
+    - img "goop, Inc."
+    - img "Discord"
+    - heading "AI where your team works." [level=2]
+    - article:
+      - link "Try it":
+        - /url: /product/features#capture
+      - text: Capture knowledge
+      - heading "Bring everything into one system of record." [level=2]
+    - article:
+      - link "Try it":
+        - /url: /product/features#find
+      - text: Find answers
+      - heading "Get answers, instantly—with citations." [level=2]
+    - article:
+      - link "Try it":
+        - /url: /product/features#automate
+      - text: Automate busywork
+      - heading "Keep work moving 24/7 with agents." [level=2]
+    - heading "See what Notion can do" [level=3]
+    - link "Triage product feedback":
+      - /url: /product/ai/use-cases/triage-product-feedback
+    - heading "Triage product feedback" [level=3]
+    - link "Resolve support tickets in Slack":
+      - /url: /product/ai/use-cases/resolve-support-tickets-in-slack
+    - heading "Resolve support tickets in Slack" [level=3]
+    - link "Respond to security alerts faster":
+      - /url: /product/ai/use-cases/respond-to-security-alerts-faster
+    - heading "Respond to security alerts faster" [level=3]
+    - link "Automate weekly reporting":
+      - /url: /product/ai/use-cases/automate-weekly-reporting
+    - heading "Automate weekly reporting" [level=3]
+    - link "Create your own developer tools":
+      - /url: /product/dev
+    - heading "Create your own developer tools" [level=3]
+    - region "Trusted by teams that ship.":
+      - heading "Trusted by teams that ship." [level=2]
+      - link "Read the Cursor customer story":
+        - /url: /customers/cursor
+        - img "Michael Truell, Co-founder and CEO of Cursor"
+        - img "Cursor"
+        - figure "Michael Truell, Co-founder & CEO":
+          - blockquote: Using the most AI-native tools like Notion is an important competitive advantage for us to stay small while doing a lot.
+          - text: Michael Truell, Co-founder & CEO
+      - link "Read the Faire customer story":
+        - /url: /customers/faire
+        - img "Renee Solorzano, Sr. Director of Product Design at Faire"
+        - img "Faire"
+        - figure "Renee Solorzano, Sr. Director of Product Design":
+          - blockquote: Notion’s thoughtful design speeds up collaboration and decisions so we can deliver impact to our customers faster.
+          - text: Renee Solorzano, Sr. Director of Product Design
+      - link "Read the Ramp customer story":
+        - /url: /customers/ramp
+        - img "Ben Levick, Head of Operations & Internal AI at Ramp"
+        - img "Ramp"
+        - figure "Ben Levick, Head of Operations & Internal AI":
+          - blockquote: Notion Custom Agents help our team go beyond doing work with AI to building AI tools that do the work for them.
+          - text: Ben Levick, Head of Operations & Internal AI
+      - paragraph: "G2’s #1 knowledge base for 3 consecutive years"
+      - paragraph: 100M users in over 50 countries
+      - paragraph: Over 50% of YC companies
+      - paragraph: 1.4M+ community members
+      - paragraph: 62% of Fortune 100 use Notion
+    - region "Get started today.":
+      - heading "Get started today." [level=2]
+      - link "Get Notion free":
+        - /url: /signup?from=marketing&pathname=%2F&tid=32bfe65d90944bb688779ef3fe245bcb
+      - link "Request a demo":
+        - /url: /contact-sales
+  - contentinfo:
+    - link "Notion – Home":
+      - /url: /product
+      - img
+    - figure "Marshall McLuhan":
+      - blockquote: We shape our tools, and thereafter our tools shape us.
+      - text: Marshall McLuhan
+    - navigation "Footer":
+      - list "Product":
+        - text: Product
+        - listitem:
+          - link "Features":
+            - /url: /product/features
+        - listitem:
+          - link "What's New":
+            - /url: /releases
+        - listitem:
+          - link "Notion AI":
+            - /url: /product/ai
+        - listitem:
+          - link "Pricing":
+            - /url: /pricing
+        - listitem:
+          - link "Request a demo":
+            - /url: /contact-sales
+        - listitem:
+          - link "Download":
+            - /url: /download
+        - listitem:
+          - link "Explore more":
+            - /url: /explore
+      - list "Resources":
+        - text: Resources
+        - listitem:
+          - link "Customer stories":
+            - /url: /customers
+        - listitem:
+          - link "Connections":
+            - /url: /connections
+        - listitem:
+          - link "Marketplace":
+            - /url: /templates
+        - listitem:
+          - link "Help Center":
+            - /url: /help
+        - listitem:
+          - link "Academy":
+            - /url: https://academy.notion.com
+        - listitem:
+          - link "Community":
+            - /url: /community
+      - list "Company":
+        - text: Company
+        - listitem:
+          - link "About us":
+            - /url: /about
+        - listitem:
+          - link "Careers":
+            - /url: /careers
+        - listitem:
+          - link "Security":
+            - /url: /security
+        - listitem:
+          - link "Status":
+            - /url: https://www.notion-status.com
+        - listitem:
+          - link "Terms & privacy":
+            - /url: https://www.notion.so/28ffdd083dc3473e9c2da6ec011b58ac
+        - listitem:
+          - link "Your privacy rights":
+            - /url: https://www.notion.com/trust/privacy-policy#california
+      - list "Notion for":
+        - text: Notion for
+        - listitem:
+          - link "Enterprise":
+            - /url: /enterprise
+        - listitem:
+          - link "Small businesses":
+            - /url: /teams
+        - listitem:
+          - link "Startups":
+            - /url: /startups
+        - listitem:
+          - link "Developers":
+            - /url: https://developers.notion.com
+    - button "English (US)"
+    - button "Cookie settings"
+    - paragraph: © 2026 Notion Labs, Inc.
+  - alert

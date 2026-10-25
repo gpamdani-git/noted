@@ -1,0 +1,164 @@
+{
+  "headings": [
+    {
+      "level": "H3",
+      "text": ""
+    },
+    {
+      "level": "H3",
+      "text": ""
+    },
+    {
+      "level": "H3",
+      "text": ""
+    },
+    {
+      "level": "H1",
+      "text": "A faster experience on Notion Desktop."
+    },
+    {
+      "level": "H2",
+      "text": "Notion Calendar"
+    },
+    {
+      "level": "H2",
+      "text": "Notion Web Clipper"
+    },
+    {
+      "level": "H2",
+      "text": "Notion is also on mobile."
+    }
+  ],
+  "downloadLinks": [
+    {
+      "text": "",
+      "href": "/download"
+    },
+    {
+      "text": "Log in",
+      "href": "/login?from=marketing&pathname=%2Fdownload&tid=74edce4ec2e746feb6bc34447591c69b"
+    },
+    {
+      "text": "Get Notion free",
+      "href": "/signup?from=marketing&pathname=%2Fdownload&tid=74edce4ec2e746feb6bc34447591c69b"
+    },
+    {
+      "text": "Download",
+      "href": "/desktop/mac-universal/download?from=marketing&pathname=%2Fdownload&tid=74edce4ec2e746feb6bc34447591c69b"
+    },
+    {
+      "text": "",
+      "href": "/product/calendar/download/mac"
+    },
+    {
+      "text": "Download for macOS",
+      "href": "/calendar/desktop/mac-universal/download?from=marketing&pathname=%2Fdownload&tid=74edce4ec2e746feb6bc34447591c69b"
+    },
+    {
+      "text": "Install for Safari",
+      "href": "/web-clipper/safari/download"
+    },
+    {
+      "text": "Download",
+      "href": "/download"
+    },
+    {
+      "text": "English (US)",
+      "href": "/en-US/download"
+    },
+    {
+      "text": "Bahasa Indonesia",
+      "href": "/id/download"
+    },
+    {
+      "text": "Dansk",
+      "href": "/da/download"
+    },
+    {
+      "text": "Deutsch",
+      "href": "/de/download"
+    },
+    {
+      "text": "English (UK)",
+      "href": "/en-GB/download"
+    },
+    {
+      "text": "Español (España)",
+      "href": "/es-ES/download"
+    },
+    {
+      "text": "Español (Latinoamérica)",
+      "href": "/es/download"
+    },
+    {
+      "text": "Français (France)",
+      "href": "/fr/download"
+    },
+    {
+      "text": "Italiano",
+      "href": "/it/download"
+    },
+    {
+      "text": "Nederlands",
+      "href": "/nl/download"
+    },
+    {
+      "text": "Norsk",
+      "href": "/nb/download"
+    },
+    {
+      "text": "Português (Brasil)",
+      "href": "/pt/download"
+    },
+    {
+      "text": "Suomi",
+      "href": "/fi/download"
+    },
+    {
+      "text": "Svenska",
+      "href": "/sv/download"
+    },
+    {
+      "text": "Tiếng Việt",
+      "href": "/vi/download"
+    },
+    {
+      "text": "עברית",
+      "href": "/he/download"
+    },
+    {
+      "text": "العربية",
+      "href": "/ar/download"
+    },
+    {
+      "text": "ภาษาไทย",
+      "href": "/th/download"
+    },
+    {
+      "text": "한국어",
+      "href": "/ko/download"
+    },
+    {
+      "text": "日本語",
+      "href": "/ja/download"
+    },
+    {
+      "text": "简体中文",
+      "href": "/zh-CN/download"
+    },
+    {
+      "text": "繁體中文",
+      "href": "/zh-TW/download"
+    }
+  ],
+  "cards": [
+    {
+      "title": "Notion Calendar",
+      "text": "Notion Calendar\n\nTime, scheduling, tasks—all together.\n\nDownload for macOS\n \nNotion Web Clipper\n\nSave any page on the web to Notion.\n\nInstall for Chrome\nInstall for Safari"
+    },
+    {
+      "title": "Notion is also on mobile.",
+      "text": "Notion is also on mobile.\nGet the app"
+    }
+  ]
+}

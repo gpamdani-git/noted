@@ -1,0 +1,555 @@
+{
+  "navLinks": [
+    {
+      "text": "",
+      "href": "/product",
+      "isButton": false
+    },
+    {
+      "text": "Product",
+      "href": "",
+      "isButton": true
+    },
+    {
+      "text": "",
+      "href": "/product/features",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/product/features#capture",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/product/features#find",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/product/features#automate",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/releases",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/download",
+      "isButton": false
+    },
+    {
+      "text": "Resources",
+      "href": "",
+      "isButton": true
+    },
+    {
+      "text": "",
+      "href": "/enterprise",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/teams",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/startups",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/product/dev",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/releases",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/customers",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/webinars",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/templates",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/explore-consultants",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "https://academy.notion.com",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/product/demos",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "/help",
+      "isButton": false
+    },
+    {
+      "text": "Pricing",
+      "href": "/pricing",
+      "isButton": false
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales",
+      "isButton": false
+    },
+    {
+      "text": "Log in",
+      "href": "/login?from=marketing&pathname=%2F&tid=efaa5c736be84faa8a43730cfe986c13",
+      "isButton": false
+    },
+    {
+      "text": "Get Notion free",
+      "href": "/signup?from=marketing&pathname=%2F&tid=efaa5c736be84faa8a43730cfe986c13",
+      "isButton": false
+    },
+    {
+      "text": "",
+      "href": "",
+      "isButton": true
+    },
+    {
+      "text": "Features",
+      "href": "/product/features",
+      "isButton": false
+    },
+    {
+      "text": "What's New",
+      "href": "/releases",
+      "isButton": false
+    },
+    {
+      "text": "Notion AI",
+      "href": "/product/ai",
+      "isButton": false
+    },
+    {
+      "text": "Pricing",
+      "href": "/pricing",
+      "isButton": false
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales",
+      "isButton": false
+    },
+    {
+      "text": "Download",
+      "href": "/download",
+      "isButton": false
+    },
+    {
+      "text": "Explore more→",
+      "href": "/explore",
+      "isButton": false
+    },
+    {
+      "text": "Customer stories",
+      "href": "/customers",
+      "isButton": false
+    },
+    {
+      "text": "Connections",
+      "href": "/connections",
+      "isButton": false
+    },
+    {
+      "text": "Marketplace",
+      "href": "/templates",
+      "isButton": false
+    },
+    {
+      "text": "Help Center",
+      "href": "/help",
+      "isButton": false
+    },
+    {
+      "text": "Academy",
+      "href": "https://academy.notion.com",
+      "isButton": false
+    },
+    {
+      "text": "Community",
+      "href": "/community",
+      "isButton": false
+    },
+    {
+      "text": "About us",
+      "href": "/about",
+      "isButton": false
+    },
+    {
+      "text": "Careers",
+      "href": "/careers",
+      "isButton": false
+    },
+    {
+      "text": "Security",
+      "href": "/security",
+      "isButton": false
+    },
+    {
+      "text": "Status",
+      "href": "https://www.notion-status.com",
+      "isButton": false
+    },
+    {
+      "text": "Terms & privacy",
+      "href": "https://www.notion.so/28ffdd083dc3473e9c2da6ec011b58ac",
+      "isButton": false
+    },
+    {
+      "text": "Your privacy rights",
+      "href": "https://www.notion.com/trust/privacy-policy#california",
+      "isButton": false
+    },
+    {
+      "text": "Enterprise",
+      "href": "/enterprise",
+      "isButton": false
+    },
+    {
+      "text": "Small businesses",
+      "href": "/teams",
+      "isButton": false
+    },
+    {
+      "text": "Startups",
+      "href": "/startups",
+      "isButton": false
+    },
+    {
+      "text": "Developers",
+      "href": "https://developers.notion.com",
+      "isButton": false
+    },
+    {
+      "text": "Explore more→",
+      "href": "/explore",
+      "isButton": false
+    }
+  ],
+  "headings": [
+    {
+      "level": "H3",
+      "text": "",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitle uD7svG_cardTitle qVhEtq_featureTitle"
+    },
+    {
+      "level": "H3",
+      "text": "",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitle uD7svG_cardTitle qVhEtq_featureTitle"
+    },
+    {
+      "level": "H3",
+      "text": "",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitle uD7svG_cardTitle qVhEtq_featureTitle"
+    },
+    {
+      "level": "H1",
+      "text": "Where teams and agents \nShip\n together.",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantGlobalTitle KlQGRG_title"
+    },
+    {
+      "level": "H2",
+      "text": "AI where your team works.",
+      "className": "FoZ42q_heading"
+    },
+    {
+      "level": "H2",
+      "text": "Bring everything into one system of record.",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitle xvimDq_bentoTitle"
+    },
+    {
+      "level": "H2",
+      "text": "Get answers, instantly—with citations.",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitle xvimDq_bentoTitle"
+    },
+    {
+      "level": "H2",
+      "text": "Keep work moving 24/7 with agents.",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitle xvimDq_bentoTitle"
+    },
+    {
+      "level": "H3",
+      "text": "See what Notion can do",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantGlobalContext"
+    },
+    {
+      "level": "H3",
+      "text": "Triage product feedback→",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitleSummary Dps_Ta_cardCompactTitle"
+    },
+    {
+      "level": "H3",
+      "text": "Resolve support tickets in Slack→",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitleSummary Dps_Ta_cardCompactTitle"
+    },
+    {
+      "level": "H3",
+      "text": "Respond to security alerts faster→",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitleSummary Dps_Ta_cardCompactTitle"
+    },
+    {
+      "level": "H3",
+      "text": "Automate weekly reporting→",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitleSummary Dps_Ta_cardCompactTitle"
+    },
+    {
+      "level": "H3",
+      "text": "Create your own developer tools→",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantCardTitleSummary Dps_Ta_cardCompactTitle"
+    },
+    {
+      "level": "H2",
+      "text": "Trusted by teams that ship.",
+      "className": "FoZ42q_heading"
+    },
+    {
+      "level": "H2",
+      "text": "Get started today.",
+      "className": "Db2fhq_semanticTypography Db2fhq_variantGlobalHeadingSubtle _0m6-va_endcapTitle"
+    }
+  ],
+  "logos": [
+    {
+      "alt": "",
+      "src": "/_next/image?url=%2Ffront-static%2Fpages%2Fhome%2Fteams-agents-hero%2Fpile_1.webp&w=640&q=75",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "/_next/image?url=%2Ffront-static%2Fpages%2Fhome%2Fteams-agents-hero%2Fpile_2.webp&w=640&q=75",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "/_next/image?url=%2Ffront-static%2Fpages%2Fhome%2Fteams-agents-hero%2Fpile_3.webp&w=640&q=75",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "/_next/image?url=%2Ffront-static%2Fpages%2Fhome%2Fteams-agents-hero%2Fpile_4.webp&w=640&q=75",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "/_next/image?url=%2Ffront-static%2Fpages%2Fhome%2Fteams-agents-hero%2Fpile_5.webp&w=640&q=75",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "/_next/image?url=%2Ffront-static%2Fpages%2Fhome%2Fteams-agents-hero%2Fpile_6.webp&w=640&q=75",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "/_next/image?url=%2Ffront-static%2Fpages%2Fhome%2Fteams-agents-hero%2Fpile_7.webp&w=640&q=75",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/6gu2Rybt4VdhS2GEEA99PO/ac0fedd553b2f541fde79cdda05271cc/OpenAI.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/4aacFfCek6OBBghMJHaBSk/9cb5eb86db70a11dbb6bc62b6535293b/a24-mono.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/6T4QxYfpIzIbZgWUSa5Rb1/8c6cb40bbf2304f8486222d777314b83/Figma_Wordmark__Black_.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/1WOBygtnWVcfsk5EfcSJVM/99b994e046e92fee4878075877a9441c/FedEx.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/4KBpzIRuWO9Bkoho07RwHW/7e608b80b697431b92ffb144e545cf3c/Ramp.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/5zvQQUAMUwmWaGbC9qhXpK/633c8d40bbbb2b42faec7ea3339788ff/cursor-logo-mono.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/6ZbZcPA6g5hFrPMbOPfraR/ef4bc2c92ed55a60c9609900717d3755/substack-wordmark-mono.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/27zUO0UMDpEBMwPKUUilFH/daba398de4e970fcda7a138ff09d480a/Nvidia.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/75O9653Z83boVzSMBMSY2D/4b36e928296e00612213aff4bdd369f2/toyota-black.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/4ljglPuQFOp4jC8kIacMa1/73c44685b85c73a717baac0329633d59/clay-mono-black.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/2Srehy5L0uv68kHfd341sB/b486900e403e6bd0b4cd29bca21d79b4/lamborghini-script-mono.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/5PYK3Lg8UW2Pk5pjMSo0oo/386446de76c143e694ec9790807eff7e/david-zwirner-mono.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/6NEhbP27yAbhvWdLKPHTFV/6978b1603c567d69f5fe7b4895b1d30f/Vercel.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/2lvHXS3UJ5sJscJTW8GTpc/c22ac415979069ab3be881b2749e0d77/Faire_logo_-_black.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/5noP5n1Gp9wULYfUEzujKv/49d56f55c09d72488606d57671e7d8c4/full-logo--black.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/6mSBovk8ZRupLUOZtSu9vp/2bc7912e143755ee406413ab0b9e0b68/goop-mono.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/7hER3ka9QgDiTjLh5Fh3ZZ/acda79bc2449edf5d964a3fc89e19623/Discord-Logo-Black.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/28h89MWosNZz4BozEZgayf/92843d67b2b141281b53f4ec1ab6bc0f/dolby-wordmark-mono.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/kelAN094ZCNSM1hzESs2C/71fdfc39756f757c95f984aa78fc1e82/1Password.svg",
+      "tag": "IMG"
+    },
+    {
+      "alt": "",
+      "src": "https://images.ctfassets.net/spoqsaf9291f/nyxHXSMqMnFKE3RD3tteN/fa4e6ab45c999ace2a528a45c5bfb812/Loreal-k.svg",
+      "tag": "IMG"
+    }
+  ],
+  "buttons": [
+    {
+      "text": "Product",
+      "href": "",
+      "classes": "HWB10a_link HWB10a_dropdownTrigger"
+    },
+    {
+      "text": "Resources",
+      "href": "",
+      "classes": "HWB10a_link HWB10a_dropdownTrigger"
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales",
+      "classes": "HWB10a_link"
+    },
+    {
+      "text": "Get Notion free",
+      "href": "/signup?from=marketing&pathname=%2F&tid=efaa5c736be84faa8a43730cfe986c13",
+      "classes": "pIQ4pG_button pIQ4pG_buttonVariantPrimary pIQ4pG_buttonSizeM HWB10a_tryFreeCta"
+    },
+    {
+      "text": "",
+      "href": "",
+      "classes": "sB-TYq_menuToggle"
+    },
+    {
+      "text": "Get Notion free",
+      "href": "/signup?from=marketing&pathname=%2F&tid=efaa5c736be84faa8a43730cfe986c13",
+      "classes": "Db2fhq_semanticTypography Db2fhq_variantInteractionButtonMedium HFeN3a_button VyImpW_cta HFeN3a_primary HFeN3a_medium"
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales",
+      "classes": "Db2fhq_semanticTypography Db2fhq_variantInteractionButtonMedium HFeN3a_button VyImpW_cta HFeN3a_secondary HFeN3a_medium"
+    },
+    {
+      "text": "Pause",
+      "href": "",
+      "classes": "t-AqdW_playPauseController"
+    },
+    {
+      "text": "Get Notion free",
+      "href": "/signup?from=marketing&pathname=%2F&tid=efaa5c736be84faa8a43730cfe986c13",
+      "classes": "Db2fhq_semanticTypography Db2fhq_variantInteractionButtonMedium HFeN3a_button HFeN3a_primary HFeN3a_medium"
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales",
+      "classes": "Db2fhq_semanticTypography Db2fhq_variantInteractionButtonMedium HFeN3a_button HFeN3a_secondary HFeN3a_medium"
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales",
+      "classes": "inline-full qf-KyW_menuListItemAnchor qf-KyW_variantSecondary"
+    },
+    {
+      "text": "English (US)",
+      "href": "",
+      "classes": "Db2fhq_semanticTypography Db2fhq_variantInteractionMenuButton RVGGvq_menuButton RVGGvq_variantPrimary c96SuW_menuButton"
+    },
+    {
+      "text": "Cookie settings",
+      "href": "",
+      "classes": "Db2fhq_semanticTypography z5BaEa_linkText z5BaEa_colorVariantSecondary"
+    }
+  ]
+}

@@ -57,6 +57,7 @@ dist-electron/
 # REA analysis output (170 MB, regenerate with scripts/rea-extract-index.mjs)
 docs/rea/*.rea.jsonl
 docs/rea/*.err.log
+rea_analysis/notion_app_full_analysis.json
 
 # Playwright
 test-results/

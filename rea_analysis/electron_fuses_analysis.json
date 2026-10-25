@@ -1,0 +1,124 @@
+{
+  "analysis": "electron_fuses",
+  "target": "/Applications/Notion.app",
+  "electron_framework": {
+    "path": "/Applications/Notion.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
+    "sha256": "97122b47c9c08ea308b0ca79f38c663c2fd280349e5810c480af56447adb02bb",
+    "architecture": "arm64",
+    "size_bytes": 201620320,
+    "format": "mach-o"
+  },
+  "fuses": {
+    "wire_version": 1,
+    "declared_length": 9,
+    "sentinel_offset": 158051492,
+    "fuse_details": [
+      {
+        "index": 0,
+        "name": "RunAsNode",
+        "state": "disabled",
+        "raw_byte": 48,
+        "description": "Prevents ELECTRON_RUN_AS_NODE environment variable from spawning Node.js CLI",
+        "security_impact": "positive"
+      },
+      {
+        "index": 1,
+        "name": "EnableCookieEncryption",
+        "state": "enabled",
+        "raw_byte": 49,
+        "description": "Encrypts cookies at rest using OS keychain",
+        "security_impact": "positive"
+      },
+      {
+        "index": 2,
+        "name": "EnableNodeOptionsEnvironmentVariable",
+        "state": "disabled",
+        "raw_byte": 48,
+        "description": "Blocks NODE_OPTIONS environment variable injection",
+        "security_impact": "positive"
+      },
+      {
+        "index": 3,
+        "name": "EnableNodeCliInspectArguments",
+        "state": "disabled",
+        "raw_byte": 48,
+        "description": "Prevents --inspect/--inspect-brk CLI arguments",
+        "security_impact": "positive"
+      },
+      {
+        "index": 4,
+        "name": "EnableEmbeddedAsarIntegrityValidation",
+        "state": "enabled",
+        "raw_byte": 49,
+        "description": "Enforces ASAR integrity validation - tamper detection",
+        "security_impact": "critical_positive"
+      },
+      {
+        "index": 5,
+        "name": "OnlyLoadAppFromAsar",
+        "state": "enabled",
+        "raw_byte": 49,
+        "description": "Restricts app loading to app.asar only - prevents arbitrary code loading",
+        "security_impact": "critical_positive"
+      },
+      {
+        "index": 6,
+        "name": "LoadBrowserProcessSpecificV8Snapshot",
+        "state": "disabled",
+        "raw_byte": 48,
+        "description": "Uses default V8 snapshot",
+        "security_impact": "neutral"
+      },
+      {
+        "index": 7,
+        "name": "GrantFileProtocolExtraPrivileges",
+        "state": "enabled",
+        "raw_byte": 49,
+        "description": "Grants file:// protocol extra privileges (needed for local resources)",
+        "security_impact": "caution"
+      },
+      {
+        "index": 8,
+        "name": "WasmTrapHandlers",
+        "state": "enabled",
+        "raw_byte": 49,
+        "description": "Enables WebAssembly trap handlers for performance",
+        "security_impact": "positive"
+      }
+    ]
+  },
+  "runtime_implications": [
+    {
+      "subject": "electron_run_as_node",
+      "fuse_index": 0,
+      "outcome": "not_honored",
+      "description": "Cannot run Electron as Node.js CLI via ELECTRON_RUN_AS_NODE"
+    },
+    {
+      "subject": "node_cli_inspect_arguments",
+      "fuse_index": 3,
+      "outcome": "not_honored",
+      "description": "Inspector CLI arguments (--inspect, --inspect-brk) are ignored"
+    },
+    {
+      "subject": "embedded_asar_integrity_validation",
+      "fuse_index": 4,
+      "outcome": "enforced",
+      "description": "ASAR integrity validation is ENFORCED - tampering detected at load time"
+    },
+    {
+      "subject": "only_load_app_from_asar",
+      "fuse_index": 5,
+      "outcome": "restricted_to_app_asar",
+      "description": "Application can ONLY load from app.asar - no external code loading"
+    }
+  ],
+  "limitations": [
+    "Fuse state does not prove the application enables Inspector through other means, such as app.commandLine or a remote-debugging switch in application code.",
+    "A missing sentinel means fuse state is unknown, not that every fuse is disabled.",
+    "The selected file is admitted as one regular file of at most 1 GiB. Sentinel search uses 262144-byte windows, and each slice keeps at most 32 sentinels."
+  ],
+  "evidence_id": "ev_48df8d3767a7394d292014e904dc0788e881b22d8544fec4f651be31cd4fe85d",
+  "confidence": "observed",
+  "authority": "shipped-artifact"
+}

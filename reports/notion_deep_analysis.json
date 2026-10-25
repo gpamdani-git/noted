@@ -1,0 +1,348 @@
+{
+  "navItems": [
+    {
+      "text": "Product",
+      "href": "",
+      "isButton": true
+    },
+    {
+      "text": "Resources",
+      "href": "",
+      "isButton": true
+    },
+    {
+      "text": "Pricing",
+      "href": "/pricing",
+      "isButton": false
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales",
+      "isButton": false
+    },
+    {
+      "text": "Log in",
+      "href": "/login?from=marketing&pathname=%2F&tid=665d46f46eff44328e8a34a296799564",
+      "isButton": false
+    },
+    {
+      "text": "Get Notion free",
+      "href": "/signup?from=marketing&pathname=%2F&tid=665d46f46eff44328e8a34a296799564",
+      "isButton": false
+    }
+  ],
+  "hero": {
+    "h1": "Where teams and agents \nShip\n together.",
+    "p": "Capture context, find answers, and automate tasks with AI built for your team."
+  },
+  "features": [
+    {
+      "heading": "AI where your team works.",
+      "desc": "",
+      "link": "",
+      "classes": "FoZ42q_header FoZ42q_alignStart -Qs3Ha_bentoSectionHeader"
+    },
+    {
+      "heading": "Bring everything into one system of record.",
+      "desc": "",
+      "link": "",
+      "classes": "KqyldW_bentoGrid KqyldW_bentoGridAccentMuted"
+    },
+    {
+      "heading": "Bring everything into one system of record.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bento QPCBRq_theme _6FCNga_theme thoEPa_theme"
+    },
+    {
+      "heading": "Bring everything into one system of record.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoInner"
+    },
+    {
+      "heading": "Bring everything into one system of record.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoHeader KqyldW_bentoHeader"
+    },
+    {
+      "heading": "Bring everything into one system of record.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoTitleWrapper"
+    },
+    {
+      "heading": "Get answers, instantly—with citations.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bento QPCBRq_theme _6FCNga_theme thoEPa_theme"
+    },
+    {
+      "heading": "Get answers, instantly—with citations.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoInner"
+    },
+    {
+      "heading": "Get answers, instantly—with citations.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoHeader KqyldW_bentoHeader"
+    },
+    {
+      "heading": "Get answers, instantly—with citations.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoTitleWrapper"
+    },
+    {
+      "heading": "Keep work moving 24/7 with agents.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bento QPCBRq_theme _6FCNga_theme thoEPa_theme KqyldW_bentoWide xvimDq_layoutWide"
+    },
+    {
+      "heading": "Keep work moving 24/7 with agents.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoInner"
+    },
+    {
+      "heading": "Keep work moving 24/7 with agents.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoHeader KqyldW_bentoHeader"
+    },
+    {
+      "heading": "Keep work moving 24/7 with agents.",
+      "desc": "",
+      "link": "",
+      "classes": "xvimDq_bentoTitleWrapper"
+    }
+  ],
+  "testimonials": [
+    {
+      "quote": "Using the most AI-native tools like Notion is an important competitive advantage for us to stay small while doing a lot.",
+      "author": "Michael TruellCo-founder & CEO"
+    },
+    {
+      "quote": "Notion’s thoughtful design speeds up collaboration and decisions so we can deliver impact to our customers faster.",
+      "author": "Renee SolorzanoSr. Director of Product Design"
+    },
+    {
+      "quote": "Notion Custom Agents help our team go beyond doing work with AI to building AI tools that do the work for them.",
+      "author": "Ben LevickHead of Operations & Internal AI"
+    },
+    {
+      "quote": "We shape our tools,\nand thereafter our tools shape us.",
+      "author": "Marshall McLuhan"
+    }
+  ],
+  "stats": [
+    "G2’s #1 knowledge base for 3 consecutive years\n\n100M users in over 50 countries\n\nOver 50% of YC companies\n\n1.4M+ community members\n\n62% of Fortune 100 use Notion\n\nG2’s #1 knowledge base for 3 consecutive years\n\n100M users in over 50 countries\n\nOver 50% of YC companies\n\n1.4M+ community members\n\n62% of Fortune 100 use Notion\n\nG2’s #1 knowledge base for 3 consecutive years\n\n100M users in over 50 countries\n\nOver 50% of YC companies\n\n1.4M+ community members\n\n62% of Fortune 100 use Notion",
+    "G2’s #1 knowledge base for 3 consecutive years",
+    "100M users in over 50 countries",
+    "Over 50% of YC companies",
+    "1.4M+ community members",
+    "62% of Fortune 100 use Notion",
+    "G2’s #1 knowledge base for 3 consecutive years",
+    "100M users in over 50 countries",
+    "Over 50% of YC companies",
+    "1.4M+ community members"
+  ],
+  "footerLinks": [
+    {
+      "text": "Features",
+      "href": "/product/features"
+    },
+    {
+      "text": "What's New",
+      "href": "/releases"
+    },
+    {
+      "text": "Notion AI",
+      "href": "/product/ai"
+    },
+    {
+      "text": "Pricing",
+      "href": "/pricing"
+    },
+    {
+      "text": "Request a demo",
+      "href": "/contact-sales"
+    },
+    {
+      "text": "Download",
+      "href": "/download"
+    },
+    {
+      "text": "Explore more→",
+      "href": "/explore"
+    },
+    {
+      "text": "Customer stories",
+      "href": "/customers"
+    },
+    {
+      "text": "Connections",
+      "href": "/connections"
+    },
+    {
+      "text": "Marketplace",
+      "href": "/templates"
+    },
+    {
+      "text": "Help Center",
+      "href": "/help"
+    },
+    {
+      "text": "Academy",
+      "href": "https://academy.notion.com"
+    },
+    {
+      "text": "Community",
+      "href": "/community"
+    },
+    {
+      "text": "About us",
+      "href": "/about"
+    },
+    {
+      "text": "Careers",
+      "href": "/careers"
+    },
+    {
+      "text": "Security",
+      "href": "/security"
+    },
+    {
+      "text": "Status",
+      "href": "https://www.notion-status.com"
+    },
+    {
+      "text": "Terms & privacy",
+      "href": "https://www.notion.so/28ffdd083dc3473e9c2da6ec011b58ac"
+    },
+    {
+      "text": "Your privacy rights",
+      "href": "https://www.notion.com/trust/privacy-policy#california"
+    },
+    {
+      "text": "Enterprise",
+      "href": "/enterprise"
+    },
+    {
+      "text": "Small businesses",
+      "href": "/teams"
+    },
+    {
+      "text": "Startups",
+      "href": "/startups"
+    },
+    {
+      "text": "Developers",
+      "href": "https://developers.notion.com"
+    },
+    {
+      "text": "Explore more→",
+      "href": "/explore"
+    },
+    {
+      "text": "English (US)",
+      "href": ""
+    },
+    {
+      "text": "English (US)",
+      "href": "/en-US"
+    },
+    {
+      "text": "Bahasa Indonesia",
+      "href": "/id"
+    },
+    {
+      "text": "Dansk",
+      "href": "/da"
+    },
+    {
+      "text": "Deutsch",
+      "href": "/de"
+    },
+    {
+      "text": "English (UK)",
+      "href": "/en-GB"
+    },
+    {
+      "text": "Español (España)",
+      "href": "/es-ES"
+    },
+    {
+      "text": "Español (Latinoamérica)",
+      "href": "/es"
+    },
+    {
+      "text": "Français (France)",
+      "href": "/fr"
+    },
+    {
+      "text": "Italiano",
+      "href": "/it"
+    },
+    {
+      "text": "Nederlands",
+      "href": "/nl"
+    },
+    {
+      "text": "Norsk",
+      "href": "/nb"
+    },
+    {
+      "text": "Português (Brasil)",
+      "href": "/pt"
+    },
+    {
+      "text": "Suomi",
+      "href": "/fi"
+    },
+    {
+      "text": "Svenska",
+      "href": "/sv"
+    },
+    {
+      "text": "Tiếng Việt",
+      "href": "/vi"
+    },
+    {
+      "text": "עברית",
+      "href": "/he"
+    },
+    {
+      "text": "العربية",
+      "href": "/ar"
+    },
+    {
+      "text": "ภาษาไทย",
+      "href": "/th"
+    },
+    {
+      "text": "한국어",
+      "href": "/ko"
+    },
+    {
+      "text": "日本語",
+      "href": "/ja"
+    },
+    {
+      "text": "简体中文",
+      "href": "/zh-CN"
+    },
+    {
+      "text": "繁體中文",
+      "href": "/zh-TW"
+    },
+    {
+      "text": "Cookie settings",
+      "href": ""
+    }
+  ]
+}
